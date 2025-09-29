@@ -51,8 +51,8 @@ class RobotInterface():
 
         rotation_seconds = rotational_speed_sec_per_rot * rotation_frac
 
-        self.rotate_right()
-        # self.rotate_left()
+        # self.rotate_right()
+        self.rotate_left()
         time.sleep(rotation_seconds)
         self.stop_motion()
 
@@ -133,7 +133,8 @@ def linear_main(controller, ri):
 if __name__ == '__main__':
     controller = DynamixelController(device_name='/dev/tty.usbserial-FTAKRMAJ', motor_ids=[1, 2])
     ri = RobotInterface(controller=controller)
-    linear_main(controller, ri)
+    # linear_main(controller, ri)
+    rotational_main(controller, ri)
 
     # st = time.time()
     # ri.move_forward()

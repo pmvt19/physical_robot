@@ -5,7 +5,7 @@ import rerun as rr
 
 
 
-lidar = RPLidar('/dev/tty.usbserial-14220', baudrate=460800)
+lidar = RPLidar('/dev/tty.usbserial-14420', baudrate=460800)
 time.sleep(5)
 lidar.clean_input()
 

@@ -3,7 +3,7 @@ import numpy as np
 from rplidar import RPLidar
 import rerun as rr
 
-lidar = RPLidar('/dev/tty.usbserial-14220', baudrate=460800)
+lidar = RPLidar('/dev/tty.usbserial-14420', baudrate=460800)
 # lidar.stop()
 lidar.stop_motor()
 # lidar.disconnect()

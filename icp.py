@@ -6,7 +6,8 @@ source_pc = np.load("source_points.npy") # Moved Position
 target_pc = np.load("target_points.npy") # Map (Init Position)
 
 
-init_x, init_y, init_theta = 0, 0, 0
+# init_x, init_y, init_theta = 0, 0, 0
+init_x, init_y, init_theta = 0, 0, -np.pi/4
 init_transform = np.array([[np.cos(init_theta), -np.sin(init_theta), 0.0],
                            [np.sin(init_theta), np.cos(init_theta),  0.0],
                            [0.0,                0.0,                 1.0]])
@@ -53,7 +54,7 @@ src_points = transformed_source_pc
 
 inlier_dist_threshold = 0.05
 num_points = len(transformed_source_pc)
-for i in range(100):
+for i in range(50):
 
     kd_tree = KDTree(target_pc[:, :2])
     dists, idx = kd_tree.query(src_points[:, :2])
@@ -86,8 +87,8 @@ for i in range(100):
 
     src_points = transformed_points
 
-    plt.xlim(np.min(target_pc[:, 0])-10, np.max(target_pc[:, 0])+10)
-    plt.ylim(np.min(target_pc[:, 1])-10, np.max(target_pc[:, 1])+10)
+    plt.xlim(np.min(target_pc[:, 0])-1000, np.max(target_pc[:, 0])+1000)
+    plt.ylim(np.min(target_pc[:, 1])-1000, np.max(target_pc[:, 1])+1000)
     plt.scatter(target_pc[:, 0], target_pc[:, 1], color='red')
     plt.scatter(transformed_points[:, 0], transformed_points[:, 1], color='blue')
     plt.scatter(source_pc[:, 0], source_pc[:, 1], color='green')
