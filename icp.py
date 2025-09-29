@@ -54,7 +54,7 @@ src_points = transformed_source_pc
 
 inlier_dist_threshold = 0.05
 num_points = len(transformed_source_pc)
-for i in range(50):
+for i in range(1000):
 
     kd_tree = KDTree(target_pc[:, :2])
     dists, idx = kd_tree.query(src_points[:, :2])
@@ -68,7 +68,7 @@ for i in range(50):
         print(f"Converged After {i} iterations")
         break
 
-    print(inlier_ratio, num_inliers, num_points)
+    # print(inlier_ratio, num_inliers, num_points)
 
     idx = idx.flatten()
 
@@ -76,7 +76,8 @@ for i in range(50):
 
     T_delta = fit_rigid(src_points[:, :2], matched_tgt_points[:, :2])
 
-    cur_T = cur_T @ T_delta
+    # cur_T = cur_T @ T_delta
+    cur_T = T_delta @ cur_T
     
 
     # print(T)
@@ -87,18 +88,18 @@ for i in range(50):
 
     src_points = transformed_points
 
-    plt.xlim(np.min(target_pc[:, 0])-1000, np.max(target_pc[:, 0])+1000)
-    plt.ylim(np.min(target_pc[:, 1])-1000, np.max(target_pc[:, 1])+1000)
-    plt.scatter(target_pc[:, 0], target_pc[:, 1], color='red')
-    plt.scatter(transformed_points[:, 0], transformed_points[:, 1], color='blue')
-    plt.scatter(source_pc[:, 0], source_pc[:, 1], color='green')
+    # plt.xlim(np.min(target_pc[:, 0])-1000, np.max(target_pc[:, 0])+1000)
+    # plt.ylim(np.min(target_pc[:, 1])-1000, np.max(target_pc[:, 1])+1000)
+    # plt.scatter(target_pc[:, 0], target_pc[:, 1], color='red')
+    # plt.scatter(transformed_points[:, 0], transformed_points[:, 1], color='blue')
+    # plt.scatter(source_pc[:, 0], source_pc[:, 1], color='green')
 
-    for si, ti in enumerate(idx):
-        plt.plot([transformed_points[si, 0], target_pc[ti, 0]], [transformed_points[si, 1], target_pc[ti, 1]], color='yellow')
+    # for si, ti in enumerate(idx):
+    #     plt.plot([transformed_points[si, 0], target_pc[ti, 0]], [transformed_points[si, 1], target_pc[ti, 1]], color='yellow')
 
-    # plt.show()
-    plt.pause(0.1)
-    plt.cla()
+    # # plt.show()
+    # plt.pause(0.1)
+    # plt.cla()
 
     # T = fit_rigid(source_pc, target_pc)
 
