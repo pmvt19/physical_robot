@@ -5,6 +5,9 @@ ADDR_PRESENT_POSITION = 132
 
 ADDR_OPERATING_MODE = 11
 ADDR_GOAL_VELOCITY = 104
+ADDR_PROF_VELOCITY = 112
+ADDR_GOAL_POSITION = 116
+ADDR_PRESENT_VELOCITY = 128
 ADDR_TORQUE_ENABLE = 64
 
 TORQUE_ENABLE = 1
@@ -71,6 +74,32 @@ class DynamixelController():
         else:
             print("Operating mode set to Velocity Control.")
 
+    def set_position(self, id, position):
+        dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, id, ADDR_GOAL_POSITION, position)
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+        elif dxl_error != 0:
+            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
+        else:
+            print(f"Goal Position set to {position} RPM for motor {id}.")
+
+    def set_profile_velocity(self, id, velocity):
+        dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, id, ADDR_PROF_VELOCITY, velocity)
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+        elif dxl_error != 0:
+            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
+        else:
+            print(f"Profile Velocity set to {velocity} RPM for motor {id}.")
+
+    def get_velocity(self, id):
+        dxl_present_position, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, id, ADDR_PRESENT_VELOCITY)
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+        elif dxl_error != 0:
+            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
+        return dxl_present_position
+
     def set_velocity(self, id, velocity_rpm):
         # Example: Set goal velocity to 100 RPM (approx. 438 units)
         goal_velocity_unit = int(velocity_rpm / 0.229) # Convert RPM to DXL units
@@ -84,7 +113,7 @@ class DynamixelController():
             print(f"Goal velocity set to {velocity_rpm} RPM for motor {id}.")
 
     def get_position(self, id):
-        dxl_present_position, dxl_comm_result, dxl_error = self.packetHandler.read2ByteTxRx(self.portHandler, id, ADDR_PRESENT_POSITION)
+        dxl_present_position, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, id, ADDR_PRESENT_POSITION)
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
         elif dxl_error != 0:
