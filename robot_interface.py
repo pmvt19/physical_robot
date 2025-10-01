@@ -6,7 +6,7 @@ class RobotInterface():
     def __init__(self, controller):
         self.controller : DynamixelController = controller
 
-        self.linear_velocity = 10
+        self.linear_velocity = 20
 
         self.controller.set_torque(1, TORQUE_DISABLE)
         self.controller.set_torque(2, TORQUE_DISABLE)
@@ -19,6 +19,9 @@ class RobotInterface():
 
         self.r = 66.5 / 2
         self.L = 210
+
+        self.before_motion_positions = []
+        self.after_motion_positions = []
         
     def move_forward(self):
         self.controller.set_velocity(id=1, velocity_rpm=self.linear_velocity)
@@ -41,6 +44,8 @@ class RobotInterface():
         self.controller.set_velocity(id=2, velocity_rpm=0)
 
     def rotate_deg(self, deg=np.pi/2):
+        init_motor_pos = ri.get_motor_positions()
+
         robot_rpm = self.r * self.linear_velocity / (self.L / 2)
 
         rotation_frac = deg / (2 * np.pi)
@@ -56,18 +61,56 @@ class RobotInterface():
         time.sleep(rotation_seconds)
         self.stop_motion()
 
+        final_motor_pos = ri.get_motor_positions()
+
+        return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
+
     def move_mm(self, mm=100):
+        init_motor_pos = ri.get_motor_positions()
+
         dist_per_rev = self.r * 2 * np.pi
         required_revs = mm / dist_per_rev
 
-        print(required_revs)
-
         linear_seconds = required_revs / self.linear_velocity * 60 # RPS
 
-        # self.move_forward()
-        self.move_backward()
+        self.move_forward()
+        # self.move_backward()
         time.sleep(linear_seconds)
         self.stop_motion()
+
+        final_motor_pos = ri.get_motor_positions()
+
+        return self.compute_linear_motion(init_motor_pos, final_motor_pos)
+
+    def compute_linear_motion(self, init_mp, final_mp):
+        init_mp = np.array(init_mp)
+        final_mp = np.array(final_mp)
+        print(init_mp, final_mp)
+
+        diff = final_mp - init_mp
+
+        revs = diff / 4096
+
+        cir = np.pi * 66.5
+
+        dists = revs * cir 
+        return dists
+    
+    def compute_rotation_motion(self, init_mp, final_mp):
+        init_mp = np.array(init_mp)
+        final_mp = np.array(final_mp)
+        print(init_mp, final_mp)
+
+        motor_pos_diff = final_mp - init_mp
+
+        rev_diff = motor_pos_diff / 4096
+        # rot_diff = ri.r * rev_diff / (ri.L / 2)
+        rot_diff = 2 * ri.r * rev_diff / (ri.L)
+
+        rad_rotated = rot_diff * (2*np.pi)
+
+        return rad_rotated
+
 
     def get_motor_positions(self):
         motor_id_1_pos = self.controller.get_position(id=1)
@@ -134,8 +177,24 @@ if __name__ == '__main__':
     controller = DynamixelController(device_name='/dev/tty.usbserial-FTAKRMAJ', motor_ids=[1, 2])
     ri = RobotInterface(controller=controller)
     # linear_main(controller, ri)
-    rotational_main(controller, ri)
+    # rotational_main(controller, ri)
 
+    linear_movement_1 = ri.move_mm(200)
+    input()
+    rotation_1 = ri.rotate_deg(deg=np.pi/2)
+    input()
+    linear_movement_2 = ri.move_mm(450)
+    input()
+    rotation_2 = ri.rotate_deg(deg=np.pi/2)
+    input()
+    linear_movement_3 = ri.move_mm(200)
+    input()
+
+    print(linear_movement_1)
+    print(rotation_1)
+    print(linear_movement_2)
+    print(rotation_2)
+    print(linear_movement_3)
     # st = time.time()
     # ri.move_forward()
     # while (time.time() - st) < 5:
