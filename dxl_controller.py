@@ -54,6 +54,8 @@ class DynamixelController():
         self.id_to_name = {}
         self.name_to_id = {}
 
+        self.max_motor_position = 2**32
+
     def get_motor_ids(self):
         return self.motor_ids
     
@@ -142,22 +144,29 @@ if __name__ == '__main__':
 
     # controller.set_operating_mode(1, POSITION_CONTROL_MODE)
     # controller.set_operating_mode(2, POSITION_CONTROL_MODE)
+
+    controller.set_operating_mode(1, EXTENDED_POSITION_CONTROL_MODE)
     # exit()
-    controller.set_torque(1, TORQUE_ENABLE)
-    controller.set_torque(2, TORQUE_ENABLE)
+    # controller.set_torque(1, TORQUE_ENABLE)
+    # controller.set_torque(2, TORQUE_ENABLE)
+
+    while True:
+        print(f"Position For Motor 1: {controller.get_position(1)}")
+        time.sleep(0.1)
+    
     
 
-    speed = 15
+    # speed = 15
 
-    try: 
-        controller.set_velocity(1, speed)
-        controller.set_velocity(2, speed)
-        time.sleep(3)
-    except KeyboardInterrupt:
-        pass
+    # try: 
+    #     controller.set_velocity(1, speed)
+    #     controller.set_velocity(2, speed)
+    #     time.sleep(3)
+    # except KeyboardInterrupt:
+    #     pass
 
-    controller.set_velocity(1, 0)
-    controller.set_velocity(2, 0)
+    # controller.set_velocity(1, 0)
+    # controller.set_velocity(2, 0)
 
 
     
