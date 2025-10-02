@@ -49,8 +49,6 @@ class DynamixelController():
             print("Failed to change the baudrate!")
             quit()
 
-        # self.motor_mode = []
-
         self.id_to_name = {}
         self.name_to_id = {}
 
