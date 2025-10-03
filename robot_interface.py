@@ -117,15 +117,24 @@ class RobotInterface():
         desired_motor_pos_2 = init_motor_pos[1] - req_pulse
         print(f"Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
 
+
         self.controller.set_position(id=1, position=desired_motor_pos_1)
         self.controller.set_position(id=2, position=desired_motor_pos_2)
-        # time.sleep(5)
-        # self.set_torque(TORQUE_DISABLE)
 
         while np.sum(self.get_motor_velocity()) > 0:
             continue
         
         final_motor_pos = ri.get_motor_positions()
+
+
+        if desired_motor_pos_1 < 0:
+            print("Deflating final motor position 1")
+            final_motor_pos[0] -= self.controller.max_motor_position
+
+        if desired_motor_pos_2 < 0:
+            print("Deflating final motor position 2")
+            final_motor_pos[1] -= self.controller.max_motor_position
+
         print(f"Final Motor Positions: {final_motor_pos}")
         return self.compute_linear_motion(init_motor_pos, final_motor_pos)
     
@@ -153,6 +162,24 @@ class RobotInterface():
 
         while np.sum(self.get_motor_velocity()) > 0:
             continue
+        
+        print(f"Before Update Init: {init_motor_pos}")
+
+        if desired_motor_pos_1 < 0:
+            print("Deflating final motor position 1")
+            final_motor_pos[0] -= self.controller.max_motor_position
+            
+        if desired_motor_pos_2 < 0:
+            print("Deflating final motor position 2")
+            final_motor_pos[1] -= self.controller.max_motor_position
+        
+        print(f"After Update Init: {init_motor_pos}")
+        print(f"Data Type init: {init_motor_pos.dtype}")
+
+        desired_motor_pos_1 = desired_motor_pos_1 % self.controller.max_motor_position
+        desired_motor_pos_2 = desired_motor_pos_2 % self.controller.max_motor_position
+
+        print(f"Updated Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
 
         final_motor_pos = ri.get_motor_positions()
         print(f"Final Motor Positions: {final_motor_pos}")
@@ -165,6 +192,7 @@ class RobotInterface():
         print(init_mp, final_mp)
 
         diff = final_mp - init_mp
+        print(f"Motor Differentials: {diff}")
 
         revs = diff / 4096
 
@@ -179,6 +207,7 @@ class RobotInterface():
         print(init_mp, final_mp)
 
         motor_pos_diff = final_mp - init_mp
+        print(f"Motor Differentials: {motor_pos_diff}")
 
         rev_diff = motor_pos_diff / 4096
         # rot_diff = ri.r * rev_diff / (ri.L / 2)
@@ -192,17 +221,59 @@ class RobotInterface():
     def get_motor_positions(self):
         motor_id_1_pos = self.controller.get_position(id=1)
         motor_id_2_pos = self.controller.get_position(id=2)
-        return np.array([motor_id_1_pos, motor_id_2_pos])
+        # return np.array([motor_id_1_pos, motor_id_2_pos], dtype=np.uint64)
+        return np.array([motor_id_1_pos, motor_id_2_pos], dtype=np.int64)
 
 
 
     # Wheel Diameter (r) is 66.5 mm
     # Wheel Base (L) is 105*2 mm = 210 mm
 
-    def predict_state(self, state, motion, motion_type='linear'):
-        motion = np.abs(motion) # This should be directional and not a magnitude
-        # avg_motion = np.mean(motion)
-        avg_motion = np.min(motion)
+    # def predict_state(self, state, motion, motion_type='linear'):
+    #     motion = np.abs(motion) # This should be directional and not a magnitude
+    #     # avg_motion = np.mean(motion)
+    #     avg_motion = np.min(motion)
+
+    #     x, y, theta = state
+
+    #     if motion_type == 'linear':
+
+    #         direction_vector = np.array([np.cos(theta), np.sin(theta), 0.0])
+    #         dx_state = direction_vector * avg_motion
+    #         updated_state = state + dx_state
+
+    #     elif motion_type == 'angular':
+    #         dx_state = np.array([0.0, 0.0, avg_motion])
+    #         updated_state = state + dx_state
+    #     else:
+    #         raise NotImplementedError
+
+    #     return updated_state
+
+    def predict_state(self, state, motor_position_differential):
+        signs = np.sign(motor_position_differential)
+
+        
+        abs_motion = np.abs(motor_position_differential)
+        if signs[0] == -1 and signs[1] == -1:
+            # Turn In-Place Left
+            avg_motion = np.mean(abs_motion)
+            motion_type = 'angular'
+        elif signs[0] == 1 and signs[1] == 1:
+            # Turn In-Place Right
+            avg_motion = -1 * np.mean(abs_motion)
+            motion_type = 'angular'
+        elif signs[0] == 1 and signs[1] == -1:
+            # Forward
+            avg_motion = np.mean(abs_motion)
+            motion_type = 'linear'
+        elif signs[0] == -1 and signs[1] == 1:
+            # Backward?
+            avg_motion = -1 * np.mean(abs_motion)
+            motion_type = 'linear'
+        else:
+            print("Ensure the U2D2 PowerBoard is On")
+            raise NotImplementedError
 
         x, y, theta = state
 
@@ -303,22 +374,45 @@ if __name__ == '__main__':
     # print(move)
 
     # Testing Motion and Predicted State
+    # ri.set_profile_velocity()
+    # state = np.array([0.0, 0.0, 0.0])
+    # print(f"State: {state}")
+    # m1 = ri.move_dist(300)
+    # print(f"Motion: {m1}")
+    # state = ri.predict_state(state, m1, 'linear')
+    # print(f"State: {state}")
+    # m2 = ri.rotate_rad(np.pi/4)
+    # print(f"Motion: {m2}")
+    # state = ri.predict_state(state, m2, 'angular')
+    # print(f"State: {state}")
+    # m3 = ri.move_dist(400)
+    # print(f"Motion: {m3}")
+    # state = ri.predict_state(state, m3, 'linear')
+    # print(f"State: {state}")
+
+    # Test Backwards Movement and CCW Turns
     ri.set_profile_velocity()
     state = np.array([0.0, 0.0, 0.0])
     print(f"State: {state}")
-    m1 = ri.move_dist(300)
+    m1 = ri.move_dist(200)
     print(f"Motion: {m1}")
-    state = ri.predict_state(state, m1, 'linear')
+    state = ri.predict_state(state, m1)
     print(f"State: {state}")
-    m2 = ri.rotate_rad(np.pi/4)
+    m2 = ri.rotate_rad(-np.pi/4)
+    # m2 = ri.move_dist(-200)
     print(f"Motion: {m2}")
-    state = ri.predict_state(state, m2, 'angular')
+    state = ri.predict_state(state, m2)
     print(f"State: {state}")
-    m3 = ri.move_dist(400)
+    m3 = ri.move_dist(200)
     print(f"Motion: {m3}")
-    state = ri.predict_state(state, m3, 'linear')
+    state = ri.predict_state(state, m3)
+    print(f"State: {state}")
+    m4 = ri.rotate_rad(np.pi/4)
+    print(f"Motion: {m4}")
+    state = ri.predict_state(state, m4)
     print(f"State: {state}")
 
+    print("Final State", np.round(state, 2))
 
     # st = time.time()
     # ri.move_forward()
