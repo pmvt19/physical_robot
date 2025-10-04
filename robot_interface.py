@@ -1,6 +1,9 @@
 from dxl_controller import *
 import numpy as np
 import time
+from utils import register_logger
+
+logger = register_logger(logger_name=__name__, log_filename='robot_interface', level=logging.DEBUG)
 
 class RobotInterface():
     def __init__(self, controller):
@@ -63,7 +66,7 @@ class RobotInterface():
         self.controller.set_velocity(id=2, velocity_rpm=0)
 
     def rotate_deg(self, deg=np.pi/2):
-        init_motor_pos = ri.get_motor_positions()
+        init_motor_pos = self.get_motor_positions()
 
         robot_rpm = self.r * self.linear_velocity / (self.L / 2)
 
@@ -80,12 +83,12 @@ class RobotInterface():
         time.sleep(rotation_seconds)
         self.stop_motion()
 
-        final_motor_pos = ri.get_motor_positions()
+        final_motor_pos = self.get_motor_positions()
 
         return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
 
     def move_mm(self, mm=100):
-        init_motor_pos = ri.get_motor_positions()
+        init_motor_pos = self.get_motor_positions()
 
         dist_per_rev = self.r * 2 * np.pi
         required_revs = mm / dist_per_rev
@@ -97,15 +100,16 @@ class RobotInterface():
         time.sleep(linear_seconds)
         self.stop_motion()
 
-        final_motor_pos = ri.get_motor_positions()
+        final_motor_pos = self.get_motor_positions()
 
         return self.compute_linear_motion(init_motor_pos, final_motor_pos)
     
     def move_dist(self, mm=100):
         self.set_torque(TORQUE_DISABLE)
-        init_motor_pos = ri.get_motor_positions()
+        init_motor_pos = self.get_motor_positions()
         self.set_torque(TORQUE_ENABLE)
         print(f"Initial Motor Positions: {init_motor_pos}")
+        logger.debug(f"Initial Motor Positions: {init_motor_pos}")
 
         cir = self.r * 2 * np.pi
 
@@ -124,7 +128,7 @@ class RobotInterface():
         while np.sum(self.get_motor_velocity()) > 0:
             continue
         
-        final_motor_pos = ri.get_motor_positions()
+        final_motor_pos = self.get_motor_positions()
 
 
         if desired_motor_pos_1 < 0:
@@ -139,7 +143,7 @@ class RobotInterface():
         return self.compute_linear_motion(init_motor_pos, final_motor_pos)
     
     def rotate_rad(self, rad=np.pi/2):
-        init_motor_pos = ri.get_motor_positions()
+        init_motor_pos = self.get_motor_positions()
         print(f"Initial Motor Positions: {init_motor_pos}")
 
         cir = self.r * 2 * np.pi
@@ -181,7 +185,7 @@ class RobotInterface():
 
         print(f"Updated Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
 
-        final_motor_pos = ri.get_motor_positions()
+        final_motor_pos = self.get_motor_positions()
         print(f"Final Motor Positions: {final_motor_pos}")
         return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
     
@@ -211,7 +215,7 @@ class RobotInterface():
 
         rev_diff = motor_pos_diff / 4096
         # rot_diff = ri.r * rev_diff / (ri.L / 2)
-        rot_diff = 2 * ri.r * rev_diff / (ri.L)
+        rot_diff = 2 * self.r * rev_diff / (self.L)
 
         rad_rotated = rot_diff * (2*np.pi)
 
