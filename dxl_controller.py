@@ -11,7 +11,7 @@ from utils import register_logger
 # handler.setFormatter(formatter)
 # logger.addHandler(handler)
 
-logger = register_logger(logger_name=__name__, log_filename='dxl_controller', level=logging.INFO)
+logger = register_logger(logger_name=__name__, log_filename='dxl_controller', level=logging.INFO, std_err=False)
 
 
 ADDR_OPERATING_MODE = 11
@@ -119,7 +119,7 @@ class DynamixelController():
         
         status_ok = self.check_ok(dxl_comm_result, dxl_error)
         if status_ok:
-            logger.info(f"Present Velocity for motor {id}: {dxl_present_velocity}")
+            logger.debug(f"Present Velocity for motor {id}: {dxl_present_velocity}")
             return dxl_present_velocity
 
 
