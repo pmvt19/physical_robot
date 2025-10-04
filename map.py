@@ -40,15 +40,19 @@ implemented later.
 """
 class Map():
     def __init__(self):
-        resolution = 1.0 #mm
-        resolution = 10.0 #mm
+        # self.resolution = 1.0 #mm
+        self.resolution = 10.0 #mm
 
         # map size
-
         map_size_literal = np.array([7000.0, 7000.0]) # [-3499, 3499]
-        map_size_discretized = map_size_literal / resolution
-
+        map_size_discretized = (map_size_literal // self.resolution).astype(np.int32)
+        print(f"Map Size Discritized Size: {map_size_discretized}")
         self.map = np.zeros(map_size_discretized)
+
+        self.mx = self.map.shape[0] // 2
+        self.my = self.map.shape[1] // 2
+
+        print(f"Origin: {(self.mx, self.my)}")
 
     def int_points_to_idxes(self, points):
         """
@@ -57,6 +61,40 @@ class Map():
         # TODO: Implement this
         return points # (N, 2)
     
+    def world_to_grid_coords(self, coords):
+        ## Division Needed
+        x, y = coords
+        x = int(x / self.resolution)
+        y = int(y / self.resolution)
+        new_x = x + self.mx
+        new_y = y + self.my
+
+        return np.array([new_x, new_y])
+
+    def batch_world_to_grid_coords(self, coords):
+        grid_coords = np.copy(coords)
+        grid_coords = grid_coords / self.resolution
+        grid_coords = grid_coords.astype(np.int32)
+        grid_coords[:, 0] += self.mx
+        grid_coords[:, 1] += self.my
+        return grid_coords
+
+    def grid_to_approx_world_coords(self, coords):
+        ## Division Needed
+        gx, gy = coords
+        
+        new_x = (gx - self.mx) * self.resolution
+        new_y = (gy - self.my) * self.resolution
+
+        return np.array([new_x, new_y])
+    
+    def batch_grid_to_approx_world_coords(self, coords):
+        world_coords = np.copy(coords)
+        world_coords[:, 0] -= self.mx
+        world_coords[:, 1] -= self.my
+        world_coords = world_coords * self.resolution
+        return world_coords
+
     def update(self, scan, predicted_state):
         pass
     
@@ -74,3 +112,9 @@ class Map():
     def visualize(self, ax):
         ax.imshow(self.map)
 
+
+if __name__ == '__main__':
+    mymap = Map()
+
+    # print(mymap.world_to_grid_coords((-511, -500)))
+    print(mymap.grid_to_approx_world_coords(mymap.world_to_grid_coords((-500, -500))))
