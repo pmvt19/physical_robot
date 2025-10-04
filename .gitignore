@@ -1,2 +1,6 @@
 __pycache__/
 .DS_Store
+data/lidar_data
+data/slam_data
+data/slam_run_1
+logs/
