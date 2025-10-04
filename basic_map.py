@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from new_icp import run_icp
+from icp import run_icp
 
 class BasicMap():
     def __init__(self, initial_scan):
