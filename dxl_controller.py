@@ -1,6 +1,19 @@
 from dynamixel_sdk import * # Uses DYNAMIXEL SDK library
 import time
 
+import logging
+from utils import register_logger
+
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.INFO)
+# handler = logging.FileHandler("logs/dxl_controller.log")
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
+
+logger = register_logger(logger_name=__name__, log_filename='dxl_controller', level=logging.INFO)
+
+
 ADDR_OPERATING_MODE = 11
 
 ADDR_TORQUE_ENABLE = 64
@@ -38,15 +51,19 @@ class DynamixelController():
         # Open port
         if self.portHandler.openPort():
             print("Succeeded to open the port!")
+            logger.info("Succeeded to open the port!")
         else:
             print("Failed to open the port!")
+            logger.error("Failed to open the port!")
             quit()
 
         # Set port baudrate
         if self.portHandler.setBaudRate(BAUDRATE):
             print("Succeeded to change the baudrate!")
+            logger.info("Succeeded to change the baudrate!")
         else:
             print("Failed to change the baudrate!")
+            logger.error("Failed to change the baudrate!")
             quit()
 
         self.id_to_name = {}
@@ -66,69 +83,70 @@ class DynamixelController():
     def get_operating_mode(self, id):
         pass
 
+    def check_ok(self, dxl_comm_result, dxl_error):
+        if dxl_comm_result != COMM_SUCCESS:
+            logger.error("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+            return False
+        elif dxl_error != 0:
+            logger.error("%s" % self.packetHandler.getRxPacketError(dxl_error))
+            return False
+        else:
+            return True
+        
     def set_operating_mode(self, id, mode=VELOCITY_CONTROL_MODE):
         dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler, id, ADDR_OPERATING_MODE, mode)
-        if dxl_comm_result != COMM_SUCCESS:
-            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
-        elif dxl_error != 0:
-            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
-        else:
-            print("Operating mode set to Velocity Control.")
+
+        status_ok = self.check_ok(dxl_comm_result, dxl_error)
+        if status_ok:
+            logger.info(f"Operating Mode Set to {mode}")
 
     def set_position(self, id, position):
         dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, id, ADDR_GOAL_POSITION, position)
-        if dxl_comm_result != COMM_SUCCESS:
-            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
-        elif dxl_error != 0:
-            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
-        else:
-            print(f"Goal Position set to {position} RPM for motor {id}.")
+        
+        status_ok = self.check_ok(dxl_comm_result, dxl_error)
+        if status_ok:
+            logger.info(f"Goal Position set to {position} for motor {id}")
 
     def set_profile_velocity(self, id, velocity):
         dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, id, ADDR_PROF_VELOCITY, velocity)
-        if dxl_comm_result != COMM_SUCCESS:
-            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
-        elif dxl_error != 0:
-            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
-        else:
-            print(f"Profile Velocity set to {velocity} RPM for motor {id}.")
+
+        status_ok = self.check_ok(dxl_comm_result, dxl_error)
+        if status_ok:
+            logger.info(f"Profile Velocity set to {velocity} RPM for motor {id}.")
 
     def get_velocity(self, id):
-        dxl_present_position, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, id, ADDR_PRESENT_VELOCITY)
-        if dxl_comm_result != COMM_SUCCESS:
-            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
-        elif dxl_error != 0:
-            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
-        return dxl_present_position
+        dxl_present_velocity, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, id, ADDR_PRESENT_VELOCITY)
+        
+        status_ok = self.check_ok(dxl_comm_result, dxl_error)
+        if status_ok:
+            logger.info(f"Present Velocity for motor {id}: {dxl_present_velocity}")
+            return dxl_present_velocity
+
 
     def set_velocity(self, id, velocity_rpm):
         # Example: Set goal velocity to 100 RPM (approx. 438 units)
         goal_velocity_unit = int(velocity_rpm / 0.229) # Convert RPM to DXL units
 
         dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, id, ADDR_GOAL_VELOCITY, goal_velocity_unit)
-        if dxl_comm_result != COMM_SUCCESS:
-            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
-        elif dxl_error != 0:
-            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
-        else:
-            print(f"Goal velocity set to {velocity_rpm} RPM for motor {id}.")
+
+        status_ok = self.check_ok(dxl_comm_result, dxl_error)
+        if status_ok:
+            logger.info(f"Goal velocity set to {velocity_rpm} RPM for motor {id}.")
 
     def get_position(self, id):
         dxl_present_position, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, id, ADDR_PRESENT_POSITION)
-        if dxl_comm_result != COMM_SUCCESS:
-            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
-        elif dxl_error != 0:
-            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
+
+        status_ok = self.check_ok(dxl_comm_result, dxl_error)
+        if status_ok:
+            logger.info(f"Present Position for Motor {id}: {dxl_present_position}")
         return dxl_present_position
 
     def set_torque(self, id, value=TORQUE_DISABLE):
         dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler, id, ADDR_TORQUE_ENABLE, value)
-        if dxl_comm_result != COMM_SUCCESS:
-            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
-        elif dxl_error != 0:
-            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
-        else:
-            print("Dynamixel has been successfully connected")
+
+        status_ok = self.check_ok(dxl_comm_result, dxl_error)
+        if status_ok:
+            logger.info(f"Motor {id} Torque set to {value}")
 
     
 if __name__ == '__main__':
