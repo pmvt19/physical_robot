@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 map_size = (100, 100)
 res = 0.1
@@ -39,12 +40,15 @@ There should be a more advanced map that will compute the probability of free sp
 implemented later.
 """
 class Map():
-    def __init__(self):
+    def __init__(self, resolution=10.0):
         # self.resolution = 1.0 #mm
-        self.resolution = 10.0 #mm
+        # self.resolution = 10.0 #mm
+        self.resolution = resolution
 
         # map size
-        map_size_literal = np.array([7000.0, 7000.0]) # [-3499, 3499]
+        # map_size_literal = np.array([70000.0, 70000.0]) # [-3499, 3499]
+        # map_size_literal = np.array([7000.0, 7000.0]) # [-3499, 3499]
+        map_size_literal = np.array([9200.0, 9200.0]) # [-3499, 3499]
         map_size_discretized = (map_size_literal // self.resolution).astype(np.int32)
         print(f"Map Size Discritized Size: {map_size_discretized}")
         self.map = np.zeros(map_size_discretized)
@@ -99,8 +103,7 @@ class Map():
         pass
     
     def update_map(self, aligned_scan):
-        aligned_scan_int = aligned_scan.astype(np.int32)
-        idxes = self.int_points_to_idxes(aligned_scan_int)
+        idxes = self.batch_world_to_grid_coords(aligned_scan)
         self.map[idxes[:, 0], idxes[:, 1]] = 1
     
     def get_points(self):
@@ -110,7 +113,7 @@ class Map():
         return idxes
     
     def visualize(self, ax):
-        ax.imshow(self.map)
+        ax.imshow((self.map)*255)
 
 
 if __name__ == '__main__':
@@ -118,3 +121,13 @@ if __name__ == '__main__':
 
     # print(mymap.world_to_grid_coords((-511, -500)))
     print(mymap.grid_to_approx_world_coords(mymap.world_to_grid_coords((-500, -500))))
+
+    points = np.load('data/new_slam_data/scene_1.npy')
+
+    # print(2*np.max(np.abs(points[:, 0])))
+    # print(2*np.max(np.abs(points[:, 1])))
+
+    mymap.update_map(points)
+    mymap.visualize(ax=plt.gca())
+    plt.show()
+    
