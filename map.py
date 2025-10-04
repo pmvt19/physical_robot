@@ -31,3 +31,46 @@ om = np.zeros((int(map_size[0]/res), int(map_size[1]/res)))
 
 
 
+
+"""
+This map interface should be similar to the occupancy grid in the motion planning codebase. 
+
+There should be a more advanced map that will compute the probability of free space. This will be 
+implemented later.
+"""
+class Map():
+    def __init__(self):
+        resolution = 1.0 #mm
+        resolution = 10.0 #mm
+
+        # map size
+
+        map_size_literal = np.array([7000.0, 7000.0]) # [-3499, 3499]
+        map_size_discretized = map_size_literal / resolution
+
+        self.map = np.zeros(map_size_discretized)
+
+    def int_points_to_idxes(self, points):
+        """
+        Scales points to idxes of the map
+        """
+        # TODO: Implement this
+        return points # (N, 2)
+    
+    def update(self, scan, predicted_state):
+        pass
+    
+    def update_map(self, aligned_scan):
+        aligned_scan_int = aligned_scan.astype(np.int32)
+        idxes = self.int_points_to_idxes(aligned_scan_int)
+        self.map[idxes[:, 0], idxes[:, 1]] = 1
+    
+    def get_points(self):
+        # Should scale
+        idxes = np.where(self.map == 1)
+        # TODO: Fix the returnable result
+        return idxes
+    
+    def visualize(self, ax):
+        ax.imshow(self.map)
+
