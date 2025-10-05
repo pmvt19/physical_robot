@@ -35,7 +35,7 @@ def fit_rigid(src, tgt):
     T[:2, 2] = d
     return T
 
-def run_icp(source_pc, target_pc, predicted_state, visualize=False):
+def run_icp(source_pc, target_pc, predicted_state, filter_init_outliers=True, visualize=False):
 
     cur_T = get_init_transformation_matrix(predicted_state)
     print("Original T")
@@ -55,6 +55,14 @@ def run_icp(source_pc, target_pc, predicted_state, visualize=False):
         plt.show()
 
     src_points = transformed_source_pc
+
+    if filter_init_outliers:
+        kd_tree = KDTree(target_pc[:, :2])
+        dists, idx = kd_tree.query(src_points[:, :2])
+        dists = dists.flatten()
+        init_inlier_dist_threshold = 200
+        init_inlier_masks = dists < init_inlier_dist_threshold
+        src_points = src_points[init_inlier_masks]
 
 
     inlier_dist_threshold = 100
@@ -186,3 +194,10 @@ def run_single_icp(source_pc, target_pc, init_T, num_iter=15, inlier_dist_thresh
             plt.pause(0.1)
             plt.cla()
     
+
+if __name__ == '__main__':
+    # state = np.array([399.90361422, 0, 0])
+    state = np.array([299.90361422, 0, np.deg2rad(2)])
+    tgt = np.load('data/parking_scene/scan_0.npy')
+    src = np.load('data/parking_scene/scan_1.npy')
+    run_icp(src, tgt, state, filter_init_outliers=True, visualize=True)
