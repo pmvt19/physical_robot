@@ -6,6 +6,7 @@ from multiprocessing import Process, Manager
 from run_lidar import start_lidar
 
 import time
+import redis
 
 import rerun as rr
 
@@ -19,13 +20,8 @@ class Robot():
         # Initialize Current State (Starts at [x=0.0, y=0.0, theta=0.0])
         self.state = np.array([0.0, 0.0, 0.0])
 
-        # self.lidar_fp = 'lidar_data/scan.npy'
-
         self.lidar_data = lidar_data
-
-
-
-
+        self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
     def move(self, control, dt):
         # Ideally, control should be u=[vl,vr]
@@ -35,10 +31,10 @@ class Robot():
         pass
 
     def read_lidar(self):
-        # lidar_data = np.load(self.lidar_fp)
-
-        lidar_data = self.lidar_data['lidar']
-        # return lidar_data
+        if self.lidar_data:
+            lidar_data = self.lidar_data['lidar']
+        else:
+            lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
 
         angles = lidar_data[:, 0]
         dist = lidar_data[:, 1]
@@ -49,9 +45,11 @@ class Robot():
         sin = np.sin(rad_angles)
 
         x_coords = dist * cos
-        y_coords = dist * sin
-        z_coords = np.zeros_like(x_coords)
+        y_coords = -dist * sin
+        # z_coords = np.zeros_like(x_coords)
+        z_coords = np.ones_like(x_coords)
         coords = np.stack((x_coords, y_coords, z_coords), axis=1)
+        # coords = np.stack((x_coords, y_coords), axis=1)
 
         return coords
     
