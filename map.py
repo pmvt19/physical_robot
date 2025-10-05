@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from icp import run_icp
 
-map_size = (100, 100)
-res = 0.1
+# map_size = (100, 100)
+# res = 0.1
 
-om = np.zeros((int(map_size[0]/res), int(map_size[1]/res)))
+# om = np.zeros((int(map_size[0]/res), int(map_size[1]/res)))
 
 # Robot Algorithm Outline
 
@@ -40,15 +41,11 @@ There should be a more advanced map that will compute the probability of free sp
 implemented later.
 """
 class Map():
-    def __init__(self, resolution=10.0):
-        # self.resolution = 1.0 #mm
-        # self.resolution = 10.0 #mm
+    def __init__(self, initial_scan, resolution=50.0, origin=(45, 92)):
         self.resolution = resolution
 
         # map size
-        # map_size_literal = np.array([70000.0, 70000.0]) # [-3499, 3499]
-        # map_size_literal = np.array([7000.0, 7000.0]) # [-3499, 3499]
-        map_size_literal = np.array([9200.0, 9200.0]) # [-3499, 3499]
+        map_size_literal = np.array([12000.0, 12000.0]) # TODO: Figure out how to compute this value
         map_size_discretized = (map_size_literal // self.resolution).astype(np.int32)
         print(f"Map Size Discritized Size: {map_size_discretized}")
         self.map = np.zeros(map_size_discretized)
@@ -58,12 +55,11 @@ class Map():
 
         print(f"Origin: {(self.mx, self.my)}")
 
-    def int_points_to_idxes(self, points):
-        """
-        Scales points to idxes of the map
-        """
-        # TODO: Implement this
-        return points # (N, 2)
+        # if origin:
+        #     self.mx = origin[0]
+        #     self.my = origin[1]
+
+        self.update_map(initial_scan)
     
     def world_to_grid_coords(self, coords):
         ## Division Needed
@@ -100,20 +96,30 @@ class Map():
         return world_coords
 
     def update(self, scan, predicted_state):
-        pass
+        T = run_icp(scan, self.get_points(), predicted_state, visualize=True)
+        updated_theta = np.arccos(T[0, 0])
+
+        updated_x = T[0, 2]
+        updated_y = T[1, 2]
+
+        aligned_scan = (T@scan.T).T
+
+        self.update_map(aligned_scan)
+        return np.array([updated_x, updated_y, updated_theta])
     
     def update_map(self, aligned_scan):
         idxes = self.batch_world_to_grid_coords(aligned_scan)
         self.map[idxes[:, 0], idxes[:, 1]] = 1
     
     def get_points(self):
-        # Should scale
         idxes = np.where(self.map == 1)
-        # TODO: Fix the returnable result
-        return idxes
+        xs, ys = idxes
+        pc_idxes = np.stack((xs, ys), axis=1)
+        pc_coords = self.batch_grid_to_approx_world_coords(pc_idxes)
+        return pc_coords
     
     def visualize(self, ax):
-        ax.imshow((self.map)*255)
+        ax.imshow((np.rot90(self.map[::, ::-1]))*255)
 
 
 if __name__ == '__main__':
@@ -123,9 +129,6 @@ if __name__ == '__main__':
     print(mymap.grid_to_approx_world_coords(mymap.world_to_grid_coords((-500, -500))))
 
     points = np.load('data/new_slam_data/scene_1.npy')
-
-    # print(2*np.max(np.abs(points[:, 0])))
-    # print(2*np.max(np.abs(points[:, 1])))
 
     mymap.update_map(points)
     mymap.visualize(ax=plt.gca())
