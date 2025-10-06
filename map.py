@@ -122,6 +122,11 @@ class Map():
     
     def compute_close_cells(line_segments):
         # Batch to Line Segments dists
+        # dists = line_segs_to_points_dists(line_segments, self.grid_centers (flattened...)) # Use Gemini to get this
+        # dists.reshape # Need make sure we are reshaping correctly 
+        # - Mainly, not sure if meshgrid reshaping will order the points correctly
+        # mask = dists < (resolution * math.sqrt(2))
+        # return mask??
 
         # Return mask of what cells need to be updated
         raise NotImplementedError
@@ -145,7 +150,7 @@ class Map():
         pc_coords = self.batch_grid_to_approx_world_coords(pc_idxes)
         return pc_coords
     
-    def inflate_obstacles(self, kernel_size=5):
+    def inflate_obstacles(self, kernel_size=3):
         kernel = np.ones((kernel_size, kernel_size))
         kernel[kernel_size//2, kernel_size//2] = 0
 
@@ -177,7 +182,7 @@ if __name__ == '__main__':
     # print(mymap.grid_to_approx_world_coords(mymap.world_to_grid_coords((-500, -500))))
 
     mymap.update_map(points)
-    # mymap.inflate_obstacles()
+    mymap.inflate_obstacles()
     mymap.visualize(ax=plt.gca())
     mymap.draw_state(plt.gca(), [40.0, 0.0, 0.0])
     plt.show()
