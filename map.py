@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from icp import run_icp
 from scipy.signal import convolve2d
+from shapely import Point
+
+from robot import Robot
 
 
 # map_size = (100, 100)
@@ -63,18 +66,14 @@ class Map():
 
         self.update_map(initial_scan)
 
+        ## --- Computing Grid Centers --- ##
         x_idxes = np.arange(self.map.shape[0])
         y_idxes = np.arange(self.map.shape[1])
 
-        idxes = np.stack((x_idxes, y_idxes), axis=1)
         xs, ys = np.meshgrid(x_idxes, y_idxes)
-        # print(xs.shape, ys.shape)
         all_idxes = np.stack((xs.flatten(), ys.flatten()), axis=1)
-        # print(all_idxes)
-
-        # print(self.batch_grid_to_approx_world_coords(idxes))
-        self.grid_centers = self.batch_grid_to_approx_world_coords(all_idxes)
-        print(self.grid_centers.shape)
+        self.grid_centers = self.batch_grid_to_approx_world_coords(all_idxes) + (self.resolution / 2)
+        ## --- Computing Grid Centers --- ##
     
     def world_to_grid_coords(self, coords):
         ## Division Needed
@@ -121,6 +120,20 @@ class Map():
         self.update_map(aligned_scan)
         return np.array([updated_x, updated_y, updated_theta])
     
+    def compute_close_cells(line_segments):
+        # Batch to Line Segments dists
+
+        # Return mask of what cells need to be updated
+        raise NotImplementedError
+    
+    def set_known_clear(self, aligned_scan, updated_state):
+        x, y = updated_state
+        s_state = np.array([x, y]).reshape(-1, 1)
+        repeated_state = np.repeat(s_state, len(aligned_scan), axis=1)
+        line_segments = np.hstack((repeated_state, aligned_scan))
+        dist_mask = self.compute_close_cells(line_segments)
+        self.map[dist_mask] = 0.0
+
     def update_map(self, aligned_scan):
         idxes = self.batch_world_to_grid_coords(aligned_scan)
         self.map[idxes[:, 0], idxes[:, 1]] = 1
@@ -141,15 +154,19 @@ class Map():
 
         # Where neighbor_mask > 0 (adjacent to a 1) and current value != 1
         self.map[(neighbor_mask > 0) & (self.map != 1)] = 0.7
+
+    def draw_state(self, ax, state):
+        x, y, theta = state
+        x, y = x / self.resolution + self.mx, y / self.resolution + self.my
+        robot_radius = (227 / 2) * 0.9
+        robot_outline = Point([x, y]).buffer(robot_radius/self.resolution)
+        ax.fill(*robot_outline.exterior.xy, color='blue', alpha=0.3)
     
     def visualize(self, ax):
         ax.imshow((np.rot90(self.map[::, ::]))*255)
 
 
 if __name__ == '__main__':
-    # print(mymap.world_to_grid_coords((-511, -500)))
-    # print(mymap.grid_to_approx_world_coords(mymap.world_to_grid_coords((-500, -500))))
-
     points = np.load('data/new_slam_data/scene_1.npy')
     mymap = Map(initial_scan=points)
 
@@ -157,7 +174,8 @@ if __name__ == '__main__':
     # print(mymap.grid_to_approx_world_coords(mymap.world_to_grid_coords((-500, -500))))
 
     mymap.update_map(points)
-    mymap.inflate_obstacles()
+    # mymap.inflate_obstacles()
     mymap.visualize(ax=plt.gca())
+    mymap.draw_state(plt.gca(), [40.0, 0.0, 0.0])
     plt.show()
     
