@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from icp import run_icp
+from scipy.signal import convolve2d
+
 
 # map_size = (100, 100)
 # res = 0.1
@@ -41,7 +43,7 @@ There should be a more advanced map that will compute the probability of free sp
 implemented later.
 """
 class Map():
-    def __init__(self, initial_scan, resolution=50.0, origin=(45, 92)):
+    def __init__(self, initial_scan, resolution=10.0, origin=(45, 92)):
         self.resolution = resolution
 
         # map size
@@ -60,6 +62,19 @@ class Map():
         #     self.my = origin[1]
 
         self.update_map(initial_scan)
+
+        x_idxes = np.arange(self.map.shape[0])
+        y_idxes = np.arange(self.map.shape[1])
+
+        idxes = np.stack((x_idxes, y_idxes), axis=1)
+        xs, ys = np.meshgrid(x_idxes, y_idxes)
+        # print(xs.shape, ys.shape)
+        all_idxes = np.stack((xs.flatten(), ys.flatten()), axis=1)
+        # print(all_idxes)
+
+        # print(self.batch_grid_to_approx_world_coords(idxes))
+        self.grid_centers = self.batch_grid_to_approx_world_coords(all_idxes)
+        print(self.grid_centers.shape)
     
     def world_to_grid_coords(self, coords):
         ## Division Needed
@@ -80,7 +95,6 @@ class Map():
         return grid_coords
 
     def grid_to_approx_world_coords(self, coords):
-        ## Division Needed
         gx, gy = coords
         
         new_x = (gx - self.mx) * self.resolution
@@ -96,7 +110,7 @@ class Map():
         return world_coords
 
     def update(self, scan, predicted_state):
-        T = run_icp(scan, self.get_points(), predicted_state, visualize=True)
+        T = run_icp(scan, self.get_points(), predicted_state, visualize=False)
         updated_theta = np.arccos(T[0, 0])
 
         updated_x = T[0, 2]
@@ -118,19 +132,32 @@ class Map():
         pc_coords = self.batch_grid_to_approx_world_coords(pc_idxes)
         return pc_coords
     
+    def inflate_obstacles(self, kernel_size=5):
+        kernel = np.ones((kernel_size, kernel_size))
+        kernel[kernel_size//2, kernel_size//2] = 0
+
+        # Convolve: counts neighbors of "1"s
+        neighbor_mask = convolve2d((self.map == 1).astype(int), kernel, mode="same", boundary="fill", fillvalue=0)
+
+        # Where neighbor_mask > 0 (adjacent to a 1) and current value != 1
+        self.map[(neighbor_mask > 0) & (self.map != 1)] = 0.7
+    
     def visualize(self, ax):
-        ax.imshow((np.rot90(self.map[::, ::-1]))*255)
+        ax.imshow((np.rot90(self.map[::, ::]))*255)
 
 
 if __name__ == '__main__':
-    mymap = Map()
-
     # print(mymap.world_to_grid_coords((-511, -500)))
-    print(mymap.grid_to_approx_world_coords(mymap.world_to_grid_coords((-500, -500))))
+    # print(mymap.grid_to_approx_world_coords(mymap.world_to_grid_coords((-500, -500))))
 
     points = np.load('data/new_slam_data/scene_1.npy')
+    mymap = Map(initial_scan=points)
+
+    # print(mymap.world_to_grid_coords((-511, -500)))
+    # print(mymap.grid_to_approx_world_coords(mymap.world_to_grid_coords((-500, -500))))
 
     mymap.update_map(points)
+    mymap.inflate_obstacles()
     mymap.visualize(ax=plt.gca())
     plt.show()
     
