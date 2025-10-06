@@ -161,6 +161,9 @@ class Map():
         robot_radius = (227 / 2) * 0.9
         robot_outline = Point([x, y]).buffer(robot_radius/self.resolution)
         ax.fill(*robot_outline.exterior.xy, color='blue', alpha=0.3)
+
+    def expand_map(self):
+        raise NotImplementedError
     
     def visualize(self, ax):
         ax.imshow((np.rot90(self.map[::, ::]))*255)
