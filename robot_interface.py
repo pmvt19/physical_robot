@@ -168,7 +168,7 @@ class RobotInterface():
             continue
         
         print(f"Before Update Init: {init_motor_pos}")
-
+        final_motor_pos = self.get_motor_positions()
         if desired_motor_pos_1 < 0:
             print("Deflating final motor position 1")
             final_motor_pos[0] -= self.controller.max_motor_position
@@ -179,13 +179,7 @@ class RobotInterface():
         
         print(f"After Update Init: {init_motor_pos}")
         print(f"Data Type init: {init_motor_pos.dtype}")
-
-        desired_motor_pos_1 = desired_motor_pos_1 % self.controller.max_motor_position
-        desired_motor_pos_2 = desired_motor_pos_2 % self.controller.max_motor_position
-
-        print(f"Updated Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
-
-        final_motor_pos = self.get_motor_positions()
+        
         print(f"Final Motor Positions: {final_motor_pos}")
         return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
     
