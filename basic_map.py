@@ -13,6 +13,7 @@ class BasicMap():
         '''
         Update map points to include aligned_scan points
         '''
+        # For now, update map just concatenates the new scan points
         self.points = np.vstack((self.points, aligned_scan))
 
     def update(self, scan, predicted_state):
