@@ -13,6 +13,7 @@ class SimulatedLidar():
         self.angular_resolution = angular_resolution
         self.max_dist = max_dist
 
+    ### SHOULD BE GENERIC UTILS FUNCTIONS ###
     def batch_line_segments_to_batch_points_dist(self, line_segment_eps, points):
         """
         line_segment_eps: (N, 4)
@@ -95,6 +96,11 @@ class SimulatedLidar():
     def point_to_points_distance(self, point, points):
         return np.linalg.norm(points - point, axis=1).reshape(1, -1)
     
+    def batch_points_to_batch_points_distance(self, batch_points1, batch_points2):
+        dists = np.sqrt(np.sum(batch_points1**2, axis=1, keepdims=True) + np.sum(batch_points2**2, axis=1, keepdims=True).T + (-2 * (batch_points1 @ batch_points2.T)))
+        return dists
+    ### SHOULD BE GENERIC UTILS FUNCTIONS ###
+        
     def simulate_lidar(self, loc : np.ndarray):
         x, y, theta = loc # (Thinking) In practice, only x and y matter and we can rotate to handle theta
         state = np.array([x, y])
@@ -122,6 +128,8 @@ class SimulatedLidar():
         repeated_points_dist = np.repeat(points_dist, self.angular_resolution, axis=0)
 
         rpd_mask = dists > (self.map.resolution/2 * math.sqrt(2))
+        print("HERE")
+        print(repeated_points_dist.shape, rpd_mask.shape)
         repeated_points_dist[rpd_mask] = np.inf
 
         candidate_readings = np.argmin(repeated_points_dist, axis=1)
@@ -161,10 +169,35 @@ class SimulatedLidar():
         locs_pos = locs_pos.reshape(N, 1, 2) # (N, 1, 2)
 
         batch_translated_max_dist_points = max_dist_points + locs_pos # (N, self.angular_resolution, 2)
-        print(batch_translated_max_dist_points.shape)
+        repeated_locs_pos = np.repeat(locs_pos, self.angular_resolution, axis=1) # (N, self.angular_resolution, 2)
+        batch_line_segment_eps = np.concatenate((repeated_locs_pos, batch_translated_max_dist_points), axis=2) # (N, self.angular_resolution, 4)
 
 
-        # batch_segment_eps # (N, self.angular_resolution, 4)
+        map_points = self.map.get_points()
+        num_map_points = len(map_points)
+
+        reshaped_batch_line_segments_eps = batch_line_segment_eps.reshape(-1, 4)
+        dists = self.point_segment_distance(reshaped_batch_line_segments_eps, map_points)
+        dists = dists.reshape(N, self.angular_resolution, num_map_points) # (N, self.angular_resolution, num_map_points)
+        dists_mask = dists > (self.map.resolution/2 * math.sqrt(2))
+        dists[dists_mask] = np.inf
+
+        points_dists = self.batch_points_to_batch_points_distance(locs[:, :2], map_points).reshape(N, 1, num_map_points)
+        repeated_points_dists = np.repeat(points_dists, self.angular_resolution, axis=1)
+        print(points_dists.shape, dists.shape)
+        rpd_mask = dists > (self.map.resolution/2 * math.sqrt(2))
+        repeated_points_dists[rpd_mask] = np.inf
+
+        # Check the math on this part
+        candidate_readings = np.argmin(repeated_points_dists, axis=2)
+        candidate_readings_mask = np.min(repeated_points_dists, axis=2) < self.max_dist
+        print(candidate_readings_mask.shape, candidate_readings.shape)
+        final_readings = candidate_readings[candidate_readings_mask]
+
+        print(final_readings.shape)
+
+
+
 
 
 
@@ -176,7 +209,7 @@ if __name__ == '__main__':
     mymap.visualize(plt.gca())
     plt.show()
 
-    sl = SimulatedLidar(map_obj=mymap, angular_resolution=100, max_dist=3000) # Set this to RPLIDAR Range
+    sl = SimulatedLidar(map_obj=mymap, angular_resolution=100, max_dist=10000) # Set this to RPLIDAR Range
 
     state = np.array([-1000.0, 2500.0, np.pi/2])
     points, segments, map_points = sl.simulate_lidar(state)
@@ -209,11 +242,12 @@ if __name__ == '__main__':
         dists, _ = kd_tree.query(simulated_points[:, :2])
         return np.mean(dists)
 
-    particles = np.random.uniform(low=np.array([-1500.0, -1500.0, 0.0]), high=np.array([4000.0, 4000.0, 2*np.pi]), size=(10000,3))
+    particles = np.random.uniform(low=np.array([-1500.0, -1500.0, 0.0]), high=np.array([4000.0, 4000.0, 2*np.pi]), size=(5000,3))
     print(particles.shape)
 
     dists = np.linalg.norm(particles[:, :2] - state[:2], axis=1)
     simulated_best_state = particles[np.argmin(dists)]
+    print(f"Actual State: {state}")
     print(f"Theoretical Best State: {simulated_best_state}")
 
 
