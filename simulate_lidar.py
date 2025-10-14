@@ -1,19 +1,14 @@
 import math
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 
 from map import Map
 from test_utils import generate_fake_map
 
-
-# Create Fake Map for testing
-mymap = generate_fake_map()
-mymap.visualize(plt.gca())
-plt.show()
-
 class SimulatedLidar():
-    def __init__(self, map_info, angular_resolution, max_dist):
-        self.map : Map = map_info
+    def __init__(self, map_obj, angular_resolution, max_dist):
+        self.map : Map = map_obj
 
         self.angular_resolution = angular_resolution
         self.max_dist = max_dist
@@ -145,42 +140,80 @@ class SimulatedLidar():
         translated_rotated_points = rotated_points + state
         # return map_points[point_idxes], line_segment_eps, map_points
         return translated_rotated_points, line_segment_eps, map_points
+    
+    ## -- Batch Functions -- ##
 
     def batch_simulate_lidar(self, locs : np.ndarray):
+        """
+        locs : (N, 3) # Batch Location and Orientation of Lidar Sensors
+        """
         pass
 
-sl = SimulatedLidar(map_info=mymap, angular_resolution=360, max_dist=3000) # Set this to RPLIDAR Range
-# state = np.array([200.0, -20.0, 0.0])
-# state = np.array([-3000.0, 3000.0, 0.0])
-state = np.array([-1000.0, 2500.0, np.pi/2])
-points, segments, map_points = sl.simulate_lidar(state)
-grid_coords = mymap.world_to_grid_coords(state[:2])
-print("State to grid coords", (grid_coords))
+if __name__ == '__main__':
+    # Create Fake Map for testing
+    mymap = generate_fake_map()
+    mymap.visualize(plt.gca())
+    plt.show()
 
-plt.scatter(points[:, 0], points[:, 1])
-plt.scatter(state[0], state[1], color='red')
-plt.gca().set_aspect("equal")
-plt.show()
+    sl = SimulatedLidar(map_obj=mymap, angular_resolution=360, max_dist=10000) # Set this to RPLIDAR Range
 
+    state = np.array([-1000.0, 2500.0, np.pi/2])
+    points, segments, map_points = sl.simulate_lidar(state)
+    grid_coords = mymap.world_to_grid_coords(state[:2])
+    print("State to grid coords", (grid_coords))
 
-
-# for x1, y1, x2, y2 in segments:
-#     plt.plot([x1,x2], [y1, y2], color='yellow')
-plt.scatter(map_points[:, 0], map_points[:, 1], color='green')
-plt.scatter(state[0], state[1], color='red')
-plt.scatter(points[:, 0], points[:, 1], zorder=2)
-plt.gca().set_aspect("equal")
-plt.show()
+    plt.scatter(points[:, 0], points[:, 1])
+    plt.scatter(state[0], state[1], color='red')
+    plt.gca().set_aspect("equal")
+    plt.show()
 
 
 
+    # for x1, y1, x2, y2 in segments:
+    #     plt.plot([x1,x2], [y1, y2], color='yellow')
+    plt.scatter(map_points[:, 0], map_points[:, 1], color='green')
+    plt.scatter(state[0], state[1], color='red')
+    plt.scatter(points[:, 0], points[:, 1], zorder=2)
+    plt.gca().set_aspect("equal")
+    plt.show()
+
+    from sklearn.neighbors import KDTree
+    def compute_mse(scanned_points, simulated_points):
+        kd_tree = KDTree(scanned_points[:, :2])
+        dists, _ = kd_tree.query(simulated_points[:, :2])
+        return np.mean(dists)
+
+    particles = np.random.uniform(low=np.array([-1500.0, -1500.0, 0.0]), high=np.array([4000.0, 4000.0, 2*np.pi]), size=(10000,3))
+    print(particles.shape)
+
+    dists = np.linalg.norm(particles[:, :2] - state[:2], axis=1)
+    simulated_best_state = particles[np.argmin(dists)]
+    print(f"Theoretical Best State: {simulated_best_state}")
+
+
+    read_points, _, _ = sl.simulate_lidar(state)
+
+    st = time.time() 
+    lidar_outputs = []
+    mses = []
+    for i in range(len(particles)):
+        # print(f"Idx: {i}", end='\r')
+        cur_state = particles[i]
+        points, _, _ = sl.simulate_lidar(cur_state)
+        lidar_outputs.append(points)
+        mse = compute_mse(read_points, points)
+        mses.append(mse)
+
+    mses = np.array(mses)
+
+    idx = np.argmin(mses)
+    print("optimal reading state:", particles[idx])
 
         
 
         
+    et = time.time()
+    print(f"Time to simulate lidar for {len(particles)} points: {et-st}")
 
-        
 
 
-
-    
