@@ -159,7 +159,16 @@ class SimulatedLidar():
         # Get only unique points
         point_idxes = np.unique(final_readings)
         ## IMPORTANT ## Points need to rotate theta units
-        return map_points[point_idxes], line_segment_eps, map_points
+        unrotated_points = map_points[point_idxes]
+
+        centered_unrotated_points = unrotated_points - state
+        R = np.array([[np.cos(-theta), -np.sin(-theta)],
+                      [np.sin(-theta), np.cos(-theta)]])
+        # print(R.shape, centered_unrotated_points.shape)
+        rotated_points = (R @ centered_unrotated_points.T).T
+        translated_rotated_points = rotated_points + state
+        # return map_points[point_idxes], line_segment_eps, map_points
+        return translated_rotated_points, line_segment_eps, map_points
 
     def batch_simulate_lidar(self, locs : np.ndarray):
         pass
@@ -167,7 +176,7 @@ class SimulatedLidar():
 sl = SimulatedLidar(map_info=mymap, angular_resolution=360, max_dist=3000) # Set this to RPLIDAR Range
 # state = np.array([200.0, -20.0, 0.0])
 # state = np.array([-3000.0, 3000.0, 0.0])
-state = np.array([-1000.0, 2500.0, 0.0])
+state = np.array([-1000.0, 2500.0, np.pi/2])
 points, segments, map_points = sl.simulate_lidar(state)
 grid_coords = mymap.world_to_grid_coords(state[:2])
 print("State to grid coords", (grid_coords))
@@ -179,8 +188,8 @@ plt.show()
 
 
 
-for x1, y1, x2, y2 in segments:
-    plt.plot([x1,x2], [y1, y2], color='yellow')
+# for x1, y1, x2, y2 in segments:
+#     plt.plot([x1,x2], [y1, y2], color='yellow')
 plt.scatter(map_points[:, 0], map_points[:, 1], color='green')
 plt.scatter(state[0], state[1], color='red')
 plt.scatter(points[:, 0], points[:, 1], zorder=2)
