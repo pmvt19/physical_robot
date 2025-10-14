@@ -3,35 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from map import Map
+from test_utils import generate_fake_map
 
 
 # Create Fake Map for testing
-
-xs_1 = np.linspace(0, 1000, 10000)
-ys_1 = np.ones_like(xs_1) * 0.0
-
-ys_2 = np.linspace(0, 2000, 20000)
-xs_2 = np.ones_like(ys_2) * 1000.0
-
-xs_3 = np.linspace(0, 1000, 10000)
-ys_3 = np.ones_like(xs_3) * 2000.0
-
-ys_4 = np.linspace(0, 2000, 20000)
-xs_4 = np.ones_like(ys_4) * 0.0
-
-# mymap = Map()
-print(xs_1)
-
-s1 = np.stack((xs_1, ys_1), axis=1)
-s2 = np.stack((xs_2, ys_2), axis=1)
-s3 = np.stack((xs_3, ys_3), axis=1)
-s4 = np.stack((xs_4, ys_4), axis=1)
-print(np.max(s1))
-print(s1.shape, s2.shape, s3.shape, s4.shape)
-
-init_points = np.vstack((s1, s2, s3, s4))
-
-mymap = Map(initial_scan=init_points)
+mymap = generate_fake_map()
 mymap.visualize(plt.gca())
 plt.show()
 
