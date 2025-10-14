@@ -158,7 +158,11 @@ class SimulatedLidar():
 
         # Get only unique points
         point_idxes = np.unique(final_readings)
+        ## IMPORTANT ## Points need to rotate theta units
         return map_points[point_idxes], line_segment_eps, map_points
+
+    def batch_simulate_lidar(self, locs : np.ndarray):
+        pass
 
 sl = SimulatedLidar(map_info=mymap, angular_resolution=360, max_dist=3000) # Set this to RPLIDAR Range
 # state = np.array([200.0, -20.0, 0.0])
