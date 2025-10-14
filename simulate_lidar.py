@@ -103,10 +103,11 @@ class SimulatedLidar():
         sines = np.sin(angles)
 
         max_dist_points = np.stack((coses, sines), axis=1) * self.max_dist
+        translated_max_dist_points = max_dist_points + state
 
         reshaped_loc = loc.reshape(1, -1)
         repeated_locs = np.repeat(reshaped_loc, self.angular_resolution, axis=0)
-        line_segment_eps = np.concatenate((repeated_locs[:, :2], max_dist_points), axis=1)
+        line_segment_eps = np.concatenate((repeated_locs[:, :2], translated_max_dist_points), axis=1)
 
         map_points = self.map.get_points()
         dists = self.point_segment_distance(line_segment_eps, map_points)
@@ -147,7 +148,27 @@ class SimulatedLidar():
         """
         locs : (N, 3) # Batch Location and Orientation of Lidar Sensors
         """
-        pass
+        N, _ = locs.shape
+        angles = np.linspace(0, 2*np.pi, self.angular_resolution) # (self.angular_resolution,)
+        coses = np.cos(angles) # (self.angular_resolution,)
+        sines = np.sin(angles) # (self.angular_resolution,)
+        max_dist_points = np.stack((coses, sines), axis=1) * self.max_dist # (self.angular_resolution,2)
+        max_dist_points = max_dist_points.reshape(1, self.angular_resolution, 2)
+
+        
+
+        locs_pos = locs[:, :2] # (N, 2)
+        locs_pos = locs_pos.reshape(N, 1, 2) # (N, 1, 2)
+
+        batch_translated_max_dist_points = max_dist_points + locs_pos # (N, self.angular_resolution, 2)
+        print(batch_translated_max_dist_points.shape)
+
+
+        # batch_segment_eps # (N, self.angular_resolution, 4)
+
+
+
+
 
 if __name__ == '__main__':
     # Create Fake Map for testing
@@ -155,7 +176,7 @@ if __name__ == '__main__':
     mymap.visualize(plt.gca())
     plt.show()
 
-    sl = SimulatedLidar(map_obj=mymap, angular_resolution=360, max_dist=10000) # Set this to RPLIDAR Range
+    sl = SimulatedLidar(map_obj=mymap, angular_resolution=100, max_dist=3000) # Set this to RPLIDAR Range
 
     state = np.array([-1000.0, 2500.0, np.pi/2])
     points, segments, map_points = sl.simulate_lidar(state)
@@ -169,13 +190,18 @@ if __name__ == '__main__':
 
 
 
-    # for x1, y1, x2, y2 in segments:
-    #     plt.plot([x1,x2], [y1, y2], color='yellow')
+    for x1, y1, x2, y2 in segments:
+        plt.plot([x1,x2], [y1, y2], color='yellow')
     plt.scatter(map_points[:, 0], map_points[:, 1], color='green')
     plt.scatter(state[0], state[1], color='red')
     plt.scatter(points[:, 0], points[:, 1], zorder=2)
     plt.gca().set_aspect("equal")
     plt.show()
+
+    points_batch = np.random.uniform(low=np.array([-1500.0, -1500.0, 0.0]), high=np.array([4000.0, 4000.0, 2*np.pi]), size=(10,3))
+    sl.batch_simulate_lidar(points_batch)
+
+    exit()
 
     from sklearn.neighbors import KDTree
     def compute_mse(scanned_points, simulated_points):
