@@ -189,12 +189,33 @@ class SimulatedLidar():
         repeated_points_dists[rpd_mask] = np.inf
 
         # Check the math on this part
-        candidate_readings = np.argmin(repeated_points_dists, axis=2)
-        candidate_readings_mask = np.min(repeated_points_dists, axis=2) < self.max_dist
-        print(candidate_readings_mask.shape, candidate_readings.shape)
-        final_readings = candidate_readings[candidate_readings_mask]
+        # candidate_readings actually contains all the points for all the angles that are intersected with the lidar rays
+        # The issue is that we want to split and filter them based on max_dists since we don't want to keep points beyond the max dist
+        candidate_readings = np.argmin(repeated_points_dists, axis=2) # (N, self.angular_resolution)
+        candidate_readings_mask = np.min(repeated_points_dists, axis=2) < self.max_dist # (N, self.angular_resolution)
 
-        print(final_readings.shape)
+        # batch_final_readings = []
+        # for i in range(N):
+        #     batch_final_readings
+        batch_final_readings = [map_points[np.unique(candidate_readings[i, candidate_readings_mask[i]])] for i in range(N)]
+
+        # print(candidate_readings_mask.shape, candidate_readings.shape)
+        # final_readings = candidate_readings[candidate_readings_mask] 
+
+        # TODO BUG IMPORTANT: Points are currently unrotated
+
+        # print(final_readings.shape)
+        print([bfr.shape for bfr in batch_final_readings])
+
+        for i in range(N):
+            plt.scatter(map_points[:, 0], map_points[:, 1], color='green')
+            plt.scatter(batch_final_readings[i][:, 0], batch_final_readings[i][:, 1], color='blue', zorder=2)
+            plt.scatter(locs[i, 0], locs[i, 1], color='red')
+            
+            plt.gca().set_aspect("equal")
+            plt.show()
+
+        return batch_final_readings
 
 
 
