@@ -128,8 +128,6 @@ class SimulatedLidar():
         repeated_points_dist = np.repeat(points_dist, self.angular_resolution, axis=0)
 
         rpd_mask = dists > (self.map.resolution/2 * math.sqrt(2))
-        print("HERE")
-        print(repeated_points_dist.shape, rpd_mask.shape)
         repeated_points_dist[rpd_mask] = np.inf
 
         candidate_readings = np.argmin(repeated_points_dist, axis=1)
@@ -137,7 +135,10 @@ class SimulatedLidar():
         final_readings = candidate_readings[candidate_readings_mask]
 
         # Get only unique points
-        point_idxes = np.unique(final_readings)
+        # print(np.sort(final_readings))
+        # point_idxes = np.unique(final_readings)
+        # print(point_idxes)
+        point_idxes = final_readings
         ## IMPORTANT ## Points need to rotate theta units
         unrotated_points = map_points[point_idxes]
 
@@ -148,7 +149,13 @@ class SimulatedLidar():
         rotated_points = (R @ centered_unrotated_points.T).T
         translated_rotated_points = rotated_points + state
         # return map_points[point_idxes], line_segment_eps, map_points
-        return translated_rotated_points, line_segment_eps, map_points
+
+        # print(translated_rotated_points.shape, state.shape)
+        r_dists = np.linalg.norm(translated_rotated_points - state, axis=1)
+
+        r_angles = angles[candidate_readings_mask]
+
+        return translated_rotated_points, line_segment_eps, map_points, r_angles, r_dists, unrotated_points, r_angles + theta
     
     ## -- Batch Functions -- ##
 
@@ -197,6 +204,8 @@ class SimulatedLidar():
         # batch_final_readings = []
         # for i in range(N):
         #     batch_final_readings
+
+        # NOT TECHNICALLY BATCH FINAL READINGS
         batch_final_readings = [map_points[np.unique(candidate_readings[i, candidate_readings_mask[i]])] for i in range(N)]
 
         # print(candidate_readings_mask.shape, candidate_readings.shape)
@@ -205,18 +214,30 @@ class SimulatedLidar():
         # TODO BUG IMPORTANT: Points are currently unrotated
 
         # print(final_readings.shape)
-        print([bfr.shape for bfr in batch_final_readings])
+        # print([bfr.shape for bfr in batch_final_readings])
 
-        for i in range(N):
-            plt.scatter(map_points[:, 0], map_points[:, 1], color='green')
-            plt.scatter(batch_final_readings[i][:, 0], batch_final_readings[i][:, 1], color='blue', zorder=2)
-            plt.scatter(locs[i, 0], locs[i, 1], color='red')
+        # for i in range(N):
+        #     plt.scatter(map_points[:, 0], map_points[:, 1], color='green')
+        #     plt.scatter(batch_final_readings[i][:, 0], batch_final_readings[i][:, 1], color='blue', zorder=2)
+        #     plt.scatter(locs[i, 0], locs[i, 1], color='red')
             
-            plt.gca().set_aspect("equal")
-            plt.show()
+        #     plt.gca().set_aspect("equal")
+        #     plt.show()
 
         return batch_final_readings
 
+    def animate_lidar(self, state):
+        points, segments, map_points, r_angles, r_dists, unrotated_points, r_angles = self.simulate_lidar(state)
+        plt.scatter(map_points[:, 0], map_points[:, 1], color='green')
+        plt.scatter(state[0], state[1], color='red')
+        plt.scatter(points[:, 0], points[:, 1], zorder=2)
+        plt.gca().set_aspect("equal")
+
+        angles = np.linspace(0, 2*np.pi, self.angular_resolution) # (self.angular_resolution,)
+        for i, (x1, y1, x2, y2) in enumerate(segments):
+            plt.title(f"Added Angle: {np.rad2deg(angles[i])}")
+            plt.plot([x1,x2], [y1, y2], color='yellow')
+            plt.pause(0.01)
 
 
 
@@ -233,7 +254,7 @@ if __name__ == '__main__':
     sl = SimulatedLidar(map_obj=mymap, angular_resolution=100, max_dist=10000) # Set this to RPLIDAR Range
 
     state = np.array([-1000.0, 2500.0, np.pi/2])
-    points, segments, map_points = sl.simulate_lidar(state)
+    points, segments, map_points, _, _ = sl.simulate_lidar(state)
     grid_coords = mymap.world_to_grid_coords(state[:2])
     print("State to grid coords", (grid_coords))
 
@@ -252,10 +273,13 @@ if __name__ == '__main__':
     plt.gca().set_aspect("equal")
     plt.show()
 
-    points_batch = np.random.uniform(low=np.array([-1500.0, -1500.0, 0.0]), high=np.array([4000.0, 4000.0, 2*np.pi]), size=(10,3))
-    sl.batch_simulate_lidar(points_batch)
+    # points_batch = np.random.uniform(low=np.array([-1500.0, -1500.0, 0.0]), high=np.array([4000.0, 4000.0, 2*np.pi]), size=(3000,3))
+    # st = time.time()
+    # sl.batch_simulate_lidar(points_batch)
+    # et = time.time()
+    # print(f"Time for batch simulate lidar: {et - st}")
 
-    exit()
+    # exit()
 
     from sklearn.neighbors import KDTree
     def compute_mse(scanned_points, simulated_points):
@@ -263,7 +287,7 @@ if __name__ == '__main__':
         dists, _ = kd_tree.query(simulated_points[:, :2])
         return np.mean(dists)
 
-    particles = np.random.uniform(low=np.array([-1500.0, -1500.0, 0.0]), high=np.array([4000.0, 4000.0, 2*np.pi]), size=(5000,3))
+    particles = np.random.uniform(low=np.array([-1500.0, -1500.0, 0.0]), high=np.array([4000.0, 4000.0, 2*np.pi]), size=(3000,3))
     print(particles.shape)
 
     dists = np.linalg.norm(particles[:, :2] - state[:2], axis=1)
@@ -282,8 +306,10 @@ if __name__ == '__main__':
         cur_state = particles[i]
         points, _, _ = sl.simulate_lidar(cur_state)
         lidar_outputs.append(points)
-        mse = compute_mse(read_points, points)
-        mses.append(mse)
+        # mse = compute_mse(read_points, points)
+        # mses.append(mse)
+    et = time.time()
+    print(f"Time to simulate lidar for {len(particles)} points: {et-st}")
 
     mses = np.array(mses)
 
@@ -293,8 +319,7 @@ if __name__ == '__main__':
         
 
         
-    et = time.time()
-    print(f"Time to simulate lidar for {len(particles)} points: {et-st}")
+
 
 
 
