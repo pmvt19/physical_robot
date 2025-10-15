@@ -158,6 +158,14 @@ class ParticleFilter():
             return best_estimate
         else:
             raise Exception('State Estimation Must Use Either MLE or MAP Estimation Method')
+        
+
+    def step(self, motion_delta, scan):
+        # self.get_updated_particles(motion_delta) # TODO: IMPLEMENT THIS
+        # self.update_particle_weights() # TODO: IMPLEMENT THIS
+        state_estimate = self.get_state_estimate() # IMPLEMENTED
+        self.resample()
+        return state_estimate
 
 
     def visualize_dist_map(self, ax):
