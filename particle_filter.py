@@ -25,6 +25,10 @@ class ParticleFilter():
 
     def _batch_get_probabilities(self):
         raise NotImplementedError
+    
+    def generate_initial_particles(self, num_particles):
+        print("WARNING: GENERATE INNITIAL PARTICLES NOT WORKING AS INTENDED!!!")
+        self.particles = np.random.uniform(size=(num_particles, 3))
 
     # TODO: Change function name - Done?
     def batch_get_measurement_update(self, states, scan_actual, tmp_points=None):
@@ -43,7 +47,7 @@ class ParticleFilter():
         ### TODO: CHECK THIS: TODO ###
         offset_angles = angles.reshape(-1, 1) - (np.pi/2 - state_headings.reshape(1, -1)) # (M, 1) + (1, N) = (M, N)
         ### TODO: CHECK THIS: TODO ###
-        
+
         # print(np.rad2deg(angles % (2*np.pi)), state_headings)
         # exit()
 
@@ -71,8 +75,60 @@ class ParticleFilter():
         batch_probs = flattened_batch_probs.reshape(N, -1) # (N, M)
         ### ---- Get Probabilities ---- ###
 
-        return batch_probs, batch_simulated_lidar_readings
+        ### ---- Add Noise??? ---- ###
 
+        ### ---- Add Noise??? ---- ###
+
+        ### ---- Get Particle Weights ---- ###
+
+        # -- Should have an Underflow Problem -- #
+        batch_weights_unnormalized = np.prod(batch_probs, axis=0).squeeze()
+        batch_weights_normalized = batch_weights_unnormalized / np.sum(batch_weights_unnormalized)
+        # -- Should have an Underflow Problem -- #
+
+
+        # -- Should avoid Underflow Problem with Log Scaling -- #
+        batch_log_probs = np.log(batch_probs)
+        batch_log_weights = np.sum(batch_log_probs, axis=0).squeeze()
+        batch_rescaled_log_weights = batch_log_weights - np.max(batch_log_weights)
+        batch_unnormalized_weights = np.exp(batch_rescaled_log_weights)
+        batch_normalized_weights = batch_unnormalized_weights / np.sum(batch_unnormalized_weights)
+        # -- Should avoid Underflow Problem with Log Scaling -- #
+
+        ### ---- Get Particle Weights ---- ###
+
+
+
+        return batch_simulated_lidar_readings, batch_probs, batch_normalized_weights
+
+    def _noise_injection(self, particles):
+
+        mu_noise = np.array([0.0, 0.0, 0.0])
+        Q_noise = np.diag([3.0, 3.0, 0.2])
+
+        print("DEBUGGING:")
+        print(Q_noise.shape)
+        print("DEBUGGING:")
+
+        noise = np.random.normal(loc=mu_noise, scale=Q_noise)
+        particles[:, :3] = particles[:, :3] + noise
+        return particles
+
+    def resample(self, num_particles_to_sample=1):
+        num_particles = len(self.particles)
+        particle_weights = self.particles[:, 3]
+
+        num_particles_to_sample = num_particles
+        sampled_particle_idxes = np.random.choice(num_particles, p=particle_weights, size=num_particles_to_sample, replace=True)
+
+        sampled_particles = self.particles[sampled_particle_idxes]
+        sampled_particles_noisy = self._noise_injection(sampled_particles)
+
+        # Reset Weights to Uniform Distribution
+        sampled_particles_noisy[:, 3] = (1/num_particles_to_sample)
+
+        # Update Particles
+        self.particles = sampled_particles_noisy
 
     def visualize_dist_map(self, ax):
         ax.imshow(np.rot90(self.dist_map))
@@ -119,7 +175,8 @@ if __name__ == '__main__':
     plt.show()
     
     
-    batch_probs, batch_simulated_lidar_readings = pf.batch_get_measurement_update(state.reshape(-1, 3), scan_v2, translated_rotated_points)
+    batch_simulated_lidar_readings, batch_probs, batch_normalized_weights =\
+        pf.batch_get_measurement_update(state.reshape(-1, 3), scan_v2, translated_rotated_points)
     print(batch_probs)
 
 
