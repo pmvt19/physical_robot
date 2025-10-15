@@ -172,6 +172,10 @@ class Map():
     
     def visualize(self, ax):
         ax.imshow((np.rot90(self.map[::, ::]))*255)
+    
+    def visualize_points(self, ax):
+        points = self.get_points()
+        ax.scatter(points[:, 0], points[:, 1])
 
 
 if __name__ == '__main__':
