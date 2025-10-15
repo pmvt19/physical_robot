@@ -39,8 +39,8 @@ class ParticleFilter():
         point_dists = scan_actual[:, 1] # (M,)
 
         state_headings = states[:, 2] # (N,)
-        offset_angles = angles.reshape(-1, 1) - state_headings.reshape(1, -1) # (M, 1) + (1, N) = (M, N)
-        print(np.rad2deg(angles % (2*np.pi)), state_headings)
+        offset_angles = angles.reshape(-1, 1) - (np.pi/2 - state_headings.reshape(1, -1)) # (M, 1) + (1, N) = (M, N)
+        # print(np.rad2deg(angles % (2*np.pi)), state_headings)
         # exit()
 
         coses = np.cos(offset_angles) # (M, N)
@@ -85,13 +85,23 @@ if __name__ == '__main__':
 
     state = np.array([-1000.0, 2500.0, np.pi/2])
 
+    ### ---- Used for Testing ---- ###
+    # state = np.array([-1000.0, 2500.0, np.pi/4])
+    # state = np.array([-1000.0, 2500.0, 3*np.pi/4])
+    # state = np.array([-1000.0, 2500.0, 3*np.pi/2])
+    # state = np.array([-1000.0, 2500.0, 5*np.pi/2])
+    # state = np.array([-1000.0, 2500.0, 0])
+
     sl = SimulatedLidar(mymap, 100, 10000)
-    translated_rotated_points, line_segment_eps, map_points, angles, r_dists, unrotated_points, r_angles = sl.simulate_lidar(loc=state)
+    translated_rotated_points, line_segment_eps, map_points, angles, r_dists, unrotated_points, r_angles_local = sl.simulate_lidar(loc=state)
     # Format Lidar Readings:
     print(translated_rotated_points.shape, line_segment_eps.shape, map_points.shape)
     print(angles.shape, r_dists.shape)
     scan = np.stack((angles, r_dists), axis=1)
-    scan_v2 = np.stack((r_angles, r_dists), axis=1)
+    scan_v2 = np.stack((r_angles_local, r_dists), axis=1)
+    print(np.rad2deg(angles))
+    print(np.rad2deg(r_angles_local) % 360)
+    # exit()
     print("Scan Shapes")
     print(scan.shape, scan_v2.shape)
 

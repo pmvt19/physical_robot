@@ -155,7 +155,9 @@ class SimulatedLidar():
 
         r_angles = angles[candidate_readings_mask]
 
-        return translated_rotated_points, line_segment_eps, map_points, r_angles, r_dists, unrotated_points, r_angles + theta
+        r_angles_local = r_angles + (np.pi/2 - theta)
+
+        return translated_rotated_points, line_segment_eps, map_points, r_angles, r_dists, unrotated_points, r_angles_local
     
     ## -- Batch Functions -- ##
 
