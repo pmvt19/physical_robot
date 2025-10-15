@@ -39,7 +39,11 @@ class ParticleFilter():
         point_dists = scan_actual[:, 1] # (M,)
 
         state_headings = states[:, 2] # (N,)
+
+        ### TODO: CHECK THIS: TODO ###
         offset_angles = angles.reshape(-1, 1) - (np.pi/2 - state_headings.reshape(1, -1)) # (M, 1) + (1, N) = (M, N)
+        ### TODO: CHECK THIS: TODO ###
+        
         # print(np.rad2deg(angles % (2*np.pi)), state_headings)
         # exit()
 
