@@ -115,6 +115,7 @@ class ParticleFilter():
         return particles
 
     def resample(self, num_particles_to_sample=1):
+        # Resampling Implicitly Handles Killing Low-Weight Particles
         num_particles = len(self.particles)
         particle_weights = self.particles[:, 3]
 
@@ -129,6 +130,35 @@ class ParticleFilter():
 
         # Update Particles
         self.particles = sampled_particles_noisy
+
+    def get_state_estimate(self, method = 'MLE'):
+        if method == 'MLE':
+            positional_states = self.particles[:, :2]
+            orientation_states = self.particles[:, 2]
+            particle_weights = self.particles[:, 3]
+
+            mean_position = np.sum(particle_weights * positional_states, axis=0)
+
+            coses = np.cos(orientation_states)
+            sines = np.sin(orientation_states)
+
+            proxy_x_theta = np.sum(particle_weights * coses)
+            proxy_y_theta = np.sum(particle_weights * sines)
+
+            mean_theta = np.arctan2(proxy_y_theta, proxy_x_theta)
+
+            # TODO: I don't like this, use concatentation
+            return np.array([mean_position[0], mean_position[1], mean_theta])
+        elif method == 'MAP':
+            particle_weights = self.particles[:, 3]
+            best_estimate_idx = np.argmax(particle_weights)
+
+            # Not sure if copying here is necessary
+            best_estimate = np.copy(self.particles[best_estimate_idx, :3])
+            return best_estimate
+        else:
+            raise Exception('State Estimation Must Use Either MLE or MAP Estimation Method')
+
 
     def visualize_dist_map(self, ax):
         ax.imshow(np.rot90(self.dist_map))
