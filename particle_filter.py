@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
 from scipy import ndimage, stats
 from map import Map
 
@@ -113,6 +114,12 @@ class ParticleFilter():
         noise = np.random.normal(loc=mu_noise, scale=Q_noise)
         particles[:, :3] = particles[:, :3] + noise
         return particles
+    
+    def _delta_noise_injection(self, motion_delta):
+        num_particles = len(self.particles)
+        delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0], scale=np.array([0.1, 0.1, 0.1], size=(num_particles, 3))))
+        noisy_motion_delta = motion_delta + delta_noise
+        return noisy_motion_delta
 
     def resample(self, num_particles_to_sample=1):
         # Resampling Implicitly Handles Killing Low-Weight Particles
@@ -158,15 +165,22 @@ class ParticleFilter():
             return best_estimate
         else:
             raise Exception('State Estimation Must Use Either MLE or MAP Estimation Method')
-        
 
-    def step(self, motion_delta, scan):
-        # self.get_updated_particles(motion_delta) # TODO: IMPLEMENT THIS
-        # self.update_particle_weights() # TODO: IMPLEMENT THIS
-        state_estimate = self.get_state_estimate() # IMPLEMENTED
+    def get_updated_particles(self, motion_delta):
+        noisy_motion_delta = self._delta_noise_injection(motion_delta)
+        self.particles[:, :3] = self.particles[:, :3] + noisy_motion_delta
+        return self.particles
+        
+    def update_particle_weights(self, scan):
+        _, _, batch_normalized_weights = self.batch_get_measurement_update(self.particles[:, :3], scan)
+        self.particles[:, 3] = batch_normalized_weights
+
+    def step(self, motion_delta, scan, estimate_method='MLE'):
+        self.particles = self.get_updated_particles(motion_delta) # TODO: IMPLEMENT THIS
+        self.update_particle_weights(scan) # TODO: IMPLEMENT THIS
+        state_estimate = self.get_state_estimate(method=estimate_method) # IMPLEMENTED
         self.resample()
         return state_estimate
-
 
     def visualize_dist_map(self, ax):
         ax.imshow(np.rot90(self.dist_map))
@@ -174,6 +188,20 @@ class ParticleFilter():
     def visualize_map(self, ax):
         self.map.visualize(ax)
 
+    def visualize_particles(self, ax):
+        ax.scatter(self.particles[:, 0], self.particles[:, 1], color='blue')
+        angles = self.particles[:, 2]
+
+        coses = np.cos(angles)
+        sines = np.sin(angles)
+        vecs = np.stack((coses, sines), axis=1)
+
+        header_vec_eps = vecs + self.particles[:, :2]
+        # LineCollection to do this
+        # TODO: Check this
+        num_particles = len(self.particles)
+        lines = [(self.particles[i, :2], header_vec_eps[i]) for i in range(num_particles)]
+        ax.add_collection(LineCollection(lines, color="#cccccc", alpha=0.4))
 
 if __name__ == '__main__':
     mymap = generate_fake_map()
