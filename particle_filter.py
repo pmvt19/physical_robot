@@ -10,7 +10,7 @@ from utils import pairwise_dists
 from test_utils import generate_fake_map, load_saved_map
 
 class ParticleFilter():
-    def __init__(self, map_obj, scale_factor=10):
+    def __init__(self, map_obj, scale_factor=50):
         self.map : Map = map_obj
         self.scale_factor = scale_factor
         print("WARNING: GUESS ON THE SCALE FACTOR!!")
@@ -111,13 +111,15 @@ class ParticleFilter():
         mu_noise = np.array([0.0, 0.0, 0.0])
         Q_noise = np.array([3.0, 3.0, 0.2])
 
-        noise = np.random.normal(loc=mu_noise, scale=Q_noise, size=(len(particles), 3))
+        # noise = np.random.normal(loc=mu_noise, scale=Q_noise, size=(len(particles), 3))
+        noise = np.random.normal(loc=mu_noise, scale=np.array([10.0, 10.0, 0.5]), size=(len(particles), 3))
         particles[:, :3] = particles[:, :3] + noise
         return particles
     
     def _delta_noise_injection(self, motion_delta):
         num_particles = len(self.particles)
-        delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([0.1, 0.1, 0.1]), size=(num_particles, 3))
+        # delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([0.1, 0.1, 0.1]), size=(num_particles, 3))
+        delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([10.0, 10.0, 0.1]), size=(num_particles, 3))
         noisy_motion_delta = motion_delta + delta_noise
         return noisy_motion_delta
 
@@ -138,7 +140,7 @@ class ParticleFilter():
         # Update Particles
         self.particles = sampled_particles_noisy
 
-    def get_state_estimate(self, method = 'MLE'):
+    def get_state_estimate(self, method = 'MAP'):
         if method == 'MLE':
             positional_states = self.particles[:, :2]
             orientation_states = self.particles[:, 2]
@@ -201,14 +203,14 @@ class ParticleFilter():
 
         coses = np.cos(angles)
         sines = np.sin(angles)
-        vecs = np.stack((coses, sines), axis=1)
+        vecs = np.stack((coses, sines), axis=1) * 100
 
         header_vec_eps = vecs + self.particles[:, :2]
         # LineCollection to do this
         # TODO: Check this
         num_particles = len(self.particles)
         lines = [(self.particles[i, :2], header_vec_eps[i]) for i in range(num_particles)]
-        ax.add_collection(LineCollection(lines, color="#cccccc", alpha=0.4))
+        ax.add_collection(LineCollection(lines, color="red", alpha=0.5))
 
 if __name__ == '__main__':
     mymap = generate_fake_map()
@@ -242,6 +244,11 @@ if __name__ == '__main__':
     pf._compute_dist_map()
     pf.generate_initial_particles(num_particles=1000)
 
+    pf.visualize_particles(plt.gca())
+    pf.map.visualize_points(plt.gca())
+    plt.scatter(state[0], state[1], color='orange')
+    plt.show()
+
     # fig, (ax1, ax2) = plt.subplots(1, 2)
     # pf.visualize_map(ax1)
     # pf.visualize_dist_map(ax2)
@@ -252,12 +259,41 @@ if __name__ == '__main__':
     #     pf.batch_get_measurement_update(state.reshape(-1, 3), scan_v2, translated_rotated_points)
     # print(batch_probs)
 
-    motion_delta = np.array([-100, 100, 0.0])
-    new_state = np.array([-1100.0, 2600, np.pi/2])
+    motion_delta = np.array([0.0, 100.0, 0.0])
+
+    new_state = np.array([-1000.0, 2600, np.pi/2])
     translated_rotated_points, line_segment_eps, map_points, angles, r_dists, unrotated_points, r_angles_local = sl.simulate_lidar(loc=new_state)
     scan_v2 = np.stack((r_angles_local, r_dists), axis=1)
     state_estimate = pf.step(motion_delta=motion_delta, scan=scan_v2)
     print(f"State Estiamte: {np.round(state_estimate, 2)}")
+
+    pf.visualize_particles(plt.gca())
+    pf.map.visualize_points(plt.gca())
+    plt.scatter(new_state[0], new_state[1], color='orange')
+    plt.show()
+
+    mds = [
+        [0.0, -100.0, 0.0] 
+    ] * 45 + [
+        [100.0, 0.0, 0.0]
+    ] * 30 + [
+        [0.0, 100.0, 0.0]
+    ] * 40
+
+    for i in range(len(mds)):
+        motion_delta = np.array(mds[i])
+
+        new_state = new_state + motion_delta
+        translated_rotated_points, line_segment_eps, map_points, angles, r_dists, unrotated_points, r_angles_local = sl.simulate_lidar(loc=new_state)
+        scan_v2 = np.stack((r_angles_local, r_dists), axis=1)
+        state_estimate = pf.step(motion_delta=motion_delta, scan=scan_v2)
+        print(f"Actual State: {np.round(new_state, 2)}")
+        print(f"State Estimate: {np.round(state_estimate, 2)}")
+
+        pf.visualize_particles(plt.gca())
+        pf.map.visualize_points(plt.gca())
+        plt.scatter(new_state[0], new_state[1], color='orange')
+        plt.show()
     
 
 
