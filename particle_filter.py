@@ -188,8 +188,12 @@ class ParticleFilter():
     def visualize_map(self, ax):
         self.map.visualize(ax)
 
-    def visualize_particles(self, ax):
-        ax.scatter(self.particles[:, 0], self.particles[:, 1], color='blue')
+    def visualize_particles(self, ax, use_grid_coords=False):
+        if use_grid_coords:
+            grid_coords = self.map.world_to_grid_coords(self.particles[:, :2])
+            ax.scatter(grid_coords[:, 0], grid_coords[:, 1], color='blue')
+        else:
+            ax.scatter(self.particles[:, 0], self.particles[:, 1], color='blue')
         angles = self.particles[:, 2]
 
         coses = np.cos(angles)
