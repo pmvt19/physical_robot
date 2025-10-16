@@ -119,7 +119,8 @@ class ParticleFilter():
     def _delta_noise_injection(self, motion_delta):
         num_particles = len(self.particles)
         # delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([0.1, 0.1, 0.1]), size=(num_particles, 3))
-        delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([10.0, 10.0, 0.1]), size=(num_particles, 3))
+        # delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([10.0, 10.0, 0.1]), size=(num_particles, 3)) # Works!!!
+        delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([2.0, 2.0, 0.1]), size=(num_particles, 3))
         noisy_motion_delta = motion_delta + delta_noise
         return noisy_motion_delta
 
@@ -140,7 +141,7 @@ class ParticleFilter():
         # Update Particles
         self.particles = sampled_particles_noisy
 
-    def get_state_estimate(self, method = 'MAP'):
+    def get_state_estimate(self, method = 'MLE'):
         if method == 'MLE':
             positional_states = self.particles[:, :2]
             orientation_states = self.particles[:, 2]
@@ -242,7 +243,7 @@ if __name__ == '__main__':
 
     pf = ParticleFilter(mymap)
     pf._compute_dist_map()
-    pf.generate_initial_particles(num_particles=1000)
+    pf.generate_initial_particles(num_particles=10000)
 
     pf.visualize_particles(plt.gca())
     pf.map.visualize_points(plt.gca())
@@ -292,7 +293,7 @@ if __name__ == '__main__':
 
         pf.visualize_particles(plt.gca())
         pf.map.visualize_points(plt.gca())
-        plt.scatter(new_state[0], new_state[1], color='orange')
+        plt.scatter(new_state[0], new_state[1], color='orange', zorder=2)
         plt.show()
     
 
