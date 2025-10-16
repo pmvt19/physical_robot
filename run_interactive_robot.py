@@ -5,6 +5,7 @@ from basic_map import BasicMap
 from map import Map
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
 
 from multiprocessing import Process, Manager
 from run_lidar import start_lidar
@@ -70,10 +71,22 @@ if __name__ == "__main__":
     map.visualize(ax=plt.gca())
     plt.show()
 
-    for motion_type, dist in motions:
+    # for motion_type, dist in motions:
+    i=0
+    while True:
+        command = input("Enter Robot Motion Command")
+
+        if command == "quit":
+            break
+
+        motion_type, dist = command.split(",")
+        dist = float(dist)
+        print(motion_type, dist)
+        # continue
         if motion_type == 'linear':
             m = robot.ri.move_dist(dist)
         elif motion_type == 'angular':
+            dist = np.deg2rad(dist)
             m = robot.ri.rotate_rad(dist)
         else:
             raise NotImplementedError
@@ -81,7 +94,8 @@ if __name__ == "__main__":
         predicted_state = robot.ri.predict_state(robot.state, m)
         print(f"Predicted State: {predicted_state}")
         robot.state = predicted_state
-        scan = robot.read_lidar()
+        # scan = robot.read_lidar()
+        scan = robot.read_lidar_manual()
         print(f"Scan Size: {scan.shape}")
         updated_state = map.update(scan, predicted_state)
         print(f"Updated State: {updated_state}")
@@ -89,6 +103,18 @@ if __name__ == "__main__":
 
         map.visualize(ax=plt.gca())
         plt.show()
+        plt.cla()
+        map.visualize(ax=plt.gca())
+        plt.savefig(f'maps_saved/run6/map_{i}.png')
+        i+=1
 
-
+        pickle.dump(map, open("dump/map_object.pickle", "wb"))
+        pickle.dump(map.map, open("dump/map_map.pickle", "wb"))
+        pickle.dump(map.get_points(), open("dump/map_points.pickle", "wb"))
+    
     print("Finished")
+    plt.cla()
+    map.visualize(ax=plt.gca())
+    plt.savefig("generated_map.png")
+
+    

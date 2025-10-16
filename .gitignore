@@ -4,3 +4,8 @@ data/lidar_data
 data/slam_data
 data/slam_run_1
 logs/
+dump.rdb
+generated_map.png
+maps_saved/
+dump/
+robot/

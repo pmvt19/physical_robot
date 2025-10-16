@@ -110,7 +110,8 @@ class Map():
 
     def update(self, scan, predicted_state):
         T = run_icp(scan, self.get_points(), predicted_state, visualize=False)
-        updated_theta = np.arccos(T[0, 0])
+        # updated_theta = np.arccos(T[0, 0])
+        updated_theta = np.arctan2(T[1,0],T[0,0]) % (2*np.pi)
 
         updated_x = T[0, 2]
         updated_y = T[1, 2]

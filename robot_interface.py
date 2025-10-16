@@ -169,6 +169,7 @@ class RobotInterface():
         
         print(f"Before Update Init: {init_motor_pos}")
 
+        final_motor_pos = self.get_motor_positions()
         if desired_motor_pos_1 < 0:
             print("Deflating final motor position 1")
             final_motor_pos[0] -= self.controller.max_motor_position
@@ -185,7 +186,7 @@ class RobotInterface():
 
         print(f"Updated Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
 
-        final_motor_pos = self.get_motor_positions()
+        
         print(f"Final Motor Positions: {final_motor_pos}")
         return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
     
@@ -297,7 +298,7 @@ class RobotInterface():
 
 
 if __name__ == '__main__':
-    controller = DynamixelController(device_name='/dev/tty.usbserial-FTAKRMAJ', motor_ids=[1, 2])
+    controller = DynamixelController(device_name='/dev/ttyUSB0', motor_ids=[1, 2])
     ri = RobotInterface(controller=controller)
     # linear_main(controller, ri)
     # rotational_main(controller, ri)
@@ -343,11 +344,35 @@ if __name__ == '__main__':
     # state = ri.predict_state(state, m3, 'linear')
     # print(f"State: {state}")
 
+    # # Test Backwards Movement and CCW Turns
+    # ri.set_profile_velocity()
+    # state = np.array([0.0, 0.0, 0.0])
+    # print(f"State: {state}")
+    # m1 = ri.move_dist(200)
+    # print(f"Motion: {m1}")
+    # state = ri.predict_state(state, m1)
+    # print(f"State: {state}")
+    # m2 = ri.rotate_rad(-np.pi/4)
+    # # m2 = ri.move_dist(-200)
+    # print(f"Motion: {m2}")
+    # state = ri.predict_state(state, m2)
+    # print(f"State: {state}")
+    # m3 = ri.move_dist(200)
+    # print(f"Motion: {m3}")
+    # state = ri.predict_state(state, m3)
+    # print(f"State: {state}")
+    # m4 = ri.rotate_rad(np.pi/4)
+    # print(f"Motion: {m4}")
+    # state = ri.predict_state(state, m4)
+    # print(f"State: {state}")
+
+    # print("Final State", np.round(state, 2))
+
     # Test Backwards Movement and CCW Turns
     ri.set_profile_velocity()
     state = np.array([0.0, 0.0, 0.0])
     print(f"State: {state}")
-    m1 = ri.move_dist(200)
+    m1 = ri.move_dist(20)
     print(f"Motion: {m1}")
     state = ri.predict_state(state, m1)
     print(f"State: {state}")
@@ -356,7 +381,7 @@ if __name__ == '__main__':
     print(f"Motion: {m2}")
     state = ri.predict_state(state, m2)
     print(f"State: {state}")
-    m3 = ri.move_dist(200)
+    m3 = ri.move_dist(20)
     print(f"Motion: {m3}")
     state = ri.predict_state(state, m3)
     print(f"State: {state}")

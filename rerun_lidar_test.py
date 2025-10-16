@@ -5,10 +5,10 @@ import rerun as rr
 
 
 
-lidar = RPLidar('/dev/tty.usbserial-14420', baudrate=460800)
-time.sleep(5)
+lidar = RPLidar('/dev/ttyUSB1', baudrate=460800)
+# time.sleep(5)
 lidar.clean_input()
-
+time.sleep(5)
 info = lidar.get_info()
 print(info)
 
@@ -52,7 +52,7 @@ try:
         x_coords = dist * cos
         y_coords = dist * sin
         z_coords = np.zeros_like(x_coords)
-
+        print(f"Logging at time: {time.time()}")
         rr.set_time("time", duration=time.time()-start_time)
         coords = np.stack((x_coords, y_coords, z_coords), axis=1)
         rr.log("points", rr.Points3D(coords))

@@ -55,9 +55,14 @@ def start_lidar_local():
     # Connect to Redis
     redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
-    lidar = RPLidar('/dev/tty.usbserial-14220', baudrate=460800)
-    time.sleep(5)
-    lidar.clean_input()
+    lidar = RPLidar('/dev/ttyUSB1', baudrate=460800)
+    # lidar.stop()
+    # lidar.stop_motor()
+
+
+    # time.sleep(5)
+    # lidar.clean_input()
+    # time.sleep(5)
 
     info = lidar.get_info()
     print(info)
@@ -81,6 +86,7 @@ def start_lidar_local():
 
             lidar_output = np.stack((angles, dist), axis=1)
             redis_client.set('lidar_data', lidar_output.tobytes())
+            redis_client.set('time', time.time())
 
     except KeyboardInterrupt:
         print("\nCtrl+C detected. Performing cleanup...")

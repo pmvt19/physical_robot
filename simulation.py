@@ -30,12 +30,20 @@ if __name__ == "__main__":
         #     ('linear', 200),
         # ]
 
+        # motions = [
+        #     ('linear', 200),
+        #     ('angular', -np.pi/4),
+        #     ('linear', 500),
+        #     ('angular', -np.pi/4),
+        #     ('linear', 200),
+        # ]
+
         motions = [
-            ('linear', 200),
-            ('angular', -np.pi/4),
-            ('linear', 500),
-            ('angular', -np.pi/4),
-            ('linear', 200),
+            ('linear', 100),
+            ('angular', np.pi/2),
+            ('linear', 100),
+            ('angular', -np.pi/2),
+            ('linear', 100),
         ]
 
         # Initialization

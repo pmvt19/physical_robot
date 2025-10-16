@@ -1,7 +1,7 @@
 from dxl_controller import DynamixelController
 from robot_interface import RobotInterface
 import numpy as np
-
+import matplotlib.pyplot as plt
 from multiprocessing import Process, Manager
 from run_lidar import start_lidar
 
@@ -11,7 +11,7 @@ import redis
 import rerun as rr
 
 class Robot():
-    def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ', lidar_data=None):
+    def __init__(self, device_name='/dev/ttyUSB0', lidar_data=None):
 
         # Initialize Classes For Motor Control
         self.controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
@@ -34,6 +34,13 @@ class Robot():
         if self.lidar_data:
             lidar_data = self.lidar_data['lidar']
         else:
+            
+            init_time = self.redis_client.get('time')
+            cur_time = init_time
+            while init_time == cur_time and float(init_time)+15>time.time():
+                print("Waiting For Updated Lidar")
+                cur_time = self.redis_client.get('time')
+
             lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
 
         angles = lidar_data[:, 0]
@@ -49,6 +56,65 @@ class Robot():
         # z_coords = np.zeros_like(x_coords)
         z_coords = np.ones_like(x_coords)
         coords = np.stack((x_coords, y_coords, z_coords), axis=1)
+        # coords = np.stack((x_coords, y_coords), axis=1)
+
+        return coords
+    
+    def read_lidar_manual(self):
+        if self.lidar_data:
+            lidar_data = self.lidar_data['lidar']
+        else:
+            
+            init_time = self.redis_client.get('time')
+            cur_time = init_time
+            while init_time == cur_time and float(init_time)+15>time.time():
+                print("Waiting For Updated Lidar")
+                cur_time = self.redis_client.get('time')
+
+            lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
+
+            angles = lidar_data[:, 0]
+            dist = lidar_data[:, 1]
+
+            rad_angles = (np.pi / 180.0) * angles
+
+            cos = np.cos(rad_angles)
+            sin = np.sin(rad_angles)
+
+            x_coords = dist * cos
+            y_coords = -dist * sin
+            # z_coords = np.zeros_like(x_coords)
+            z_coords = np.ones_like(x_coords)
+            coords = np.stack((x_coords, y_coords, z_coords), axis=1)
+            plt.scatter(x_coords, y_coords)
+            plt.show()
+            decision = input("reread lidar?")
+            while decision == 'yes':
+                init_time = self.redis_client.get('time')
+                cur_time = init_time
+                while init_time == cur_time and float(init_time)+15>time.time():
+                    print("Waiting For Updated Lidar")
+                    cur_time = self.redis_client.get('time')
+
+                lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
+
+                angles = lidar_data[:, 0]
+                dist = lidar_data[:, 1]
+
+                rad_angles = (np.pi / 180.0) * angles
+
+                cos = np.cos(rad_angles)
+                sin = np.sin(rad_angles)
+
+                x_coords = dist * cos
+                y_coords = -dist * sin
+                # z_coords = np.zeros_like(x_coords)
+                z_coords = np.ones_like(x_coords)
+                coords = np.stack((x_coords, y_coords, z_coords), axis=1)
+                plt.scatter(x_coords, y_coords)
+                plt.show()
+                decision = input("reread lidar?")
+
         # coords = np.stack((x_coords, y_coords), axis=1)
 
         return coords
