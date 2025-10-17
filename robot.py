@@ -1,6 +1,7 @@
 from dxl_controller import DynamixelController
 from robot_interface import RobotInterface
 import numpy as np
+from shapely import Point
 
 from multiprocessing import Process, Manager
 from run_lidar import start_lidar
@@ -52,6 +53,16 @@ class Robot():
         # coords = np.stack((x_coords, y_coords), axis=1)
 
         return coords
+    
+    def draw_state(self, ax, state):
+        x, y, theta = state
+
+        robot_outline = Point([x, y]).buffer(100)
+        ax.fill(*robot_outline.exterior.xy, color='blue')
+        # return robot
+
+    def draw_cosmetic_state(self, ax, state):
+        pass
     
     def terminate(self):
         pass
