@@ -12,7 +12,7 @@ import redis
 import rerun as rr
 
 class Robot():
-    def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ', lidar_data=None):
+    def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ'):
 
         # Initialize Classes For Motor Control
         self.controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
@@ -21,7 +21,6 @@ class Robot():
         # Initialize Current State (Starts at [x=0.0, y=0.0, theta=0.0])
         self.state = np.array([0.0, 0.0, 0.0])
 
-        self.lidar_data = lidar_data
         self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
     def move(self, control, dt):
@@ -32,10 +31,7 @@ class Robot():
         pass
 
     def read_lidar(self):
-        if self.lidar_data:
-            lidar_data = self.lidar_data['lidar']
-        else:
-            lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
+        lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
 
         angles = lidar_data[:, 0]
         dist = lidar_data[:, 1]
