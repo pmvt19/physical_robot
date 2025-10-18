@@ -248,46 +248,47 @@ class RobotInterface():
 
     #     return updated_state
 
-    def predict_state(self, state, motor_position_differential):
-        signs = np.sign(motor_position_differential)
+    # # TODO: Technically, it is not the motor_position_differential, its the linear distance each wheel moved
+    # def predict_state(self, state, motor_position_differential):
+    #     signs = np.sign(motor_position_differential)
 
         
-        abs_motion = np.abs(motor_position_differential)
-        if signs[0] == -1 and signs[1] == -1:
-            # Turn In-Place Left
-            avg_motion = np.mean(abs_motion)
-            motion_type = 'angular'
-        elif signs[0] == 1 and signs[1] == 1:
-            # Turn In-Place Right
-            avg_motion = -1 * np.mean(abs_motion)
-            motion_type = 'angular'
-        elif signs[0] == 1 and signs[1] == -1:
-            # Forward
-            avg_motion = np.mean(abs_motion)
-            motion_type = 'linear'
-        elif signs[0] == -1 and signs[1] == 1:
-            # Backward?
-            avg_motion = -1 * np.mean(abs_motion)
-            motion_type = 'linear'
-        else:
-            print("Ensure the U2D2 PowerBoard is On")
-            raise NotImplementedError
+    #     abs_motion = np.abs(motor_position_differential)
+    #     if signs[0] == -1 and signs[1] == -1:
+    #         # Turn In-Place Left
+    #         avg_motion = np.mean(abs_motion)
+    #         motion_type = 'angular'
+    #     elif signs[0] == 1 and signs[1] == 1:
+    #         # Turn In-Place Right
+    #         avg_motion = -1 * np.mean(abs_motion)
+    #         motion_type = 'angular'
+    #     elif signs[0] == 1 and signs[1] == -1:
+    #         # Forward
+    #         avg_motion = np.mean(abs_motion)
+    #         motion_type = 'linear'
+    #     elif signs[0] == -1 and signs[1] == 1:
+    #         # Backward?
+    #         avg_motion = -1 * np.mean(abs_motion)
+    #         motion_type = 'linear'
+    #     else:
+    #         print("Ensure the U2D2 PowerBoard is On")
+    #         raise NotImplementedError
 
-        x, y, theta = state
+    #     x, y, theta = state
 
-        if motion_type == 'linear':
+    #     if motion_type == 'linear':
 
-            direction_vector = np.array([np.cos(theta), np.sin(theta), 0.0])
-            dx_state = direction_vector * avg_motion
-            updated_state = state + dx_state
+    #         direction_vector = np.array([np.cos(theta), np.sin(theta), 0.0])
+    #         dx_state = direction_vector * avg_motion
+    #         updated_state = state + dx_state
 
-        elif motion_type == 'angular':
-            dx_state = np.array([0.0, 0.0, avg_motion])
-            updated_state = state + dx_state
-        else:
-            raise NotImplementedError
+    #     elif motion_type == 'angular':
+    #         dx_state = np.array([0.0, 0.0, avg_motion])
+    #         updated_state = state + dx_state
+    #     else:
+    #         raise NotImplementedError
 
-        return updated_state
+    #     return updated_state
 
 
 if __name__ == '__main__':
