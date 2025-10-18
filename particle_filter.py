@@ -4,6 +4,7 @@ from matplotlib.collections import LineCollection
 from scipy import ndimage, stats
 from map import Map
 
+from robot import Robot
 from simulate_lidar import SimulatedLidar
 
 from utils import pairwise_dists
@@ -29,7 +30,8 @@ class ParticleFilter():
     
     def generate_initial_particles(self, num_particles):
         print("WARNING: GENERATE INNITIAL PARTICLES NOT WORKING AS INTENDED!!!")
-        self.particles = np.random.uniform(low=np.array([-2000, -2000, 0]), high=np.array([2000, 3000, 2*np.pi]), size=(num_particles, 3))
+        self.particles = np.random.uniform(low=np.array([-2000, -2000, 0]), high=np.array([2000, 3000, 2*np.pi]), size=(num_particles, 3)) # fake map params
+        # self.particles = np.random.uniform(low=np.array([-100, -1000, 0]), high=np.array([1000, 2000, 2*np.pi]), size=(num_particles, 3)) # load map params
         weights = 1 / num_particles
         batch_uniform_weights = np.ones(num_particles) * weights
         self.particles = np.concatenate((self.particles, batch_uniform_weights.reshape(-1, 1)), axis=1)
@@ -74,7 +76,6 @@ class ParticleFilter():
         flattened_batch_simulated_lidar_readings = batch_simulated_lidar_readings.reshape(-1, 2) # (N, M, 2) -> (N*M, 2)
         flattened_batch_grid_coords = self.map.batch_world_to_grid_coords(flattened_batch_simulated_lidar_readings) # (N*M, 2)
         flattened_batch_dists = self.dist_map[flattened_batch_grid_coords[:, 0], flattened_batch_grid_coords[:, 1]] # (N*M,)
-        print(flattened_batch_dists)
         flattened_batch_probs = self.normal_distribution.pdf(flattened_batch_dists) # (N*M,)
         batch_probs = flattened_batch_probs.reshape(N, -1) # (N, M)
         ### ---- Get Probabilities ---- ###
@@ -92,7 +93,6 @@ class ParticleFilter():
 
 
         # -- Should avoid Underflow Problem with Log Scaling -- #
-        print("batch probs shape", batch_probs.shape)
         batch_log_probs = np.log(batch_probs)
         batch_log_weights = np.sum(batch_log_probs, axis=1).squeeze()
         batch_rescaled_log_weights = batch_log_weights - np.max(batch_log_weights)
@@ -120,7 +120,8 @@ class ParticleFilter():
         num_particles = len(self.particles)
         # delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([0.1, 0.1, 0.1]), size=(num_particles, 3))
         # delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([10.0, 10.0, 0.1]), size=(num_particles, 3)) # Works!!!
-        delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([2.0, 2.0, 0.1]), size=(num_particles, 3))
+        # delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([2.0, 2.0, 0.1]), size=(num_particles, 3))
+        delta_noise = np.random.normal(loc=np.array([0.0, 0.0, 0.0]), scale=np.array([10.0, 10.0, 0.1]), size=(num_particles, 3))
         noisy_motion_delta = motion_delta + delta_noise
         return noisy_motion_delta
 
@@ -142,6 +143,7 @@ class ParticleFilter():
         self.particles = sampled_particles_noisy
 
     def get_state_estimate(self, method = 'MLE'):
+        print(f"Estimating State Method: {method}")
         if method == 'MLE':
             positional_states = self.particles[:, :2]
             orientation_states = self.particles[:, 2]
@@ -155,7 +157,7 @@ class ParticleFilter():
             proxy_x_theta = np.sum(particle_weights * coses)
             proxy_y_theta = np.sum(particle_weights * sines)
 
-            mean_theta = np.arctan2(proxy_y_theta, proxy_x_theta)
+            mean_theta = np.arctan2(proxy_y_theta, proxy_x_theta) % (2*np.pi)
 
             # TODO: I don't like this, use concatentation
             return np.array([mean_position[0], mean_position[1], mean_theta])
@@ -169,7 +171,27 @@ class ParticleFilter():
         else:
             raise Exception('State Estimation Must Use Either MLE or MAP Estimation Method')
 
+    def batch_get_motion_delta(self, motion_command):
+        motion_type, avg_motion = motion_command
+
+        if motion_type == 'linear':
+
+            thetas = self.particles[:, 2]
+            coses = np.cos(thetas)
+            sines = np.sin(thetas)
+            vecs = np.stack((coses, sines, np.zeros_like(coses)), axis=1)
+            batch_dx_state = vecs * avg_motion
+        elif motion_type == 'angular':
+            N = len(self.particles)
+            batch_dx_state = np.zeros((N, 3))
+            batch_dx_state[:, 2] = avg_motion
+        else:
+            raise NotImplementedError
+
+        return batch_dx_state
+
     def get_updated_particles(self, motion_delta):
+        motion_delta = self.batch_get_motion_delta(motion_delta)
         noisy_motion_delta = self._delta_noise_injection(motion_delta)
         self.particles[:, :3] = self.particles[:, :3] + noisy_motion_delta
         return self.particles
@@ -179,7 +201,7 @@ class ParticleFilter():
         print(self.particles.shape, batch_normalized_weights.shape)
         self.particles[:, 3] = batch_normalized_weights
 
-    def step(self, motion_delta, scan, estimate_method='MLE'):
+    def step(self, motion_delta, scan, estimate_method='MAP'):
         self.particles = self.get_updated_particles(motion_delta)
         self.update_particle_weights(scan)
         state_estimate = self.get_state_estimate(method=estimate_method)
@@ -214,10 +236,10 @@ class ParticleFilter():
         ax.add_collection(LineCollection(lines, color="red", alpha=0.5))
 
 if __name__ == '__main__':
-    mymap = generate_fake_map()
-    # mymap = load_saved_map()
+    # mymap = generate_fake_map()
+    mymap = load_saved_map()
 
-    state = np.array([-1000.0, 2500.0, np.pi/2])
+    state = np.array([-1000.0, 2500.0, 3*np.pi/2])
 
     ### ---- Used for Testing ---- ###
     # state = np.array([-1000.0, 2500.0, np.pi/4])
@@ -260,40 +282,85 @@ if __name__ == '__main__':
     #     pf.batch_get_measurement_update(state.reshape(-1, 3), scan_v2, translated_rotated_points)
     # print(batch_probs)
 
-    motion_delta = np.array([0.0, 100.0, 0.0])
+    # motion_delta = np.array([0.0, 100.0, 0.0])
 
-    new_state = np.array([-1000.0, 2600, np.pi/2])
-    translated_rotated_points, line_segment_eps, map_points, angles, r_dists, unrotated_points, r_angles_local = sl.simulate_lidar(loc=new_state)
-    scan_v2 = np.stack((r_angles_local, r_dists), axis=1)
-    state_estimate = pf.step(motion_delta=motion_delta, scan=scan_v2)
-    print(f"State Estiamte: {np.round(state_estimate, 2)}")
+    # new_state = np.array([-1000.0, 2600, np.pi/2])
+    # translated_rotated_points, line_segment_eps, map_points, angles, r_dists, unrotated_points, r_angles_local = sl.simulate_lidar(loc=new_state)
+    # scan_v2 = np.stack((r_angles_local, r_dists), axis=1)
+    # state_estimate = pf.step(motion_delta=motion_delta, scan=scan_v2)
+    # print(f"State Estiamte: {np.round(state_estimate, 2)}")
 
-    pf.visualize_particles(plt.gca())
-    pf.map.visualize_points(plt.gca())
-    plt.scatter(new_state[0], new_state[1], color='orange')
-    plt.show()
+    # pf.visualize_particles(plt.gca())
+    # pf.map.visualize_points(plt.gca())
+    # plt.scatter(new_state[0], new_state[1], color='orange')
+    # plt.show()
+
+    # mds = [
+    #     [0.0, -100.0, 0.0] 
+    # ] * 45 + [
+    #     [100.0, 0.0, 0.0]
+    # ] * 30 + [
+    #     [0.0, 100.0, 0.0]
+    # ] * 40
+
+    # mds = [
+    #     [0.0, -100.0, 0.0] 
+    # ] * 45 + [
+    #     [0.0, 0.0, -np.pi/2]
+    # ] + [
+    #     [100.0, 0.0, 0.0]
+    # ] * 40
+
+    # mds = [
+    #     [100.0, -100.0], # Forward relative to heading 
+    # ] * 40 + \
+    # [
+    #     [-np.pi/2, -np.pi/2], # Turn in place CW
+    # ] + \
+    # [
+    #     [100.0, -100.0], # Forward relative to heading 
+    # ] * 40
 
     mds = [
-        [0.0, -100.0, 0.0] 
-    ] * 45 + [
-        [100.0, 0.0, 0.0]
-    ] * 30 + [
-        [0.0, 100.0, 0.0]
+        ['linear', 100.0], # Forward relative to heading 
+    ] * 40 + \
+    [
+        ['angular', np.pi/2], # Turn in place CCW
+    ] + \
+    [
+        ['linear', 100.0], # Forward relative to heading 
     ] * 40
 
+    # [np.pi/2, np.pi/2], # Turn in place CW
+    robot = Robot(simulated=True)
+    new_state = np.array([-1000.0, 2500.0, 3*np.pi/2])
+    robot.state = new_state
     for i in range(len(mds)):
-        motion_delta = np.array(mds[i])
+        new_state = robot.state
+        # motion_delta = np.array(mds[i])
+        motion_delta = mds[i]
+        print("singular motion_delta", motion_delta)
 
-        new_state = new_state + motion_delta
-        translated_rotated_points, line_segment_eps, map_points, angles, r_dists, unrotated_points, r_angles_local = sl.simulate_lidar(loc=new_state)
+        # new_state = new_state + motion_delta
+        # translated_rotated_points, line_segment_eps, map_points, angles, r_dists, unrotated_points, r_angles_local = sl.simulate_lidar(loc=new_state)
+        translated_rotated_points, line_segment_eps, map_points, angles, r_dists, unrotated_points, r_angles_local = sl.simulate_lidar(loc=robot.state)
         scan_v2 = np.stack((r_angles_local, r_dists), axis=1)
         state_estimate = pf.step(motion_delta=motion_delta, scan=scan_v2)
         print(f"Actual State: {np.round(new_state, 2)}")
         print(f"State Estimate: {np.round(state_estimate, 2)}")
+        # new_state = predict_state(new_state, motion_delta)
+        # robot.state = predict_state(new_state, motion_delta)
+        robot.state = robot.command_motion_and_predict_state(robot.state, motion_delta)
+        # robot.state = robot.command_motion_and_predict_state(motion_delta)
+        
 
         pf.visualize_particles(plt.gca())
         pf.map.visualize_points(plt.gca())
+        # plt.scatter(translated_rotated_points[:, 0], translated_rotated_points[:, 1], color='purple')
+        plt.scatter(unrotated_points[:, 0], unrotated_points[:, 1])
         plt.scatter(new_state[0], new_state[1], color='orange', zorder=2)
+        plt.xlim(-2000, 5000)
+        plt.ylim(-2000, 5000)
         plt.show()
     
 
