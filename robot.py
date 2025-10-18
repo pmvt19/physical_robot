@@ -163,23 +163,27 @@ class Robot():
         ax.fill(*robot_outline.exterior.xy, color='blue')
 
         # Draw Wheels
-        wheel_offset = relative_robot_radius + 20 # TODO: Compute this value
+        wheel_width = 50
+        wheel_height = 20
+
+        wheel_offset = relative_robot_radius + wheel_height/2 # TODO: Compute this value
         left_wheel_y_loc = y + wheel_offset
         right_wheel_y_loc = y - wheel_offset
 
-        wheel_width = 5
-        wheel_height = 2
+        
 
         left_wheel = create_rectangle_geometry(x, left_wheel_y_loc, wheel_width, wheel_height)
         right_wheel = create_rectangle_geometry(x, right_wheel_y_loc, wheel_width, wheel_height)
 
-        left_wheel = affinity.rotate(left_wheel, theta, use_radians=True, origin=np.array([x, y]))
-        right_wheel = affinity.rotate(right_wheel, theta, use_radians=True, origin=np.array([x, y]))
-        ax.plot(*left_wheel.exterior.xy, color='black')
-        ax.plot(*right_wheel.exterior.xy, color='black')
+        left_wheel = affinity.rotate(left_wheel, theta, use_radians=True, origin=[x, y])
+        right_wheel = affinity.rotate(right_wheel, theta, use_radians=True, origin=[x, y])
+        ax.fill(*left_wheel.exterior.xy, color='black')
+        ax.fill(*right_wheel.exterior.xy, color='black')
 
         # Draw Heading Line
-        
+        heading_line_length = 500
+        heading_line_ep = np.array([np.cos(theta), np.sin(theta)]) * heading_line_length + np.array([x, y])
+        ax.plot([x, heading_line_ep[0]], [y, heading_line_ep[1]], color='red')
 
     
     def terminate(self):
