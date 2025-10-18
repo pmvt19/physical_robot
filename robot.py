@@ -1,7 +1,7 @@
 from dxl_controller import DynamixelController
 from robot_interface import RobotInterface
 import numpy as np
-from shapely import Point
+from shapely import Point, Polygon, affinity
 
 from multiprocessing import Process, Manager
 from run_lidar import start_lidar
@@ -10,6 +10,8 @@ import time
 import redis
 
 import rerun as rr
+
+from utils import create_rectangle_geometry
 
 class Robot():
     def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ', simulated=False):
@@ -155,12 +157,30 @@ class Robot():
     def draw_state(self, ax, state):
         x, y, theta = state
 
-        robot_outline = Point([x, y]).buffer(100)
+        # Draw Robot Body
+        relative_robot_radius = 100 # TODO: Compute this value
+        robot_outline = Point([x, y]).buffer(relative_robot_radius)
         ax.fill(*robot_outline.exterior.xy, color='blue')
-        # return robot
 
-    def draw_cosmetic_state(self, ax, state):
-        pass
+        # Draw Wheels
+        wheel_offset = relative_robot_radius + 20 # TODO: Compute this value
+        left_wheel_y_loc = y + wheel_offset
+        right_wheel_y_loc = y - wheel_offset
+
+        wheel_width = 5
+        wheel_height = 2
+
+        left_wheel = create_rectangle_geometry(x, left_wheel_y_loc, wheel_width, wheel_height)
+        right_wheel = create_rectangle_geometry(x, right_wheel_y_loc, wheel_width, wheel_height)
+
+        left_wheel = affinity.rotate(left_wheel, theta, use_radians=True, origin=np.array([x, y]))
+        right_wheel = affinity.rotate(right_wheel, theta, use_radians=True, origin=np.array([x, y]))
+        ax.plot(*left_wheel.exterior.xy, color='black')
+        ax.plot(*right_wheel.exterior.xy, color='black')
+
+        # Draw Heading Line
+        
+
     
     def terminate(self):
         pass
