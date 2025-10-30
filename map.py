@@ -167,7 +167,7 @@ class Map():
         xs, ys = idxes
         pc_idxes = np.stack((xs, ys), axis=1)
         pc_coords = self.batch_grid_to_approx_world_coords(pc_idxes)
-        pc_values = self.map[xs, ys]
+        pc_values = self.map[xs, ys].reshape(-1, 1)
         pc_coords_and_values = np.hstack((pc_coords, pc_values))
         return pc_coords_and_values
     
@@ -194,12 +194,6 @@ class Map():
         return is_valid
     
     def _compute_new_map_size(self, grid_coords):
-        min_x = np.min(grid_coords[:, 0])
-        max_x = np.max(grid_coords[:, 0])
-
-        min_y = np.min(grid_coords[:, 1])
-        max_y = np.max(grid_coords[:, 1])
-
         mins = np.min(grid_coords, axis=0)
         maxs = np.max(grid_coords, axis=0)
 
@@ -261,9 +255,6 @@ class Map():
         robot_radius = (227 / 2) * 0.9
         robot_outline = Point([x, y]).buffer(robot_radius/self.resolution)
         ax.fill(*robot_outline.exterior.xy, color='blue', alpha=0.3)
-
-    def expand_map(self):
-        raise NotImplementedError
     
     def visualize(self, ax):
         ax.imshow((np.rot90(self.map[::, ::]))*255)
