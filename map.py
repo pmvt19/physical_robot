@@ -50,6 +50,7 @@ class Map():
         self.resolution = resolution
 
         # map size
+        # map_size_literal = np.array([12.0, 12.0]) # TODO: Figure out how to compute this value
         map_size_literal = np.array([12000.0, 12000.0]) # TODO: Figure out how to compute this value
         # map_size_literal = np.array([20000.0, 20000.0]) # TODO: Figure out how to compute this value
         map_size_discretized = (map_size_literal // self.resolution).astype(np.int32)
@@ -152,7 +153,15 @@ class Map():
 
     def update_map(self, aligned_scan):
         idxes = self.batch_world_to_grid_coords(aligned_scan)
-        self.map[idxes[:, 0], idxes[:, 1]] = 1
+        is_valid = self.validate_map_boundaries(idxes)
+        # TODO: Clean this up if correct
+        if is_valid:
+            self.map[idxes[:, 0], idxes[:, 1]] = 1
+        else:
+            self.expand_map(idxes)
+            idxes = self.batch_world_to_grid_coords(aligned_scan)
+            self.map[idxes[:, 0], idxes[:, 1]] = 1
+            
     
     def get_points(self):
         idxes = np.where(self.map == 1)
@@ -205,7 +214,7 @@ class Map():
         # Maxs
         max_diffs = maxs - np.array(self.map.shape)
 
-        all_diffs = np.stack((min_diffs, max_diffs), axis=0)
+        all_diffs = np.concatenate((min_diffs, max_diffs), axis=0)
         all_diffs[all_diffs < 0] = 0 # Zero out non important diffs
         max_idx_diff = np.max(all_diffs)
 
@@ -214,7 +223,8 @@ class Map():
         
 
         N, M = self.map.shape
-        return np.array([N + 2*buffered_max_idx_diff, M + 2*buffered_max_idx_diff]) # In Idx Coords
+        new_map_size_discretized = np.array([N + 2*buffered_max_idx_diff, M + 2*buffered_max_idx_diff]) # In Idx Coords
+        return new_map_size_discretized
 
     def expand_map(self, req_grid_coords):
         # approx_world_coords = self.get_points() # TODO: Decide whether these should include the value at that location
