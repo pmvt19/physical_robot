@@ -42,7 +42,10 @@ class Robot():
         # Ideally, control should be u=[vl,vr]
         pass
 
-    def keyboard_control(self):
+    def run_keyboard_control(self):
+        """
+        See if we can run keyboard control from here if the robot is not simulated
+        """
         pass
 
     def read_lidar(self):
