@@ -68,13 +68,23 @@ class Map():
         self.update_map(initial_scan)
 
         ## --- Computing Grid Centers --- ##
+        # x_idxes = np.arange(self.map.shape[0])
+        # y_idxes = np.arange(self.map.shape[1])
+
+        # xs, ys = np.meshgrid(x_idxes, y_idxes)
+        # all_idxes = np.stack((xs.flatten(), ys.flatten()), axis=1)
+        # self.grid_centers = self.batch_grid_to_approx_world_coords(all_idxes) + (self.resolution / 2)
+        self._compute_grid_centers()
+        ## --- Computing Grid Centers --- ##
+
+    def _compute_grid_centers(self):
         x_idxes = np.arange(self.map.shape[0])
         y_idxes = np.arange(self.map.shape[1])
 
         xs, ys = np.meshgrid(x_idxes, y_idxes)
         all_idxes = np.stack((xs.flatten(), ys.flatten()), axis=1)
         self.grid_centers = self.batch_grid_to_approx_world_coords(all_idxes) + (self.resolution / 2)
-        ## --- Computing Grid Centers --- ##
+
     
     def world_to_grid_coords(self, coords):
         ## Division Needed
@@ -171,16 +181,79 @@ class Map():
         # Where neighbor_mask > 0 (adjacent to a 1) and current value != 1
         self.map[(neighbor_mask > 0) & (self.map != 1)] = 0.7
 
-    def expand_map(self, expansion_amount):
+    def validate_map_boundaries(self, grid_coords):
+        min_x = np.min(grid_coords[:, 0])
+        max_x = np.max(grid_coords[:, 0])
+
+        min_y = np.min(grid_coords[:, 1])
+        max_y = np.max(grid_coords[:, 1])
+
+        N, M = self.map.shape
+
+        is_valid = (min_x >= 0 and max_x < N and min_y >= 0 and max_y < M) # Check if grid_coords are within bounds
+        return is_valid
+    
+    def _compute_new_map_size(self, grid_coords):
+        min_x = np.min(grid_coords[:, 0])
+        max_x = np.max(grid_coords[:, 0])
+
+        min_y = np.min(grid_coords[:, 1])
+        max_y = np.max(grid_coords[:, 1])
+
+        mins = np.min(grid_coords, axis=0)
+        maxs = np.max(grid_coords, axis=0)
+
+        # Calculate which has the greatest diffs to the boundary
+
+        # Mins
+        min_diffs = 0 - mins
+
+        # Maxs
+        max_diffs = maxs - np.array(self.map.shape)
+
+        all_diffs = np.stack((min_diffs, max_diffs), axis=0)
+        all_diffs[all_diffs < 0] = 0 # Zero out non important diffs
+        max_idx_diff = np.max(all_diffs)
+
+        expansion_buffer = 0.1
+        buffered_max_idx_diff = int((max_idx_diff * (1 + expansion_buffer)) + 0.5)
+        
+
+        N, M = self.map.shape
+        return np.array([N + 2*buffered_max_idx_diff, M + 2*buffered_max_idx_diff]) # In Idx Coords
+
+    def expand_map(self, req_grid_coords):
         # approx_world_coords = self.get_points() # TODO: Decide whether these should include the value at that location
         approx_world_coords_and_values = self.get_points_and_values() # TODO: Decide whether these should include the value at that location
         approx_world_coords = approx_world_coords_and_values[:, :2]
         values = approx_world_coords_and_values[:, 2]
         ### --- Expand Map Here --- ###
 
+        # N, M = self.map.shape
+        # expansion_buffer_percent = 0.1
+
+        # min_x = np.min(req_grid_coords[:, 0])
+        # max_x = np.max(req_grid_coords[:, 0])
+
+        # min_y = np.min(req_grid_coords[:, 1])
+        # max_y = np.max(req_grid_coords[:, 1])
+
+        # expansion_amount = np.array([N * expansion_buffer_percent, M * expansion_buffer_percent]) # TODO NOW: Should include the full expansion amount, not just the added buffer
+        
+        # new_map_size_world_units = None # TODO: PLACEHOLDER FOR NOW COMPUTE THIS VALUE
+        # map_size_literal = np.array(new_map_size_world_units)
+        # map_size_discretized = (map_size_literal // self.resolution).astype(np.int32)
+        map_size_discretized = self._compute_new_map_size(grid_coords=req_grid_coords)
+        map_size_discretized = map_size_discretized.astype(np.int32)
+        print(f"Expanded Map Discritized Size: {map_size_discretized}")
+        self.map = np.zeros(map_size_discretized)
+        self.mx = self.map.shape[0] // 2
+        self.my = self.map.shape[1] // 2
+
         ### --- Expand Map Here --- ###
         new_grid_coords = self.batch_world_to_grid_coords(approx_world_coords)
         self.map[new_grid_coords[:, 0], new_grid_coords[:, 1]] = values # TODO: Linked with previous todo in this function^
+        self._compute_grid_centers()
 
     def draw_state(self, ax, state):
         x, y, theta = state
