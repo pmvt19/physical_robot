@@ -51,6 +51,7 @@ class Map():
 
         # map size
         map_size_literal = np.array([12000.0, 12000.0]) # TODO: Figure out how to compute this value
+        # map_size_literal = np.array([20000.0, 20000.0]) # TODO: Figure out how to compute this value
         map_size_discretized = (map_size_literal // self.resolution).astype(np.int32)
         print(f"Map Size Discritized Size: {map_size_discretized}")
         self.map = np.zeros(map_size_discretized)
@@ -149,6 +150,16 @@ class Map():
         pc_idxes = np.stack((xs, ys), axis=1)
         pc_coords = self.batch_grid_to_approx_world_coords(pc_idxes)
         return pc_coords
+
+    def get_points_and_values(self):
+        threshold = 0.5 # TODO: Figure out what this value should be
+        idxes = np.where(self.map > threshold)
+        xs, ys = idxes
+        pc_idxes = np.stack((xs, ys), axis=1)
+        pc_coords = self.batch_grid_to_approx_world_coords(pc_idxes)
+        pc_values = self.map[xs, ys]
+        pc_coords_and_values = np.hstack((pc_coords, pc_values))
+        return pc_coords_and_values
     
     def inflate_obstacles(self, kernel_size=3):
         kernel = np.ones((kernel_size, kernel_size))
@@ -159,6 +170,17 @@ class Map():
 
         # Where neighbor_mask > 0 (adjacent to a 1) and current value != 1
         self.map[(neighbor_mask > 0) & (self.map != 1)] = 0.7
+
+    def expand_map(self, expansion_amount):
+        # approx_world_coords = self.get_points() # TODO: Decide whether these should include the value at that location
+        approx_world_coords_and_values = self.get_points_and_values() # TODO: Decide whether these should include the value at that location
+        approx_world_coords = approx_world_coords_and_values[:, :2]
+        values = approx_world_coords_and_values[:, 2]
+        ### --- Expand Map Here --- ###
+
+        ### --- Expand Map Here --- ###
+        new_grid_coords = self.batch_world_to_grid_coords(approx_world_coords)
+        self.map[new_grid_coords[:, 0], new_grid_coords[:, 1]] = values # TODO: Linked with previous todo in this function^
 
     def draw_state(self, ax, state):
         x, y, theta = state
