@@ -1,12 +1,14 @@
 from dxl_controller import DynamixelController
 from robot_interface import RobotInterface
 import numpy as np
+import matplotlib.pyplot as plt
 from shapely import Point, Polygon, affinity
 
 from multiprocessing import Process, Manager
 from run_lidar import start_lidar
 
 import time
+import copy
 import redis
 
 import rerun as rr
@@ -87,6 +89,70 @@ class Robot():
 
         return coords
     
+    def _get_single_lidar_reading(self, wait_for_updated_reading):
+        if self.connection == 'simulated':
+            # DO SOMETHING
+            raise NotImplementedError
+        else:
+            if self.connection == 'client':
+                # Make RPC Call here 
+                request_ack = pb2.Acknowledge(
+                    success=True,
+                    message="Client is ready for data!"
+                )
+                lidar_data = self.stub.GetLatestLidarData(request_ack)
+
+                init_time = lidar_data.timestamp
+                if wait_for_updated_reading:
+                    cur_time = init_time
+                    while init_time == cur_time: # TODO: Use is_close?
+                        lidar_data = self.stub.GetLatestLidarData(request_ack)
+                        cur_time = lidar_data.timestamp
+                
+                angles = np.array(lidar_data.angles)
+                dist = np.array(lidar_data.dists)
+                print("Came at time: ", lidar_data.timestamp)
+
+            elif self.connection == 'physical':
+                init_time = float(self.redis_client.get('time'))
+                lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
+                
+                if wait_for_updated_reading:
+                    cur_time = init_time
+                    while init_time == cur_time: # TODO: Use is_close?
+                        cur_time = float(self.redis_client.get('time'))
+                        print("Waiting for updated lidar")
+                    lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
+
+                angles = lidar_data[:, 0]
+                dist = lidar_data[:, 1]
+
+            # TODO: Add Fix to Lidar Readings Here
+            rad_angles = (np.pi / 180.0) * angles
+
+            cos = np.cos(rad_angles)
+            sin = np.sin(rad_angles)
+
+            x_coords = dist * cos
+            y_coords = -dist * sin
+            z_coords = np.ones_like(x_coords)
+
+            coords = np.stack((x_coords, y_coords, z_coords), axis=1)
+            return coords
+
+    def read_lidar_updated(self, manual_verification=False, wait_for_updated_reading=False):
+        coords = self._get_single_lidar_reading(wait_for_updated_reading)
+        if manual_verification:
+            plt.scatter(coords[:, 0], coords[:, 1])
+            plt.show()
+            user_input = input("Do you want to reread the lidar?")
+            while user_input == 'yes':
+                coords = self._get_single_lidar_reading(wait_for_updated_reading)
+                plt.scatter(coords[:, 0], coords[:, 1])
+                plt.show()
+                user_input = input("Do you want to reread the lidar?")
+        return coords
+
     def read_lidar_trial(self):
         if self.connection == 'simulated':
             raise NotImplementedError
@@ -99,8 +165,23 @@ class Robot():
                 message="Client is ready for data!"
             )
             lidar_data = self.stub.GetLatestLidarData(request_ack)
-            angles = lidar_data.angles
-            dist = lidar_data.dists
+            angles = np.array(lidar_data.angles)
+            dist = np.array(lidar_data.dists)
+            # print(angles)
+            # print(dist)
+            rad_angles = (np.pi / 180.0) * angles
+
+            cos = np.cos(rad_angles)
+            sin = np.sin(rad_angles)
+
+            x_coords = dist * cos
+            y_coords = -dist * sin
+            # z_coords = np.zeros_like(x_coords)
+            z_coords = np.ones_like(x_coords)
+            coords = np.stack((x_coords, y_coords, z_coords), axis=1)
+            # coords = np.stack((x_coords, y_coords), axis=1)
+
+            return coords
         elif self.connection == 'physical':
             lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
 
@@ -273,9 +354,14 @@ class Robot():
         pass
     
 if __name__ == "__main__":
-    
+
     robot = Robot(simulated=False, connection='client')
-    robot.command_motion_trial(['linear', 100])
+    # robot.command_motion_trial(['linear', 100])
+    coords = robot.read_lidar_trial()
+
+    print(coords)
+
+
 
 
 
