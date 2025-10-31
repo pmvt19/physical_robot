@@ -6,6 +6,7 @@ package physical_robot;
 message LidarData {
     repeated float angles = 1;
     repeated float dists = 2;
+    int64 timestamp = 3;
 }
 
 message Acknowledge {
