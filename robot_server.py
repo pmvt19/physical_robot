@@ -24,7 +24,7 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
         self.ri = RobotInterface(controller=controller)
         self.ri.set_profile_velocity()
-        
+
         self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
     def GetLatestLidarData(self, request, context):
@@ -39,14 +39,15 @@ class RobotServerServicer(pb2_grpc.RobotServer):
             return pb2.LidarData() # Return an empty response
         
         lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
-
+        timestamp = int(float(self.redis_client.get('time')) * 100000) # TODO: THIS IS BAD
         angles = lidar_data[:, 0]
         dists = lidar_data[:, 1]
 
         # 1. Create the data to send back
         fake_data = pb2.LidarData(
             angles=angles,
-            dists=dists
+            dists=dists,
+            timestamp=timestamp
         )
 
         # 2. Return the data
