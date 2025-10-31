@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package physical_robot;
+
+// Messages
+message LidarData {
+    repeated float angles = 1;
+    repeated float dists = 2;
+}
+
+message Acknowledge {
+    bool success = 1;
+    string message = 2;
+}
+
+message MotionCommand {
+    string motion_type = 1;
+    float distance = 2;
+}
+
+message MotionDistance {
+    int64 left_wheel_rotation = 1;
+    int64 right_wheel_rotation = 2;
+}
+
+// Services
+service RobotServer {
+    rpc GetLatestLidarData(Acknowledge) returns (LidarData);
+
+    rpc SendMotionCommand(MotionCommand) returns (MotionDistance);
+}
