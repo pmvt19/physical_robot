@@ -273,33 +273,7 @@ class Robot():
         pass
     
 if __name__ == "__main__":
-
-    # # TODO: Broken DO NOT RUN
-    # with Manager() as manager:
-    #     shared_dict = manager.dict()
-    #     shared_dict['lidar'] = np.empty((0, 2))
-    #     pub_process = Process(target=start_lidar, args=(shared_dict,))
-    #     pub_process.start()
-
-    #     time.sleep(10)
-
-    #     rr.init("3d points", spawn=True)
-    #     start_time = time.time()
-    #     robot = Robot(lidar_data=shared_dict)
-
-    #     for i in range(10000):
-    #         coords = robot.read_lidar()
-    #         # print(coords)
-    #         rr.set_time("time", duration=time.time()-start_time)
-    #         rr.log("points", rr.Points3D(coords))
-    #         rr.log("points v2", rr.Points3D([[[0.0,0.0,0.0]]], colors=[0, 255, 0], radii=0.1))
-    #         time.sleep(0.1)
-        
-    #     pub_process.terminate()
-    #     pub_process.join()
-
-    # print("Finished")
-
+    
     robot = Robot(simulated=False, connection='client')
     robot.command_motion_trial(['linear', 100])
 
