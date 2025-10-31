@@ -9,15 +9,17 @@
 
 from dxl_controller import DynamixelController
 from robot_interface import RobotInterface
+from concurrent import futures
 
+import time
 import grpc
 import generated.robot_data_pb2 as pb2
 import generated.robot_data_pb2 as pb2_grpc
 import numpy as np
 import redis
 
-class SendingDataServicer(pb2_grpc.SendingDataServicer):
-    """The server implementation of the SendingData service."""
+class RobotServerServicer(pb2_grpc.RobotServer):
+    """The server implementation of the RobotServer service."""
     def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ'):
         controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
         self.ri = RobotInterface(controller=controller)
@@ -65,3 +67,21 @@ class SendingDataServicer(pb2_grpc.SendingDataServicer):
         return motion_distance
 
 
+def serve():
+    # Create a gRPC server
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    # Add your service to the server
+    pb2_grpc.add_RobotServerServicer_to_server(RobotServerServicer(), server)
+    # Start the server on a port
+    server.add_insecure_port('[::]:50051')
+    server.start()
+    print("Server running on port 50051. Awaiting requests...")
+    try:
+        while True:
+            time.sleep(86400) # One day
+    except KeyboardInterrupt:
+        print("Stopping server...")
+        server.stop(0)
+
+if __name__ == '__main__':
+    serve()
