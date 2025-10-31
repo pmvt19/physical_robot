@@ -80,56 +80,14 @@ class ParticleFilter():
         N, d = states.shape
 
         ### ---- Get Batch Simulated Lidar ---- ###
-        # N, d = states.shape
-
-        # angles = scan_actual[:, 0] # (M,)
-        # point_dists = scan_actual[:, 1] # (M,)
-
-        # state_headings = states[:, 2] # (N,)
-
-        # ### TODO: CHECK THIS: TODO ###
-        # offset_angles = angles.reshape(-1, 1) - (np.pi/2 - state_headings.reshape(1, -1)) # (M, 1) + (1, N) = (M, N)
-        # ### TODO: CHECK THIS: TODO ###
-
-        # # print(np.rad2deg(angles % (2*np.pi)), state_headings)
-        # # exit()
-
-        # coses = np.cos(offset_angles) # (M, N)
-        # sines = np.sin(offset_angles) # (M, N)
-        # vecs = np.stack((coses, sines), axis=2) # (M, N, 2)
-
-        # origin_centered_points = vecs * point_dists.reshape(-1, 1, 1) # (M, N, 2) * (M,) = (M, N, 2) (MIGHT NEED TO RESHAPE point_dists)
-        # batch_simulated_lidar_readings = origin_centered_points + states[:, :2].reshape(1, N, -1) # (M, N, 2) + (1, N, 2) = (M, N, 2) (Probably need to transform states a bit)
-        # batch_simulated_lidar_readings = batch_simulated_lidar_readings.transpose(1, 0, 2) # Transpose the Matrix to be (N, M, 2) {I think this makes more sense, but I already implemented this function...}
-
-        # plt.scatter(batch_simulated_lidar_readings[0, :, 0], batch_simulated_lidar_readings[0, :, 1], label='sim lidar')
-        # plt.scatter(tmp_points[:, 0], tmp_points[:, 1], label='scanned lidar')
-        # self.map.visualize_points(plt.gca())
-        # plt.legend()
-        # plt.show()
         batch_simulated_lidar_readings = self._batch_get_simulated_lidar(states, scan_actual)
         ### ---- Get Batch Simulated Lidar ---- ###
 
         ### ---- Get Probabilities ---- ###
-        # flattened_batch_simulated_lidar_readings = batch_simulated_lidar_readings.reshape(-1, 2) # (N, M, 2) -> (N*M, 2)
-        # flattened_batch_grid_coords = self.map.batch_world_to_grid_coords(flattened_batch_simulated_lidar_readings) # (N*M, 2)
-        # flattened_batch_dists = self.dist_map[flattened_batch_grid_coords[:, 0], flattened_batch_grid_coords[:, 1]] # (N*M,)
-        # flattened_batch_probs = self.normal_distribution.pdf(flattened_batch_dists) # (N*M,)
-        # batch_probs = flattened_batch_probs.reshape(N, -1) # (N, M)
         batch_probs = self._batch_get_probabilities(batch_simulated_lidar_readings, N)
         ### ---- Get Probabilities ---- ###
 
-        ### ---- Add Noise??? ---- ###
-
-        ### ---- Add Noise??? ---- ###
-
         ### ---- Get Particle Weights ---- ###
-
-        # -- Should have an Underflow Problem -- #
-        # batch_weights_unnormalized = np.prod(batch_probs, axis=0).squeeze()
-        # batch_weights_normalized = batch_weights_unnormalized / np.sum(batch_weights_unnormalized)
-        # -- Should have an Underflow Problem -- #
-
 
         # -- Should avoid Underflow Problem with Log Scaling -- #
         batch_log_probs = np.log(batch_probs)
@@ -140,9 +98,7 @@ class ParticleFilter():
         # -- Should avoid Underflow Problem with Log Scaling -- #
 
         ### ---- Get Particle Weights ---- ###
-
-
-
+        
         return batch_simulated_lidar_readings, batch_probs, batch_normalized_weights
 
     def _noise_injection(self, particles):
