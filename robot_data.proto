@@ -19,8 +19,8 @@ message MotionCommand {
 }
 
 message MotionDistance {
-    int64 left_wheel_rotation = 1;
-    int64 right_wheel_rotation = 2;
+    float left_wheel_dist = 1;
+    float right_wheel_dist = 2;
 }
 
 // Services
