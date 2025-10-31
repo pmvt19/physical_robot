@@ -11,11 +11,16 @@ import redis
 
 import rerun as rr
 
+import grpc
+import generated.robot_data_pb2 as pb2
+import generated.robot_data_pb2_grpc as pb2_grpc
+
 from utils import create_rectangle_geometry
 
 class Robot():
-    def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ', simulated=False):
+    def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ', simulated=False, connection='simulated'):
         self.simulated=simulated
+        self.connection = connection
         
         # TODO: Do some design work and see if this is necessary, I'm leaning to not having this, (It's not used internally)
         # TODO: This might be used internally if lidar is simulated as well so might be worth it to keep
@@ -36,6 +41,16 @@ class Robot():
         
         # Connect to Redis Server for Publishing Lidar Data
         self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
+
+        if self.connection == 'simulated':
+            pass
+        elif self.connection == 'client':
+            channel = grpc.insecure_channel('192.168.12.199:50051')
+            self.stub = pb2_grpc.RobotServerStub(channel)
+        elif self.connection == 'physical':
+            pass
+        else:
+            raise NotImplementedError
 
     def move(self, control, dt):
         # OBSOLETE
@@ -67,6 +82,40 @@ class Robot():
         # coords = np.stack((x_coords, y_coords), axis=1)
 
         return coords
+    
+    def read_lidar_trial(self):
+        if self.connection == 'simulated':
+            raise NotImplementedError
+        elif self.connection == 'client':
+            # Make RPC Call here 
+            # Should I take the raw data? Or make the robot do some conversion for me?
+            # raise NotImplementedError
+            request_ack = pb2.Acknowledge(
+                success=True,
+                message="Client is ready for data!"
+            )
+            lidar_data = self.stub.GetLatestLidarData(request_ack)
+            angles = lidar_data.angles
+            dist = lidar_data.dists
+        elif self.connection == 'physical':
+            lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
+
+            angles = lidar_data[:, 0]
+            dist = lidar_data[:, 1]
+
+            rad_angles = (np.pi / 180.0) * angles
+
+            cos = np.cos(rad_angles)
+            sin = np.sin(rad_angles)
+
+            x_coords = dist * cos
+            y_coords = -dist * sin
+            # z_coords = np.zeros_like(x_coords)
+            z_coords = np.ones_like(x_coords)
+            coords = np.stack((x_coords, y_coords, z_coords), axis=1)
+            # coords = np.stack((x_coords, y_coords), axis=1)
+
+            return coords
     
     def motion_command_to_pseudo_motor_diffs(self, motion_command):
         motion_type, pseudo_avg_motion = motion_command
@@ -147,6 +196,33 @@ class Robot():
         if self.simulated:
             m = self.motion_command_to_pseudo_motor_diffs(motion_command)
         else:
+            # Consider moving this to RobotInterface in a function called "ExecuteMotion or CommandMotion or..."
+            if motion_type == 'linear':
+                m = self.ri.move_dist(dist)
+            elif motion_type == 'angular':
+                dist = np.deg2rad(dist)
+                m = self.ri.rotate_rad(dist)
+            else:
+                raise NotImplementedError
+        return m
+
+    def command_motion_trial(self, motion_command):
+        """
+        Return motion differential
+        """
+        motion_type, dist = motion_command
+        if self.connection == 'simulated':
+            m = self.motion_command_to_pseudo_motor_diffs(motion_command)
+        elif self.connection == 'client':
+            # Make RPC Call to robot (For now just return the same m...)
+            rpc_motion_command = pb2.MotionCommand(
+                motion_type=motion_command[0],
+                distance=motion_command[1]
+            )
+            motion_distance = self.stub.SendMotionCommand(rpc_motion_command)
+            m = np.array([motion_distance.left_wheel_dist, motion_distance.right_wheel_dist])
+
+        elif self.connection == 'physical':
             # Consider moving this to RobotInterface in a function called "ExecuteMotion or CommandMotion or..."
             if motion_type == 'linear':
                 m = self.ri.move_dist(dist)
