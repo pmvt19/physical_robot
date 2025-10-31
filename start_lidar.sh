@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # --- Configuration ---
-SERVER_CMD="your_server_command --port 8080"  # REPLACE with your actual server command
-CRASHY_CMD="your_crashing_command --config /etc/app.conf" # REPLACE with your actual crashy command
+SERVER_CMD="redis-server"
+CRASHY_CMD="python run_lidar.py"
 
 # --- Function to handle script exit (e.g., when you hit Ctrl+C) ---
 cleanup() {
