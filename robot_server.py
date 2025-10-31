@@ -14,7 +14,7 @@ from concurrent import futures
 import time
 import grpc
 import generated.robot_data_pb2 as pb2
-import generated.robot_data_pb2 as pb2_grpc
+import generated.robot_data_pb2_grpc as pb2_grpc
 import numpy as np
 import redis
 
