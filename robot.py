@@ -29,26 +29,30 @@ class Robot():
         self.state = np.array([0.0, 0.0, 0.0])
 
         # If Robot is not required to be tied to the physical robot, don't initialize the controllers
-        if simulated:
-            # Initialize RobotInterface with no motor controller
-            # self.ri = RobotInterface(controller=None)
-            return
+        # if simulated:
+        #     # Initialize RobotInterface with no motor controller
+        #     # self.ri = RobotInterface(controller=None)
+        #     return
         
         # Initialize Classes For Motor Control
-        self.controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
-        self.ri = RobotInterface(controller=self.controller)
+        # self.controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
+        # self.ri = RobotInterface(controller=self.controller)
 
         
         # Connect to Redis Server for Publishing Lidar Data
-        self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
+        # self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
         if self.connection == 'simulated':
             pass
         elif self.connection == 'client':
-            channel = grpc.insecure_channel('192.168.12.199:50051')
+            channel = grpc.insecure_channel('192.168.12.155:50051')
             self.stub = pb2_grpc.RobotServerStub(channel)
         elif self.connection == 'physical':
-            pass
+            self.controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
+            self.ri = RobotInterface(controller=self.controller)
+
+            # Connect to Redis Server for Publishing Lidar Data
+            self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
         else:
             raise NotImplementedError
 
@@ -270,31 +274,34 @@ class Robot():
     
 if __name__ == "__main__":
 
-    # TODO: Broken DO NOT RUN
-    with Manager() as manager:
-        shared_dict = manager.dict()
-        shared_dict['lidar'] = np.empty((0, 2))
-        pub_process = Process(target=start_lidar, args=(shared_dict,))
-        pub_process.start()
+    # # TODO: Broken DO NOT RUN
+    # with Manager() as manager:
+    #     shared_dict = manager.dict()
+    #     shared_dict['lidar'] = np.empty((0, 2))
+    #     pub_process = Process(target=start_lidar, args=(shared_dict,))
+    #     pub_process.start()
 
-        time.sleep(10)
+    #     time.sleep(10)
 
-        rr.init("3d points", spawn=True)
-        start_time = time.time()
-        robot = Robot(lidar_data=shared_dict)
+    #     rr.init("3d points", spawn=True)
+    #     start_time = time.time()
+    #     robot = Robot(lidar_data=shared_dict)
 
-        for i in range(10000):
-            coords = robot.read_lidar()
-            # print(coords)
-            rr.set_time("time", duration=time.time()-start_time)
-            rr.log("points", rr.Points3D(coords))
-            rr.log("points v2", rr.Points3D([[[0.0,0.0,0.0]]], colors=[0, 255, 0], radii=0.1))
-            time.sleep(0.1)
+    #     for i in range(10000):
+    #         coords = robot.read_lidar()
+    #         # print(coords)
+    #         rr.set_time("time", duration=time.time()-start_time)
+    #         rr.log("points", rr.Points3D(coords))
+    #         rr.log("points v2", rr.Points3D([[[0.0,0.0,0.0]]], colors=[0, 255, 0], radii=0.1))
+    #         time.sleep(0.1)
         
-        pub_process.terminate()
-        pub_process.join()
+    #     pub_process.terminate()
+    #     pub_process.join()
 
-    print("Finished")
+    # print("Finished")
+
+    robot = Robot(simulated=False, connection='client')
+    robot.command_motion_trial(['linear', 100])
 
 
 
