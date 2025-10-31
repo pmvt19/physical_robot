@@ -56,7 +56,7 @@ class ParticleFilter():
             self.map.expand_map(req_grid_coords=flattened_batch_grid_coords)
             self._compute_dist_map()
             flattened_batch_grid_coords = self.map.batch_world_to_grid_coords(flattened_batch_simulated_lidar_readings) # (N*M, 2)
-            is_valid = self.map.validate_map_boundaries(flattened_batch_grid_coords)
+            # is_valid = self.map.validate_map_boundaries(flattened_batch_grid_coords)
             flattened_batch_dists = self.dist_map[flattened_batch_grid_coords[:, 0], flattened_batch_grid_coords[:, 1]] # (N*M,)
             flattened_batch_probs = self.normal_distribution.pdf(flattened_batch_dists) # (N*M,)
             batch_probs = flattened_batch_probs.reshape(N, -1) # (N, M)
@@ -65,9 +65,9 @@ class ParticleFilter():
     
     def generate_initial_particles(self, num_particles):
         print("WARNING: GENERATE INNITIAL PARTICLES NOT WORKING AS INTENDED!!!")
-        self.particles = np.random.uniform(low=np.array([-2000, -2000, 0]), high=np.array([2000, 3000, 2*np.pi]), size=(num_particles, 3)) # fake map params
+        # self.particles = np.random.uniform(low=np.array([-2000, -2000, 0]), high=np.array([2000, 3000, 2*np.pi]), size=(num_particles, 3)) # fake map params
         # self.particles = np.random.uniform(low=np.array([-100, -1000, 0]), high=np.array([1000, 2000, 2*np.pi]), size=(num_particles, 3)) # load map params
-        # self.particles = np.random.uniform(low=np.array([-10000, -10000, 0]), high=np.array([10000, 10000, 2*np.pi]), size=(num_particles, 3)) # Broken for fixed size map
+        self.particles = np.random.uniform(low=np.array([-10000, -10000, 0]), high=np.array([10000, 10000, 2*np.pi]), size=(num_particles, 3)) # Broken for fixed size map
         weights = 1 / num_particles
         batch_uniform_weights = np.ones(num_particles) * weights
         self.particles = np.concatenate((self.particles, batch_uniform_weights.reshape(-1, 1)), axis=1)
@@ -77,43 +77,46 @@ class ParticleFilter():
         # States: (N, 3)
         # Scan_Actual: (M, 2)
         # Ideally, scan_actual[i] is just (angle, dist)
-
-        ### ---- Get Batch Simulated Lidar ---- ###
         N, d = states.shape
 
-        angles = scan_actual[:, 0] # (M,)
-        point_dists = scan_actual[:, 1] # (M,)
+        ### ---- Get Batch Simulated Lidar ---- ###
+        # N, d = states.shape
 
-        state_headings = states[:, 2] # (N,)
+        # angles = scan_actual[:, 0] # (M,)
+        # point_dists = scan_actual[:, 1] # (M,)
 
-        ### TODO: CHECK THIS: TODO ###
-        offset_angles = angles.reshape(-1, 1) - (np.pi/2 - state_headings.reshape(1, -1)) # (M, 1) + (1, N) = (M, N)
-        ### TODO: CHECK THIS: TODO ###
+        # state_headings = states[:, 2] # (N,)
 
-        # print(np.rad2deg(angles % (2*np.pi)), state_headings)
-        # exit()
+        # ### TODO: CHECK THIS: TODO ###
+        # offset_angles = angles.reshape(-1, 1) - (np.pi/2 - state_headings.reshape(1, -1)) # (M, 1) + (1, N) = (M, N)
+        # ### TODO: CHECK THIS: TODO ###
 
-        coses = np.cos(offset_angles) # (M, N)
-        sines = np.sin(offset_angles) # (M, N)
-        vecs = np.stack((coses, sines), axis=2) # (M, N, 2)
+        # # print(np.rad2deg(angles % (2*np.pi)), state_headings)
+        # # exit()
 
-        origin_centered_points = vecs * point_dists.reshape(-1, 1, 1) # (M, N, 2) * (M,) = (M, N, 2) (MIGHT NEED TO RESHAPE point_dists)
-        batch_simulated_lidar_readings = origin_centered_points + states[:, :2].reshape(1, N, -1) # (M, N, 2) + (1, N, 2) = (M, N, 2) (Probably need to transform states a bit)
-        batch_simulated_lidar_readings = batch_simulated_lidar_readings.transpose(1, 0, 2) # Transpose the Matrix to be (N, M, 2) {I think this makes more sense, but I already implemented this function...}
+        # coses = np.cos(offset_angles) # (M, N)
+        # sines = np.sin(offset_angles) # (M, N)
+        # vecs = np.stack((coses, sines), axis=2) # (M, N, 2)
+
+        # origin_centered_points = vecs * point_dists.reshape(-1, 1, 1) # (M, N, 2) * (M,) = (M, N, 2) (MIGHT NEED TO RESHAPE point_dists)
+        # batch_simulated_lidar_readings = origin_centered_points + states[:, :2].reshape(1, N, -1) # (M, N, 2) + (1, N, 2) = (M, N, 2) (Probably need to transform states a bit)
+        # batch_simulated_lidar_readings = batch_simulated_lidar_readings.transpose(1, 0, 2) # Transpose the Matrix to be (N, M, 2) {I think this makes more sense, but I already implemented this function...}
 
         # plt.scatter(batch_simulated_lidar_readings[0, :, 0], batch_simulated_lidar_readings[0, :, 1], label='sim lidar')
         # plt.scatter(tmp_points[:, 0], tmp_points[:, 1], label='scanned lidar')
         # self.map.visualize_points(plt.gca())
         # plt.legend()
         # plt.show()
+        batch_simulated_lidar_readings = self._batch_get_simulated_lidar(states, scan_actual)
         ### ---- Get Batch Simulated Lidar ---- ###
 
         ### ---- Get Probabilities ---- ###
-        flattened_batch_simulated_lidar_readings = batch_simulated_lidar_readings.reshape(-1, 2) # (N, M, 2) -> (N*M, 2)
-        flattened_batch_grid_coords = self.map.batch_world_to_grid_coords(flattened_batch_simulated_lidar_readings) # (N*M, 2)
-        flattened_batch_dists = self.dist_map[flattened_batch_grid_coords[:, 0], flattened_batch_grid_coords[:, 1]] # (N*M,)
-        flattened_batch_probs = self.normal_distribution.pdf(flattened_batch_dists) # (N*M,)
-        batch_probs = flattened_batch_probs.reshape(N, -1) # (N, M)
+        # flattened_batch_simulated_lidar_readings = batch_simulated_lidar_readings.reshape(-1, 2) # (N, M, 2) -> (N*M, 2)
+        # flattened_batch_grid_coords = self.map.batch_world_to_grid_coords(flattened_batch_simulated_lidar_readings) # (N*M, 2)
+        # flattened_batch_dists = self.dist_map[flattened_batch_grid_coords[:, 0], flattened_batch_grid_coords[:, 1]] # (N*M,)
+        # flattened_batch_probs = self.normal_distribution.pdf(flattened_batch_dists) # (N*M,)
+        # batch_probs = flattened_batch_probs.reshape(N, -1) # (N, M)
+        batch_probs = self._batch_get_probabilities(batch_simulated_lidar_readings, N)
         ### ---- Get Probabilities ---- ###
 
         ### ---- Add Noise??? ---- ###
