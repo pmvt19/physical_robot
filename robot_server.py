@@ -23,6 +23,8 @@ class RobotServerServicer(pb2_grpc.RobotServer):
     def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ'):
         controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
         self.ri = RobotInterface(controller=controller)
+        self.ri.set_profile_velocity()
+        
         self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
     def GetLatestLidarData(self, request, context):
