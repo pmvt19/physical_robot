@@ -31,7 +31,7 @@ def start_lidar_local():
 
             
             angles = np.array(angles)
-            dist = np.array(dists) #/ 10.0
+            dist = np.array(dists)
 
             lidar_output = np.stack((angles, dist), axis=1)
             redis_client.set('lidar_data', lidar_output.tobytes())
