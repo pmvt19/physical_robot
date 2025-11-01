@@ -33,15 +33,10 @@ if __name__ == "__main__":
 
     # for motion_type, dist in motions:
     while True:
-        command = input("Enter Robot Motion Command")
-
-        if command == "quit":
+        motion_command = robot.request_motion_command_from_user()
+        if motion_command[0] == '': # No Motion Command:
             break
-
-        motion_type, dist = command.split(",")
-        dist = float(dist)
-        print(motion_type, dist)
-        m = robot.command_motion_trial([motion_type, dist])
+        m = robot.command_motion_trial(motion_command)
         
         predicted_state = robot.predict_state(robot.state, m)
         # print(f"State Derivative: {dx_state}")
@@ -60,7 +55,7 @@ if __name__ == "__main__":
 
         print(f"Scan Size: {scan.shape} | Lidar Data Size: {lidar_data.shape}")
 
-        updated_state = pf.step(motion_delta=[motion_type, dist], scan=lidar_data) # SCAN IS CURRENTLY WRONG!!!!
+        updated_state = pf.step(motion_delta=motion_command, scan=lidar_data) # SCAN IS CURRENTLY WRONG!!!!
         print(f"Updated State: {updated_state}")
         robot.state = updated_state
 

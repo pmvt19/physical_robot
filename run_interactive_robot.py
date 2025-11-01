@@ -32,16 +32,19 @@ if __name__ == "__main__":
     # for motion_type, dist in motions:
     i=0
     while True:
-        command = input("Enter Robot Motion Command")
+        # command = input("Enter Robot Motion Command")
 
-        if command == "quit":
+        # if command == "quit":
+        #     break
+
+        # motion_type, dist = command.split(",")
+        # dist = float(dist)
+        # print(motion_type, dist)
+        motion_command = robot.request_motion_command_from_user()
+        if motion_command[0] == '': # No Motion Command:
             break
-
-        motion_type, dist = command.split(",")
-        dist = float(dist)
-        print(motion_type, dist)
         # continue
-        m = robot.command_motion_trial([motion_type, dist])
+        m = robot.command_motion_trial(motion_command)
         print(robot.state)
         
         predicted_state = robot.predict_state(robot.state, m)
@@ -61,16 +64,16 @@ if __name__ == "__main__":
         plt.show()
         plt.cla()
         map.visualize(ax=plt.gca())
-        plt.savefig(f'maps_saved/run0/map_{i}.png')
+        # plt.savefig(f'maps_saved/run0/map_{i}.png')
         i+=1
 
-        pickle.dump(map, open("dumps/map_object.pickle", "wb"))
-        pickle.dump(map.map, open("dumps/map_map.pickle", "wb"))
-        pickle.dump(map.get_points(), open("dumps/map_points.pickle", "wb"))
+        # pickle.dump(map, open("dumps/map_object.pickle", "wb"))
+        # pickle.dump(map.map, open("dumps/map_map.pickle", "wb"))
+        # pickle.dump(map.get_points(), open("dumps/map_points.pickle", "wb"))
     
     print("Finished")
     plt.cla()
     map.visualize(ax=plt.gca())
-    plt.savefig("generated_map.png")
+    # plt.savefig("generated_map.png")
 
     
