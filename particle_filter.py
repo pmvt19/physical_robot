@@ -196,7 +196,6 @@ class ParticleFilter():
         
     def update_particle_weights(self, scan):
         _, _, batch_normalized_weights = self.batch_get_measurement_update(self.particles[:, :3], scan)
-        print(self.particles.shape, batch_normalized_weights.shape)
         self.particles[:, 3] = batch_normalized_weights
 
     def compute_covariance_matrix(self, state_estimate):
@@ -214,7 +213,7 @@ class ParticleFilter():
         return cov_mat
     
     def _compute_max_trace(self):
-        state_estimate = self.get_state_estimate(method='MLE')
+        state_estimate = self.get_state_estimate(method='MLE') # Should always be MLE since its run at initialization where all weights are equal
         cov_mat = self.compute_covariance_matrix(state_estimate)
         self.tr_max = np.trace(cov_mat)
     
