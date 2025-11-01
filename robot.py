@@ -383,6 +383,10 @@ class Robot():
         linear_motion = np.sqrt((x2-x1)**2 + (y2-y1)**2)
         final_turn = theta2 - positional_difference_vector
 
+        # Normalize Angles:
+        initial_turn = np.arctan2(np.sin(initial_turn), np.cos(initial_turn))
+        final_turn = np.arctan2(np.sin(final_turn), np.cos(final_turn))
+
         # Add the motion commands in order (Skip those that are 0 [unlikely to happen...])
         if initial_turn != 0:
             state_transition_motion_commands.append(["angular", initial_turn])
