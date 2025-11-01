@@ -4,7 +4,7 @@ from rplidar import RPLidar
 
 import redis
 
-def start_lidar_local():
+def start_lidar():
 
     # Connect to Redis
     redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -49,5 +49,5 @@ def start_lidar_local():
     lidar.disconnect()
 
 if __name__ == '__main__':
-    start_lidar_local()
+    start_lidar()
     

@@ -4,9 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from shapely import Point, Polygon, affinity
 
-from multiprocessing import Process, Manager
-from run_lidar import start_lidar
-
 import time
 import copy
 import redis
@@ -49,6 +46,7 @@ class Robot():
         elif self.connection == 'client':
             channel = grpc.insecure_channel('192.168.12.155:50051')
             self.stub = pb2_grpc.RobotServerStub(channel)
+            print("Motor Logs will appear in the machine where the Robot Server is run")
         elif self.connection == 'physical':
             self.controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
             self.ri = RobotInterface(controller=self.controller)
@@ -58,6 +56,7 @@ class Robot():
         else:
             raise NotImplementedError
 
+    # TODO: DEPRECATE
     def move(self, control, dt):
         # OBSOLETE
         # Ideally, control should be u=[vl,vr]
@@ -69,6 +68,7 @@ class Robot():
         """
         pass
 
+    # TODO: DEPRECATE
     def read_lidar(self):
         lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
 
@@ -153,6 +153,7 @@ class Robot():
                 user_input = input("Do you want to reread the lidar?")
         return coords
 
+    # TODO: DEPRECATE
     def read_lidar_trial(self):
         if self.connection == 'simulated':
             raise NotImplementedError
@@ -252,7 +253,6 @@ class Robot():
         x, y, theta = state
 
         if motion_type == 'linear':
-
             direction_vector = np.array([np.cos(theta), np.sin(theta), 0.0])
             dx_state = direction_vector * avg_motion
             predicted_state = state + dx_state
@@ -273,6 +273,7 @@ class Robot():
     def get_relative_transformation(self, motor_differentials):
         pass
     
+    # TODO: DEPRECATE
     def command_motion(self, motion_command):
         """
         Return motion differential
@@ -312,12 +313,12 @@ class Robot():
             if motion_type == 'linear':
                 m = self.ri.move_dist(dist)
             elif motion_type == 'angular':
-                dist = np.deg2rad(dist)
                 m = self.ri.rotate_rad(dist)
             else:
                 raise NotImplementedError
         return m
     
+    # TODO: Add ability to toggle between grid coords and world coords
     def draw_state(self, ax, state):
         x, y, theta = state
 
@@ -356,10 +357,20 @@ class Robot():
 if __name__ == "__main__":
 
     robot = Robot(simulated=False, connection='client')
-    # robot.command_motion_trial(['linear', 100])
-    coords = robot.read_lidar_trial()
+    # robot.command_motion_trial(['linear', -400])
+    # robot.command_motion_trial(['angular', np.pi/2])
+    robot.command_motion_trial(['linear', 400])
 
-    print(coords)
+    # motions = [
+    #     ('linear', 400),
+    #     ('angular', -np.pi/2),
+    #     ('linear', 700),
+    # ]
+    # for motion_type, dist in motions:
+    #     robot.command_motion_trial([motion_type, dist])
+    # coords = robot.read_lidar_trial()
+
+    # print(coords)
 
 
 
