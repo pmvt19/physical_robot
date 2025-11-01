@@ -56,11 +56,11 @@ class Robot():
         else:
             raise NotImplementedError
 
-    # TODO: DEPRECATE
-    def move(self, control, dt):
-        # OBSOLETE
-        # Ideally, control should be u=[vl,vr]
-        pass
+    # # TODO: DEPRECATE
+    # def move(self, control, dt):
+    #     # OBSOLETE
+    #     # Ideally, control should be u=[vl,vr]
+    #     pass
 
     def run_keyboard_control(self):
         """
@@ -68,26 +68,26 @@ class Robot():
         """
         pass
 
-    # TODO: DEPRECATE
-    def read_lidar(self):
-        lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
+    # # TODO: DEPRECATE
+    # def read_lidar(self):
+    #     lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
 
-        angles = lidar_data[:, 0]
-        dist = lidar_data[:, 1]
+    #     angles = lidar_data[:, 0]
+    #     dist = lidar_data[:, 1]
 
-        rad_angles = (np.pi / 180.0) * angles
+    #     rad_angles = (np.pi / 180.0) * angles
 
-        cos = np.cos(rad_angles)
-        sin = np.sin(rad_angles)
+    #     cos = np.cos(rad_angles)
+    #     sin = np.sin(rad_angles)
 
-        x_coords = dist * cos
-        y_coords = -dist * sin
-        # z_coords = np.zeros_like(x_coords)
-        z_coords = np.ones_like(x_coords)
-        coords = np.stack((x_coords, y_coords, z_coords), axis=1)
-        # coords = np.stack((x_coords, y_coords), axis=1)
+    #     x_coords = dist * cos
+    #     y_coords = -dist * sin
+    #     # z_coords = np.zeros_like(x_coords)
+    #     z_coords = np.ones_like(x_coords)
+    #     coords = np.stack((x_coords, y_coords, z_coords), axis=1)
+    #     # coords = np.stack((x_coords, y_coords), axis=1)
 
-        return coords
+    #     return coords
     
     def _get_single_lidar_reading(self, wait_for_updated_reading):
         if self.connection == 'simulated':
@@ -154,55 +154,55 @@ class Robot():
                 user_input = input("Do you want to reread the lidar?")
         return coords, lidar_data
 
-    # TODO: DEPRECATE
-    def read_lidar_trial(self):
-        if self.connection == 'simulated':
-            raise NotImplementedError
-        elif self.connection == 'client':
-            # Make RPC Call here 
-            # Should I take the raw data? Or make the robot do some conversion for me?
-            # raise NotImplementedError
-            request_ack = pb2.Acknowledge(
-                success=True,
-                message="Client is ready for data!"
-            )
-            lidar_data = self.stub.GetLatestLidarData(request_ack)
-            angles = np.array(lidar_data.angles)
-            dist = np.array(lidar_data.dists)
-            # print(angles)
-            # print(dist)
-            rad_angles = (np.pi / 180.0) * angles
+    # # TODO: DEPRECATE
+    # def read_lidar_trial(self):
+    #     if self.connection == 'simulated':
+    #         raise NotImplementedError
+    #     elif self.connection == 'client':
+    #         # Make RPC Call here 
+    #         # Should I take the raw data? Or make the robot do some conversion for me?
+    #         # raise NotImplementedError
+    #         request_ack = pb2.Acknowledge(
+    #             success=True,
+    #             message="Client is ready for data!"
+    #         )
+    #         lidar_data = self.stub.GetLatestLidarData(request_ack)
+    #         angles = np.array(lidar_data.angles)
+    #         dist = np.array(lidar_data.dists)
+    #         # print(angles)
+    #         # print(dist)
+    #         rad_angles = (np.pi / 180.0) * angles
 
-            cos = np.cos(rad_angles)
-            sin = np.sin(rad_angles)
+    #         cos = np.cos(rad_angles)
+    #         sin = np.sin(rad_angles)
 
-            x_coords = dist * cos
-            y_coords = -dist * sin
-            # z_coords = np.zeros_like(x_coords)
-            z_coords = np.ones_like(x_coords)
-            coords = np.stack((x_coords, y_coords, z_coords), axis=1)
-            # coords = np.stack((x_coords, y_coords), axis=1)
+    #         x_coords = dist * cos
+    #         y_coords = -dist * sin
+    #         # z_coords = np.zeros_like(x_coords)
+    #         z_coords = np.ones_like(x_coords)
+    #         coords = np.stack((x_coords, y_coords, z_coords), axis=1)
+    #         # coords = np.stack((x_coords, y_coords), axis=1)
 
-            return coords
-        elif self.connection == 'physical':
-            lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
+    #         return coords
+    #     elif self.connection == 'physical':
+    #         lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
 
-            angles = lidar_data[:, 0]
-            dist = lidar_data[:, 1]
+    #         angles = lidar_data[:, 0]
+    #         dist = lidar_data[:, 1]
 
-            rad_angles = (np.pi / 180.0) * angles
+    #         rad_angles = (np.pi / 180.0) * angles
 
-            cos = np.cos(rad_angles)
-            sin = np.sin(rad_angles)
+    #         cos = np.cos(rad_angles)
+    #         sin = np.sin(rad_angles)
 
-            x_coords = dist * cos
-            y_coords = -dist * sin
-            # z_coords = np.zeros_like(x_coords)
-            z_coords = np.ones_like(x_coords)
-            coords = np.stack((x_coords, y_coords, z_coords), axis=1)
-            # coords = np.stack((x_coords, y_coords), axis=1)
+    #         x_coords = dist * cos
+    #         y_coords = -dist * sin
+    #         # z_coords = np.zeros_like(x_coords)
+    #         z_coords = np.ones_like(x_coords)
+    #         coords = np.stack((x_coords, y_coords, z_coords), axis=1)
+    #         # coords = np.stack((x_coords, y_coords), axis=1)
 
-            return coords
+    #         return coords
     
     def motion_command_to_pseudo_motor_diffs(self, motion_command):
         motion_type, pseudo_avg_motion = motion_command
@@ -267,7 +267,7 @@ class Robot():
         return predicted_state
 
     def command_motion_and_predict_state(self, state, motion_command):
-        m = self.command_motion(motion_command)
+        m = self.command_motion_trial(motion_command)
         predicted_state = self.predict_state(state, m)
         return predicted_state
     
@@ -294,24 +294,24 @@ class Robot():
     def get_relative_transformation(self, motor_differentials):
         pass
     
-    # TODO: DEPRECATE
-    def command_motion(self, motion_command):
-        """
-        Return motion differential
-        """
-        motion_type, dist = motion_command
-        if self.simulated:
-            m = self.motion_command_to_pseudo_motor_diffs(motion_command)
-        else:
-            # Consider moving this to RobotInterface in a function called "ExecuteMotion or CommandMotion or..."
-            if motion_type == 'linear':
-                m = self.ri.move_dist(dist)
-            elif motion_type == 'angular':
-                dist = np.deg2rad(dist)
-                m = self.ri.rotate_rad(dist)
-            else:
-                raise NotImplementedError
-        return m
+    # # TODO: DEPRECATE
+    # def command_motion(self, motion_command):
+    #     """
+    #     Return motion differential
+    #     """
+    #     motion_type, dist = motion_command
+    #     if self.simulated:
+    #         m = self.motion_command_to_pseudo_motor_diffs(motion_command)
+    #     else:
+    #         # Consider moving this to RobotInterface in a function called "ExecuteMotion or CommandMotion or..."
+    #         if motion_type == 'linear':
+    #             m = self.ri.move_dist(dist)
+    #         elif motion_type == 'angular':
+    #             dist = np.deg2rad(dist)
+    #             m = self.ri.rotate_rad(dist)
+    #         else:
+    #             raise NotImplementedError
+    #     return m
 
     def command_motion_trial(self, motion_command):
         """
