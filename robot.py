@@ -102,7 +102,7 @@ class Robot():
                 )
                 lidar_data = self.stub.GetLatestLidarData(request_ack)
 
-                init_time = lidar_data.timestamp
+                init_time = lidar_data.timestamp # Move to inside if?
                 if wait_for_updated_reading:
                     cur_time = init_time
                     while init_time == cur_time: # TODO: Use is_close?
@@ -112,9 +112,10 @@ class Robot():
                 angles = np.array(lidar_data.angles)
                 dist = np.array(lidar_data.dists)
                 print("Came at time: ", lidar_data.timestamp)
+                lidar_data = np.stack((angles, dist), axis=1)
 
             elif self.connection == 'physical':
-                init_time = float(self.redis_client.get('time'))
+                init_time = float(self.redis_client.get('time')) # Move to inside if?
                 lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
                 
                 if wait_for_updated_reading:
@@ -138,20 +139,20 @@ class Robot():
             z_coords = np.ones_like(x_coords)
 
             coords = np.stack((x_coords, y_coords, z_coords), axis=1)
-            return coords
+            return coords, lidar_data
 
     def read_lidar_updated(self, manual_verification=False, wait_for_updated_reading=False):
-        coords = self._get_single_lidar_reading(wait_for_updated_reading)
+        coords, lidar_data = self._get_single_lidar_reading(wait_for_updated_reading)
         if manual_verification:
             plt.scatter(coords[:, 0], coords[:, 1])
             plt.show()
             user_input = input("Do you want to reread the lidar?")
             while user_input == 'yes':
-                coords = self._get_single_lidar_reading(wait_for_updated_reading)
+                coords, lidar_data = self._get_single_lidar_reading(wait_for_updated_reading)
                 plt.scatter(coords[:, 0], coords[:, 1])
                 plt.show()
                 user_input = input("Do you want to reread the lidar?")
-        return coords
+        return coords, lidar_data
 
     # TODO: DEPRECATE
     def read_lidar_trial(self):
@@ -270,6 +271,26 @@ class Robot():
         predicted_state = self.predict_state(state, m)
         return predicted_state
     
+    # def request_motion_command_from_user(self):
+    #     """
+    #     Returns: [status, motion_type, angular]
+    #     """
+    #     while True:
+    #         command = input("Enter Robot Motion Command or type \"quit\":\n")
+
+    #         if command == "quit":
+    #             return ['', 0.0]
+
+    #         try:
+    #             # TODO: More useful exception messages here
+    #             motion_type, dist = command.split(",")
+    #             dist = float(dist)
+    #             assert(motion_type == 'linear' or motion_type == 'angular')
+
+    #             return [motion_type, dist]
+    #         except:
+    #             print("That was not a valid command, please try again!")
+        
     def get_relative_transformation(self, motor_differentials):
         pass
     
