@@ -271,25 +271,25 @@ class Robot():
         predicted_state = self.predict_state(state, m)
         return predicted_state
     
-    # def request_motion_command_from_user(self):
-    #     """
-    #     Returns: [status, motion_type, angular]
-    #     """
-    #     while True:
-    #         command = input("Enter Robot Motion Command or type \"quit\":\n")
+    def request_motion_command_from_user(self):
+        """
+        Returns: [status, motion_type, angular]
+        """
+        while True:
+            command = input("Enter Robot Motion Command or type \"quit\":\n")
 
-    #         if command == "quit":
-    #             return ['', 0.0]
+            if command == "quit":
+                return ['', 0.0]
 
-    #         try:
-    #             # TODO: More useful exception messages here
-    #             motion_type, dist = command.split(",")
-    #             dist = float(dist)
-    #             assert(motion_type == 'linear' or motion_type == 'angular')
+            try:
+                # TODO: More useful exception messages here
+                motion_type, dist = command.split(",")
+                dist = float(dist)
+                assert(motion_type == 'linear' or motion_type == 'angular')
 
-    #             return [motion_type, dist]
-    #         except:
-    #             print("That was not a valid command, please try again!")
+                return [motion_type, dist]
+            except:
+                print("That was not a valid command, please try again!")
         
     def get_relative_transformation(self, motor_differentials):
         pass
