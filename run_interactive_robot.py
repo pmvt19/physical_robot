@@ -16,6 +16,10 @@ def run_interactive_robot():
 
 if __name__ == "__main__":
 
+    run_num = 1
+    dump_dir = f'dumps/run{run_num}'
+    imgs_dir = f'maps_saved/run{run_num}'
+
 
     start_time = time.time()
 
@@ -53,7 +57,7 @@ if __name__ == "__main__":
         robot.state = predicted_state
         # scan = robot.read_lidar()
         print(robot.state)
-        scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
+        scan, _ = robot.read_lidar_updated(manual_verification=False, wait_for_updated_reading=True)
         print(f"Scan Size: {scan.shape}")
         updated_state = map.update(scan, predicted_state)
         print(robot.state)
@@ -64,16 +68,16 @@ if __name__ == "__main__":
         plt.show()
         plt.cla()
         map.visualize(ax=plt.gca())
-        # plt.savefig(f'maps_saved/run0/map_{i}.png')
+        plt.savefig(f'{imgs_dir}/map_{i}.png')
         i+=1
 
-        # pickle.dump(map, open("dumps/map_object.pickle", "wb"))
-        # pickle.dump(map.map, open("dumps/map_map.pickle", "wb"))
-        # pickle.dump(map.get_points(), open("dumps/map_points.pickle", "wb"))
+        pickle.dump(map, open(f"{dump_dir}/map_object.pickle", "wb"))
+        pickle.dump(map.map, open(f"{dump_dir}/map_map.pickle", "wb"))
+        pickle.dump(map.get_points(), open(f"{dump_dir}/map_points.pickle", "wb"))
     
     print("Finished")
     plt.cla()
     map.visualize(ax=plt.gca())
-    # plt.savefig("generated_map.png")
+    plt.savefig("generated_map.png")
 
     
