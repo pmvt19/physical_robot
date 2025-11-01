@@ -371,8 +371,37 @@ class Robot():
         heading_line_ep = np.array([np.cos(theta), np.sin(theta)]) * heading_line_length + np.array([x, y])
         ax.plot([x, heading_line_ep[0]], [y, heading_line_ep[1]], color='red')
 
+    def state_pairs_to_motion_commands(self, state1, state2):
+        state_transition_motion_commands = []
+
+        x1, y1, theta1 = state1
+        x2, y2, theta2 = state2
+
+        positional_difference_vector = np.arctan2(y2-y1, x2-x1)
+
+        initial_turn = positional_difference_vector - theta1
+        linear_motion = np.sqrt((x2-x1)**2 + (y2-y1)**2)
+        final_turn = theta2 - positional_difference_vector
+
+        # Add the motion commands in order (Skip those that are 0 [unlikely to happen...])
+        if initial_turn != 0:
+            state_transition_motion_commands.append(["angular", initial_turn])
+        if linear_motion != 0:
+            state_transition_motion_commands.append(["linear", linear_motion])
+        if final_turn != 0:
+            state_transition_motion_commands.append(["angular", final_turn])
+        
+        return state_transition_motion_commands
+
     def path_to_motion_commands(self, path):
-        raise NotImplementedError
+        motion_commands = []
+        for i in range(len(path)-1):
+            state1 = path[i]
+            state2 = path[i+1]
+
+            state_transition_motion_commands = self.state_pairs_to_motion_commands(state1, state2)
+            motion_commands.extend(state_transition_motion_commands)
+        return motion_commands
     
     def terminate(self):
         pass
