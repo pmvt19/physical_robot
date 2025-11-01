@@ -371,6 +371,8 @@ class Robot():
         heading_line_ep = np.array([np.cos(theta), np.sin(theta)]) * heading_line_length + np.array([x, y])
         ax.plot([x, heading_line_ep[0]], [y, heading_line_ep[1]], color='red')
 
+    def path_to_motion_commands(self, path):
+        raise NotImplementedError
     
     def terminate(self):
         pass
