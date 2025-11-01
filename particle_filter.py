@@ -67,10 +67,13 @@ class ParticleFilter():
         print("WARNING: GENERATE INNITIAL PARTICLES NOT WORKING AS INTENDED!!!")
         # self.particles = np.random.uniform(low=np.array([-2000, -2000, 0]), high=np.array([2000, 3000, 2*np.pi]), size=(num_particles, 3)) # fake map params
         # self.particles = np.random.uniform(low=np.array([-100, -1000, 0]), high=np.array([1000, 2000, 2*np.pi]), size=(num_particles, 3)) # load map params
-        self.particles = np.random.uniform(low=np.array([-10000, -10000, 0]), high=np.array([10000, 10000, 2*np.pi]), size=(num_particles, 3)) # Broken for fixed size map
+        # self.particles = np.random.uniform(low=np.array([-10000, -10000, 0]), high=np.array([10000, 10000, 2*np.pi]), size=(num_particles, 3)) # Broken for fixed size map
+        self.particles = np.random.uniform(low=np.array([-2000, -2000, 0]), high=np.array([3500, 3500, 2*np.pi]), size=(num_particles, 3)) # Broken for fixed size map
         weights = 1 / num_particles
         batch_uniform_weights = np.ones(num_particles) * weights
         self.particles = np.concatenate((self.particles, batch_uniform_weights.reshape(-1, 1)), axis=1)
+
+        self._compute_max_trace()
 
     # TODO: Change function name - Done?
     def batch_get_measurement_update(self, states, scan_actual, tmp_points=None):
@@ -98,7 +101,7 @@ class ParticleFilter():
         # -- Should avoid Underflow Problem with Log Scaling -- #
 
         ### ---- Get Particle Weights ---- ###
-        
+
         return batch_simulated_lidar_readings, batch_probs, batch_normalized_weights
 
     def _noise_injection(self, particles):
@@ -196,10 +199,38 @@ class ParticleFilter():
         print(self.particles.shape, batch_normalized_weights.shape)
         self.particles[:, 3] = batch_normalized_weights
 
-    def step(self, motion_delta, scan, estimate_method='MAP'):
+    def compute_covariance_matrix(self, state_estimate):
+        weights = self.particles[:, 3]
+        positional_mean_centered = self.particles[:, :2] - state_estimate[:2] # (N, 2)
+        raw_angular_diff = self.particles[:, 2] - state_estimate[2] # (N, )
+        angular_diff_options = np.stack((raw_angular_diff, 2*np.pi - (raw_angular_diff)), axis=1)
+        angular_mean_centered = np.min(angular_diff_options, axis=1).reshape(-1, 1)
+        mean_centered_particles = np.concatenate((positional_mean_centered, angular_mean_centered), axis=1)
+        mean_centered_particles = mean_centered_particles.reshape(-1, 3, 1)
+        mean_centered_particles_tranpose = mean_centered_particles.reshape(-1, 1, 3)
+        indiv_cov_mats = mean_centered_particles @ mean_centered_particles_tranpose # (N, 3, 3)
+        weighted_indiv_cov_mats = indiv_cov_mats * weights.reshape(-1, 1, 1)
+        cov_mat = np.sum(weighted_indiv_cov_mats, axis=0) # (3, 3)
+        return cov_mat
+    
+    def _compute_max_trace(self):
+        state_estimate = self.get_state_estimate(method='MLE')
+        cov_mat = self.compute_covariance_matrix(state_estimate)
+        self.tr_max = np.trace(cov_mat)
+    
+    def get_confidence_estimate(self, state_estimate):
+        cov_mat = self.compute_covariance_matrix(state_estimate)
+        tr = np.trace(cov_mat)
+
+        confidence_estimate = 1 - (tr / self.tr_max)
+        return confidence_estimate
+
+    def step(self, motion_delta, scan, estimate_method='MLE'):
         self.particles = self.get_updated_particles(motion_delta)
         self.update_particle_weights(scan)
         state_estimate = self.get_state_estimate(method=estimate_method)
+        confidence_estimate = self.get_confidence_estimate(state_estimate)
+        print(f"Confidence Estimate: {confidence_estimate}")
         self.resample()
         return state_estimate
     
