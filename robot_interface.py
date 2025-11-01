@@ -149,7 +149,7 @@ class RobotInterface():
         cir = self.r * 2 * np.pi
         body_cir = 2 * np.pi * (self.L / 2)
 
-        rotation_percentage = rad / (2 * np.pi)
+        rotation_percentage = -rad / (2 * np.pi)
 
         wheel_travel_dist = body_cir * rotation_percentage
 
