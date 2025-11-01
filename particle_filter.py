@@ -7,8 +7,9 @@ from map import Map
 from robot import Robot
 from simulate_lidar import SimulatedLidar
 
-from utils import pairwise_dists
+from utils import pairwise_dists, transformation_mat_to_state
 from test_utils import generate_fake_map, load_saved_map
+from icp import run_icp
 
 class ParticleFilter():
     def __init__(self, map_obj, scale_factor=50):
@@ -210,7 +211,6 @@ class ParticleFilter():
         motion_type, avg_motion = motion_command
 
         if motion_type == 'linear':
-
             thetas = self.particles[:, 2]
             coses = np.cos(thetas)
             sines = np.sin(thetas)
@@ -234,6 +234,14 @@ class ParticleFilter():
     def update_particle_weights(self, scan):
         _, _, batch_normalized_weights = self.batch_get_measurement_update(self.particles[:, :3], scan)
         self.particles[:, 3] = batch_normalized_weights
+
+    # TODO: UNUSED; Figure out how to get coords here
+    # def refine_state_estimate(self, scan, state_estimate):
+    #     # coords = raw_scan_to_coords(scan)[:, :2]
+    #     T = run_icp(self.map.get_points(), coords, state_estimate)
+        
+    #     refined_state_estimate = transformation_mat_to_state(T)
+    #     return refined_state_estimate
 
     def step(self, motion_delta, scan, estimate_method='MLE'):
         self.particles = self.get_updated_particles(motion_delta)
