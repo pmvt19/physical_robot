@@ -1,6 +1,8 @@
 import numpy as np
 from map import Map
 
+import pickle
+
 def generate_fake_map():
     xs_1 = np.linspace(0, 1000, 10000)
     ys_1 = np.ones_like(xs_1) * 0.0
@@ -22,4 +24,11 @@ def generate_fake_map():
     init_points = np.vstack((s1, s2, s3, s4))
 
     mymap = Map(initial_scan=init_points)
+    return mymap
+
+def load_saved_map(save_path='dumps/map_map.pickle'):
+    map_map = pickle.load(open("dumps/map_map.pickle", "rb"))
+    map_points = pickle.load(open("dumps/map_points.pickle", "rb"))
+    mymap = Map(initial_scan=map_points)
+    
     return mymap
