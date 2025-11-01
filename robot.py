@@ -17,8 +17,7 @@ import generated.robot_data_pb2_grpc as pb2_grpc
 from utils import create_rectangle_geometry
 
 class Robot():
-    def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ', simulated=False, connection='simulated'):
-        self.simulated=simulated
+    def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ', connection='simulated'):
         self.connection = connection
         
         # TODO: Do some design work and see if this is necessary, I'm leaning to not having this, (It's not used internally)
@@ -28,19 +27,6 @@ class Robot():
         self.state = np.array([0.0, 0.0, 0.0])
 
         # If Robot is not required to be tied to the physical robot, don't initialize the controllers
-        # if simulated:
-        #     # Initialize RobotInterface with no motor controller
-        #     # self.ri = RobotInterface(controller=None)
-        #     return
-        
-        # Initialize Classes For Motor Control
-        # self.controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
-        # self.ri = RobotInterface(controller=self.controller)
-
-        
-        # Connect to Redis Server for Publishing Lidar Data
-        # self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
-
         if self.connection == 'simulated':
             pass
         elif self.connection == 'client':
@@ -48,6 +34,7 @@ class Robot():
             self.stub = pb2_grpc.RobotServerStub(channel)
             print("Motor Logs will appear in the machine where the Robot Server is run")
         elif self.connection == 'physical':
+            # Initialize Classes For Motor Control
             self.controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
             self.ri = RobotInterface(controller=self.controller)
 
