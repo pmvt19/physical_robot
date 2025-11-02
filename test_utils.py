@@ -26,9 +26,8 @@ def generate_fake_map():
     mymap = Map(initial_scan=init_points)
     return mymap
 
-def load_saved_map(save_path='dumps/map_map.pickle'):
-    map_map = pickle.load(open("dumps/map_map.pickle", "rb"))
-    map_points = pickle.load(open("dumps/map_points.pickle", "rb"))
+def load_saved_map(directory='dumps/run1'):
+    map_points = pickle.load(open(f"{directory}/map_points.pickle", "rb"))
     mymap = Map(initial_scan=map_points)
     
     return mymap
