@@ -69,12 +69,6 @@ class Map():
         self.update_map(initial_scan)
 
         ## --- Computing Grid Centers --- ##
-        # x_idxes = np.arange(self.map.shape[0])
-        # y_idxes = np.arange(self.map.shape[1])
-
-        # xs, ys = np.meshgrid(x_idxes, y_idxes)
-        # all_idxes = np.stack((xs.flatten(), ys.flatten()), axis=1)
-        # self.grid_centers = self.batch_grid_to_approx_world_coords(all_idxes) + (self.resolution / 2)
         self._compute_grid_centers()
         ## --- Computing Grid Centers --- ##
 
@@ -233,22 +227,9 @@ class Map():
         approx_world_coords_and_values = self.get_points_and_values() # TODO: Decide whether these should include the value at that location
         approx_world_coords = approx_world_coords_and_values[:, :2]
         values = approx_world_coords_and_values[:, 2]
+
         ### --- Expand Map Here --- ###
 
-        # N, M = self.map.shape
-        # expansion_buffer_percent = 0.1
-
-        # min_x = np.min(req_grid_coords[:, 0])
-        # max_x = np.max(req_grid_coords[:, 0])
-
-        # min_y = np.min(req_grid_coords[:, 1])
-        # max_y = np.max(req_grid_coords[:, 1])
-
-        # expansion_amount = np.array([N * expansion_buffer_percent, M * expansion_buffer_percent]) # TODO NOW: Should include the full expansion amount, not just the added buffer
-        
-        # new_map_size_world_units = None # TODO: PLACEHOLDER FOR NOW COMPUTE THIS VALUE
-        # map_size_literal = np.array(new_map_size_world_units)
-        # map_size_discretized = (map_size_literal // self.resolution).astype(np.int32)
         map_size_discretized = self._compute_new_map_size(grid_coords=req_grid_coords)
         map_size_discretized = map_size_discretized.astype(np.int32)
         print(f"Expanded Map Discritized Size: {map_size_discretized}")
