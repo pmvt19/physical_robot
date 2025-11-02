@@ -15,12 +15,13 @@ if __name__ == "__main__":
     time.sleep(1.0)
     
     # Load Premade Map
-    map : Map = pickle.load(open("dumps/map_object.pickle", "rb"))
+    # map : Map = pickle.load(open("dumps/run0/map_object.pickle", "rb"))
+    map : Map = pickle.load(open("dumps/run1/map_object.pickle", "rb")) # Map of full apartment
+    # map : Map = pickle.load(open("dumps/run3/map_object.pickle", "rb")) # Map of just bedroom (made with updated robot_interface (inverse angular directions))
 
     # Create Particle Filter Object
     pf = ParticleFilter(map_obj=map)
-    pf._compute_dist_map()
-    pf.generate_initial_particles(num_particles=10000)
+    pf.initialize(num_particles=10000)
 
     # Visualize Current Map
     pf.visualize_particles(plt.gca())
@@ -43,7 +44,7 @@ if __name__ == "__main__":
         print(f"Predicted State: {predicted_state}")
         robot.state = predicted_state
         # scan = robot.read_lidar()
-        scan, lidar_data = robot.read_lidar_updated()
+        scan, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
 
         ## TODO: CLEAN THIS HACK
         lidar_data = np.copy(lidar_data)

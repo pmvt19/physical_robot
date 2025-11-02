@@ -51,12 +51,6 @@ class ParticleFilter():
         self.dist_map = ndimage.distance_transform_edt(inverse_map)
     
     def generate_initial_particles(self, num_particles, low=None, high=None):
-        # print("WARNING: GENERATE INNITIAL PARTICLES NOT WORKING AS INTENDED!!!")
-        # self.particles = np.random.uniform(low=np.array([-2000, -2000, 0]), high=np.array([2000, 3000, 2*np.pi]), size=(num_particles, 3)) # fake map params
-        # self.particles = np.random.uniform(low=np.array([-100, -1000, 0]), high=np.array([1000, 2000, 2*np.pi]), size=(num_particles, 3)) # load map params
-        # self.particles = np.random.uniform(low=np.array([-10000, -10000, 0]), high=np.array([10000, 10000, 2*np.pi]), size=(num_particles, 3)) # Broken for fixed size map
-        # self.particles = np.random.uniform(low=np.array([-2000, -2000, 0]), high=np.array([3500, 3500, 2*np.pi]), size=(num_particles, 3)) # Broken for fixed size map
-
         if low is None or high is None:
             low = np.array([-2000, -2000, 0])
             high = np.array([3500, 3500, 2*np.pi])
