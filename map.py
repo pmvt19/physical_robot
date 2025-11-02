@@ -122,7 +122,7 @@ class Map():
 
     def update(self, scan, predicted_state):
         T = run_icp(scan, self.get_points(), predicted_state, visualize=False)
-        updated_theta = np.arccos(T[0, 0])
+        updated_theta = np.arctan2(T[1,0],T[0,0]) % (2*np.pi)
 
         updated_x = T[0, 2]
         updated_y = T[1, 2]
@@ -203,6 +203,8 @@ class Map():
         return is_valid
     
     def _compute_new_map_size(self, grid_coords):
+        # print(grid_coords.shape)
+        grid_coords = grid_coords[:, :2]
         mins = np.min(grid_coords, axis=0)
         maxs = np.max(grid_coords, axis=0)
 
