@@ -15,25 +15,54 @@ class ParticleFilter():
     def __init__(self, map_obj, scale_factor=50):
         self.map : Map = map_obj
         self.scale_factor = scale_factor
+
+        self.buffer_percentage = 0.2
         print("WARNING: GUESS ON THE SCALE FACTOR!!")
 
         self.normal_distribution = stats.norm(loc=0, scale=self.scale_factor)
 
     ### --- Initialization functions --- ###
-    def initialize(self):
+    def initialize(self, num_particles):
         # TODO: Implement this
-        raise NotImplementedError
+        self._compute_dist_map()
+        low, high = self._compute_initial_partical_range()
+        self.generate_initial_particles(num_particles=num_particles, low=low, high=high)
+        # raise NotImplementedError
+    
+    def _compute_initial_partical_range(self):
+        coords = self.map.get_points()
+
+        min_coords = np.min(coords, axis=0)
+        max_coords = np.max(coords, axis=0)
+
+        coord_range = max_coords - min_coords
+        buffer_range = coord_range * self.buffer_percentage
+        low = min_coords - buffer_range
+        high = max_coords + buffer_range
+
+        # Add the Theta Ranges
+        low = np.append(low, 0)
+        high = np.append(high, 2*np.pi)
+
+        return low, high
 
     def _compute_dist_map(self):
         inverse_map = 1 - self.map.map
         self.dist_map = ndimage.distance_transform_edt(inverse_map)
     
-    def generate_initial_particles(self, num_particles):
-        print("WARNING: GENERATE INNITIAL PARTICLES NOT WORKING AS INTENDED!!!")
+    def generate_initial_particles(self, num_particles, low=None, high=None):
+        # print("WARNING: GENERATE INNITIAL PARTICLES NOT WORKING AS INTENDED!!!")
         # self.particles = np.random.uniform(low=np.array([-2000, -2000, 0]), high=np.array([2000, 3000, 2*np.pi]), size=(num_particles, 3)) # fake map params
         # self.particles = np.random.uniform(low=np.array([-100, -1000, 0]), high=np.array([1000, 2000, 2*np.pi]), size=(num_particles, 3)) # load map params
         # self.particles = np.random.uniform(low=np.array([-10000, -10000, 0]), high=np.array([10000, 10000, 2*np.pi]), size=(num_particles, 3)) # Broken for fixed size map
-        self.particles = np.random.uniform(low=np.array([-2000, -2000, 0]), high=np.array([3500, 3500, 2*np.pi]), size=(num_particles, 3)) # Broken for fixed size map
+        # self.particles = np.random.uniform(low=np.array([-2000, -2000, 0]), high=np.array([3500, 3500, 2*np.pi]), size=(num_particles, 3)) # Broken for fixed size map
+
+        if low is None or high is None:
+            low = np.array([-2000, -2000, 0])
+            high = np.array([3500, 3500, 2*np.pi])
+            print(f"Warning: Particle ranges not set using low: {low}, high: {high}") # TODO: Convert to LOG Statement
+        
+        self.particles = np.random.uniform(low=low, high=high, size=(num_particles, 3))
         weights = 1 / num_particles
         batch_uniform_weights = np.ones(num_particles) * weights
         self.particles = np.concatenate((self.particles, batch_uniform_weights.reshape(-1, 1)), axis=1)
