@@ -62,6 +62,7 @@ def run_icp(source_pc, target_pc, predicted_state, filter_init_outliers=True, vi
         dists = dists.flatten()
         init_inlier_dist_threshold = 200
         init_inlier_masks = dists < init_inlier_dist_threshold
+        # print(f"Inliers Remaining: {np.sum(init_inlier_masks)}") # TODO: Health Indicator could go here?
         src_points = src_points[init_inlier_masks]
 
 
@@ -197,7 +198,7 @@ def run_single_icp(source_pc, target_pc, init_T, num_iter=15, inlier_dist_thresh
 
 if __name__ == '__main__':
     # state = np.array([399.90361422, 0, 0])
-    state = np.array([299.90361422, 0, np.deg2rad(2)])
+    state = np.array([299.90361422, 0, np.deg2rad(2)]) # State is stale for the current loaded scans
     tgt = np.load('data/parking_scene/scan_0.npy')
     src = np.load('data/parking_scene/scan_1.npy')
     run_icp(src, tgt, state, filter_init_outliers=True, visualize=True)
