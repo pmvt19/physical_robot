@@ -60,7 +60,6 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         if motion_type == 'linear':
             m = self.ri.move_dist(dist)
         elif motion_type == 'angular':
-            dist = np.deg2rad(dist)
             m = self.ri.rotate_rad(dist)
         
         motion_distance = pb2.MotionDistance(
