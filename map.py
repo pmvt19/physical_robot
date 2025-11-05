@@ -197,7 +197,8 @@ class Map():
         return is_valid
     
     def _compute_new_map_size(self, grid_coords):
-        # print(grid_coords.shape)
+        # TODO: New Map Size Should be computed based off world coordinates, not grid coordinates
+
         grid_coords = grid_coords[:, :2]
         mins = np.min(grid_coords, axis=0)
         maxs = np.max(grid_coords, axis=0)
@@ -214,10 +215,9 @@ class Map():
         all_diffs[all_diffs < 0] = 0 # Zero out non important diffs
         max_idx_diff = np.max(all_diffs)
 
-        expansion_buffer = 0.1
-        buffered_max_idx_diff = int((max_idx_diff * (1 + expansion_buffer)) + 0.5)
+        expansion_buffer = 0.3 # Increasing buffer size to prevent map expansion from being too small
+        buffered_max_idx_diff = int((max_idx_diff * (1 + expansion_buffer)) + 0.5) # 0.5 is for Rounding
         
-
         N, M = self.map.shape
         new_map_size_discretized = np.array([N + 2*buffered_max_idx_diff, M + 2*buffered_max_idx_diff]) # In Idx Coords
         return new_map_size_discretized
