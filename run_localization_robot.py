@@ -40,19 +40,10 @@ if __name__ == "__main__":
         m = robot.command_motion_trial(motion_command)
         
         predicted_state = robot.predict_state(robot.state, m)
-        # print(f"State Derivative: {dx_state}")
         print(f"Predicted State: {predicted_state}")
         robot.state = predicted_state
-        # scan = robot.read_lidar()
-        scan, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
 
-        ## TODO: CLEAN THIS HACK
-        lidar_data = np.copy(lidar_data)
-        lidar_data[:, 0] = 360 - lidar_data[:, 0]
-        lidar_data[:, 0] = lidar_data[:, 0] + 90
-        lidar_data[:, 0] = lidar_data[:, 0] % 360
-        lidar_data[:, 0] = np.deg2rad(lidar_data[:, 0])
-        ## TODO: CLEAN THIS HACK
+        scan, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
 
         print(f"Scan Size: {scan.shape} | Lidar Data Size: {lidar_data.shape}")
 

@@ -90,29 +90,44 @@ class Robot():
                 dist = lidar_data[:, 1]
 
             # TODO: Add Fix to Lidar Readings Here
-            rad_angles = (np.pi / 180.0) * angles
+            lidar_data[:, 0] = 360 - lidar_data[:, 0] # Make angles direction CCW
+            lidar_data[:, 0] = np.deg2rad(lidar_data[:, 0]) # Convert Degrees to Radians
 
-            cos = np.cos(rad_angles)
-            sin = np.sin(rad_angles)
+            angles = lidar_data[:, 0]
+            dist = lidar_data[:, 1]
+
+            cos = np.cos(angles)
+            sin = np.sin(angles)
 
             x_coords = dist * cos
-            y_coords = -dist * sin
+            y_coords = dist * sin
             z_coords = np.ones_like(x_coords)
 
             coords = np.stack((x_coords, y_coords, z_coords), axis=1)
             return coords, lidar_data
 
     def read_lidar_updated(self, manual_verification=False, wait_for_updated_reading=False):
-        coords, lidar_data = self._get_single_lidar_reading(wait_for_updated_reading)
-        if manual_verification:
-            plt.scatter(coords[:, 0], coords[:, 1])
-            plt.show()
-            user_input = input("Do you want to reread the lidar?")
-            while user_input == 'yes':
-                coords, lidar_data = self._get_single_lidar_reading(wait_for_updated_reading)
+        # coords, lidar_data = self._get_single_lidar_reading(wait_for_updated_reading)
+        # if manual_verification:
+        #     plt.scatter(coords[:, 0], coords[:, 1])
+        #     plt.show()
+        #     user_input = input("Do you want to reread the lidar?")
+        #     while user_input == 'yes':
+        #         coords, lidar_data = self._get_single_lidar_reading(wait_for_updated_reading)
+        #         plt.scatter(coords[:, 0], coords[:, 1])
+        #         plt.show()
+        #         user_input = input("Do you want to reread the lidar?")
+        # return coords, lidar_data
+
+        user_input = 'yes'
+        while user_input == 'yes':
+            coords, lidar_data = self._get_single_lidar_reading(wait_for_updated_reading)
+            if manual_verification:
                 plt.scatter(coords[:, 0], coords[:, 1])
                 plt.show()
                 user_input = input("Do you want to reread the lidar?")
+            else:
+                break
         return coords, lidar_data
     
     def motion_command_to_pseudo_motor_diffs(self, motion_command):

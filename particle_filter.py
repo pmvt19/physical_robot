@@ -16,7 +16,7 @@ class ParticleFilter():
         self.map : Map = map_obj
         self.scale_factor = scale_factor
 
-        self.buffer_percentage = 0.2
+        self.buffer_percentage = 1.0
         print("WARNING: GUESS ON THE SCALE FACTOR!!")
 
         self.normal_distribution = stats.norm(loc=0, scale=self.scale_factor)
@@ -123,8 +123,10 @@ class ParticleFilter():
         state_headings = states[:, 2] # (N,)
 
         ### TODO: CHECK THIS: TODO ###
-        offset_angles = angles.reshape(-1, 1) - (np.pi/2 - state_headings.reshape(1, -1)) # (M, 1) + (1, N) = (M, N)
+        # offset_angles = angles.reshape(-1, 1) - (np.pi/2 - state_headings.reshape(1, -1)) # (M, 1) + (1, N) = (M, N)
         ### TODO: CHECK THIS: TODO ###
+
+        offset_angles = angles.reshape(-1, 1) + (state_headings.reshape(1, -1)) # (M, 1) + (1, N) = (M, N)
 
         coses = np.cos(offset_angles) # (M, N)
         sines = np.sin(offset_angles) # (M, N)
