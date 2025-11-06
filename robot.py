@@ -14,7 +14,7 @@ from shapely import Point, Polygon, affinity
 
 from dxl_controller import DynamixelController
 from robot_interface import RobotInterface
-from simulate_lidar import SimulatedLidar
+# from simulate_lidar import SimulatedLidar
 from utils import create_rectangle_geometry
 
 class Robot():
@@ -30,7 +30,7 @@ class Robot():
         # If Robot is not required to be tied to the physical robot, don't initialize the controllers
         if self.connection == 'simulated':
             self.const_reference_map_for_lidar = None
-            self.simulated_lidar = SimulatedLidar(self.const_reference_map_for_lidar, angular_resolution=360, max_dist=12000) # TODO: Check units for max_dist
+            # self.simulated_lidar = SimulatedLidar(self.const_reference_map_for_lidar, angular_resolution=360, max_dist=12000) # TODO: Check units for max_dist
         elif self.connection == 'client':
             channel = grpc.insecure_channel('192.168.12.155:50051')
             self.stub = pb2_grpc.RobotServerStub(channel)
@@ -90,8 +90,13 @@ class Robot():
 
                 angles = lidar_data[:, 0]
                 dist = lidar_data[:, 1]
+            
+            # Filter Noisy Lidar Points Close to Robot
+            threshold = 90 # Units mm
+            good_lidar_points_mask = lidar_data[:, 1] > threshold
+            lidar_data = lidar_data[good_lidar_points_mask]
 
-            # TODO: Add Fix to Lidar Readings Here
+            # Fix Raw Lidar Output Format
             lidar_data[:, 0] = 360 - lidar_data[:, 0] # Make angles direction CCW
             lidar_data[:, 0] = np.deg2rad(lidar_data[:, 0]) # Convert Degrees to Radians
 
