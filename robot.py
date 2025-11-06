@@ -1,19 +1,20 @@
-from dxl_controller import DynamixelController
-from robot_interface import RobotInterface
-import numpy as np
-import matplotlib.pyplot as plt
-from shapely import Point, Polygon, affinity
 
 import time
 import copy
 import redis
-
 import rerun as rr
+import numpy as np
+import matplotlib.pyplot as plt
 
 import grpc
 import generated.robot_data_pb2 as pb2
 import generated.robot_data_pb2_grpc as pb2_grpc
 
+from shapely import Point, Polygon, affinity
+
+from dxl_controller import DynamixelController
+from robot_interface import RobotInterface
+from simulate_lidar import SimulatedLidar
 from utils import create_rectangle_geometry
 
 class Robot():
@@ -28,7 +29,8 @@ class Robot():
 
         # If Robot is not required to be tied to the physical robot, don't initialize the controllers
         if self.connection == 'simulated':
-            pass
+            self.const_reference_map_for_lidar = None
+            self.simulated_lidar = SimulatedLidar(self.const_reference_map_for_lidar, angular_resolution=360, max_dist=12000) # TODO: Check units for max_dist
         elif self.connection == 'client':
             channel = grpc.insecure_channel('192.168.12.155:50051')
             self.stub = pb2_grpc.RobotServerStub(channel)
