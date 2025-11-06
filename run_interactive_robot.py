@@ -12,13 +12,13 @@ import time
 def run_interactive_robot():
     pass
 
-# TODO BUG HACK FIXME: RERUN THIS SCRIPT!!!
-
 if __name__ == "__main__":
 
-    run_num = 1
+    ## TODO: Will update directory structure soon
+    run_num = 4
     dump_dir = f'dumps/run{run_num}'
     imgs_dir = f'maps_saved/run{run_num}'
+    ## TODO: Will update directory structure soon
 
 
     start_time = time.time()
@@ -36,16 +36,8 @@ if __name__ == "__main__":
     # for motion_type, dist in motions:
     i=0
     while True:
-        # command = input("Enter Robot Motion Command")
-
-        # if command == "quit":
-        #     break
-
-        # motion_type, dist = command.split(",")
-        # dist = float(dist)
-        # print(motion_type, dist)
         motion_command = robot.request_motion_command_from_user()
-        if motion_command[0] == '': # No Motion Command:
+        if motion_command[0] == '': # No Motion Command
             break
         # continue
         m = robot.command_motion_trial(motion_command)
@@ -55,7 +47,7 @@ if __name__ == "__main__":
         print(robot.state)
         print(f"Predicted State: {predicted_state}")
         robot.state = predicted_state
-        # scan = robot.read_lidar()
+
         print(robot.state)
         scan, _ = robot.read_lidar_updated(manual_verification=False, wait_for_updated_reading=True)
         print(f"Scan Size: {scan.shape}")
