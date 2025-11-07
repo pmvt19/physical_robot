@@ -17,15 +17,17 @@ import generated.robot_data_pb2 as pb2
 import generated.robot_data_pb2_grpc as pb2_grpc
 import numpy as np
 import redis
+from robot import Robot
 
 class RobotServerServicer(pb2_grpc.RobotServer):
     """The server implementation of the RobotServer service."""
     def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ'):
-        controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
-        self.ri = RobotInterface(controller=controller)
-        self.ri.set_profile_velocity()
+        # controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
+        # self.ri = RobotInterface(controller=controller)
+        # self.ri.set_profile_velocity()
 
-        self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
+        # self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
+        self.robot = Robot(connection='physical')
 
     def GetLatestLidarData(self, request, context):
         """Implements the RPC method."""
@@ -57,10 +59,15 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         motion_type = command.motion_type
         dist = command.distance
 
+        # if motion_type == 'linear':
+        #     m = self.ri.move_dist(dist)
+        # elif motion_type == 'angular':
+        #     m = self.ri.rotate_rad(dist)
+
         if motion_type == 'linear':
-            m = self.ri.move_dist(dist)
+            m = self.robot.ri.move_dist(dist)
         elif motion_type == 'angular':
-            m = self.ri.rotate_rad(dist)
+            m = self.robot.ri.rotate_rad(dist)
         
         motion_distance = pb2.MotionDistance(
             left_wheel_dist  =   m[0],
