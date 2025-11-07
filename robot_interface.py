@@ -26,6 +26,8 @@ class RobotInterface():
         self.r = 66.5 / 2
         self.L = 210
 
+        self.pulse_per_rev = 4096
+
         self.before_motion_positions = []
         self.after_motion_positions = []
 
@@ -117,7 +119,7 @@ class RobotInterface():
 
         required_revs = mm / cir
 
-        req_pulse = int(required_revs * 4096)
+        req_pulse = int(required_revs * self.pulse_per_rev)
 
         desired_motor_pos_1 = init_motor_pos[0] + req_pulse
         desired_motor_pos_2 = init_motor_pos[1] - req_pulse
@@ -171,7 +173,7 @@ class RobotInterface():
 
         required_revs = wheel_travel_dist / cir
 
-        req_pulse = int(required_revs * 4096)
+        req_pulse = int(required_revs * self.pulse_per_rev)
 
         desired_motor_pos_1 = init_motor_pos[0] + req_pulse
         desired_motor_pos_2 = init_motor_pos[1] + req_pulse
