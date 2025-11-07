@@ -65,44 +65,46 @@ class RobotInterface():
         self.controller.set_velocity(id=1, velocity_rpm=0)
         self.controller.set_velocity(id=2, velocity_rpm=0)
 
-    def rotate_deg(self, deg=np.pi/2):
-        init_motor_pos = self.get_motor_positions()
+    # TODO: DEPRECATE
+    # def rotate_deg(self, deg=np.pi/2):
+    #     init_motor_pos = self.get_motor_positions()
 
-        robot_rpm = self.r * self.linear_velocity / (self.L / 2)
+    #     robot_rpm = self.r * self.linear_velocity / (self.L / 2)
 
-        rotation_frac = deg / (2 * np.pi)
+    #     rotation_frac = deg / (2 * np.pi)
 
-        # rotation_frac
+    #     # rotation_frac
 
-        rotational_speed_sec_per_rot = (1 / robot_rpm) * 60
+    #     rotational_speed_sec_per_rot = (1 / robot_rpm) * 60
 
-        rotation_seconds = rotational_speed_sec_per_rot * rotation_frac
+    #     rotation_seconds = rotational_speed_sec_per_rot * rotation_frac
 
-        # self.rotate_right()
-        self.rotate_left()
-        time.sleep(rotation_seconds)
-        self.stop_motion()
+    #     # self.rotate_right()
+    #     self.rotate_left()
+    #     time.sleep(rotation_seconds)
+    #     self.stop_motion()
 
-        final_motor_pos = self.get_motor_positions()
+    #     final_motor_pos = self.get_motor_positions()
 
-        return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
+    #     return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
 
-    def move_mm(self, mm=100):
-        init_motor_pos = self.get_motor_positions()
+    # TODO: DEPRECATE
+    # def move_mm(self, mm=100):
+    #     init_motor_pos = self.get_motor_positions()
 
-        dist_per_rev = self.r * 2 * np.pi
-        required_revs = mm / dist_per_rev
+    #     dist_per_rev = self.r * 2 * np.pi
+    #     required_revs = mm / dist_per_rev
 
-        linear_seconds = required_revs / self.linear_velocity * 60 # RPS
+    #     linear_seconds = required_revs / self.linear_velocity * 60 # RPS
 
-        self.move_forward()
-        # self.move_backward()
-        time.sleep(linear_seconds)
-        self.stop_motion()
+    #     self.move_forward()
+    #     # self.move_backward()
+    #     time.sleep(linear_seconds)
+    #     self.stop_motion()
 
-        final_motor_pos = self.get_motor_positions()
+    #     final_motor_pos = self.get_motor_positions()
 
-        return self.compute_linear_motion(init_motor_pos, final_motor_pos)
+    #     return self.compute_linear_motion(init_motor_pos, final_motor_pos)
     
     def move_dist(self, mm=100):
         self.set_torque(TORQUE_DISABLE)
@@ -125,15 +127,22 @@ class RobotInterface():
         self.controller.set_position(id=1, position=desired_motor_pos_1)
         self.controller.set_position(id=2, position=desired_motor_pos_2)
 
-        pause_motion = False
+        # start_thread
+
+        # pause_motion = False # Thread Shared Variable
+        # was_paused = False # Function Local Variable
         while np.sum(self.get_motor_velocity()) > 0:
             # if pause_motion:
             #     self.set_torque(TORQUE_DISABLE)
+            #     was_paused = True
             # elif was_paused:
             #     self.set_torque(TORQUE_ENABLE)
             #     self.controller.set_position(id=1, position=desired_motor_pos_1)
             #     self.controller.set_position(id=2, position=desired_motor_pos_2)
+            #     was_paused = False
             continue
+
+        # stop_thread
         
         final_motor_pos = self.get_motor_positions()
 
