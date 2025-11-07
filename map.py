@@ -4,8 +4,6 @@ from icp import run_icp
 from scipy.signal import convolve2d
 from shapely import Point
 
-from robot import Robot
-
 
 # map_size = (100, 100)
 # res = 0.1
