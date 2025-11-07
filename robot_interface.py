@@ -129,22 +129,30 @@ class RobotInterface():
         self.controller.set_position(id=1, position=desired_motor_pos_1)
         self.controller.set_position(id=2, position=desired_motor_pos_2)
 
-        # start_thread
-
-        # pause_motion = False # Thread Shared Variable
+        
+        # thread_stop = threading.Event() # Thread Shared Variable
+        # pause_motion = threading.Event() # Thread Shared Variable
         # was_paused = False # Function Local Variable
+
+        # Start the Monitoring Thread
+        # monitoring_thread = threading.Thread(target=self.active_lidar_monitor, args=(pause_motion, thread_stop,))
+        # monitoring_thread.start()
+
         while np.sum(self.get_motor_velocity()) > 0:
-            # if pause_motion:
+            # if pause_motion: # Check this condition??
             #     self.set_torque(TORQUE_DISABLE)
             #     was_paused = True
             # elif was_paused:
             #     self.set_torque(TORQUE_ENABLE)
+            #     print("Continuing Movement")
             #     self.controller.set_position(id=1, position=desired_motor_pos_1)
             #     self.controller.set_position(id=2, position=desired_motor_pos_2)
             #     was_paused = False
             continue
 
-        # stop_thread
+        # Stop the Monitoring Thread
+        # thread_stop.set()
+        # monitoring_thread.join()
         
         final_motor_pos = self.get_motor_positions()
 
