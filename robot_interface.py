@@ -125,7 +125,14 @@ class RobotInterface():
         self.controller.set_position(id=1, position=desired_motor_pos_1)
         self.controller.set_position(id=2, position=desired_motor_pos_2)
 
+        pause_motion = False
         while np.sum(self.get_motor_velocity()) > 0:
+            # if pause_motion:
+            #     self.set_torque(TORQUE_DISABLE)
+            # elif was_paused:
+            #     self.set_torque(TORQUE_ENABLE)
+            #     self.controller.set_position(id=1, position=desired_motor_pos_1)
+            #     self.controller.set_position(id=2, position=desired_motor_pos_2)
             continue
         
         final_motor_pos = self.get_motor_positions()
