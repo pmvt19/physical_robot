@@ -5,6 +5,7 @@ import redis
 import rerun as rr
 import numpy as np
 import matplotlib.pyplot as plt
+# import threading
 
 import grpc
 import generated.robot_data_pb2 as pb2
@@ -47,6 +48,7 @@ class Robot():
 
             self.controller = DynamixelController(device_name=config['physical']['dxl_motor_port'], motor_ids=[1, 2])
             self.ri = RobotInterface(controller=self.controller)
+            self.ri.set_profile_velocity()
 
             # Connect to Redis Server for Publishing Lidar Data
             # self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -307,6 +309,20 @@ class Robot():
             else:
                 raise NotImplementedError
         return m
+
+    # def active_lidar_monitoring(self, pause_motion, thread_stop):
+    #     threshold = 200
+
+    #     while not thread_stop.is_set():
+    #         _, raw_lidar_data = self.read_lidar_updated(wait_for_updated_reading=False)
+    #         dists = raw_lidar_data[:, 1]
+    #         min_dist = np.min(dists)
+
+    #         if min_dist < threshold:
+    #             pause_motion.set()
+    #         else:
+    #             pause_motion.clear()
+
     
     # TODO: Add ability to toggle between grid coords and world coords
     def draw_state(self, ax, state):
