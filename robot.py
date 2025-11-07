@@ -12,10 +12,11 @@ import generated.robot_data_pb2_grpc as pb2_grpc
 
 from shapely import Point, Polygon, affinity
 
+from config import config
 from dxl_controller import DynamixelController
 from robot_interface import RobotInterface
-# from simulate_lidar import SimulatedLidar
-from utils import create_rectangle_geometry
+from simulate_lidar import SimulatedLidar
+from utils import create_rectangle_geometry, point_segment_distance, point_to_points_distance
 
 class Robot():
     def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ', connection='simulated'):
@@ -30,18 +31,27 @@ class Robot():
         # If Robot is not required to be tied to the physical robot, don't initialize the controllers
         if self.connection == 'simulated':
             self.const_reference_map_for_lidar = None
-            # self.simulated_lidar = SimulatedLidar(self.const_reference_map_for_lidar, angular_resolution=360, max_dist=12000) # TODO: Check units for max_dist
+            self.simulated_lidar = SimulatedLidar(self.const_reference_map_for_lidar, angular_resolution=360, max_dist=12000) # TODO: Check units for max_dist
         elif self.connection == 'client':
-            channel = grpc.insecure_channel('192.168.12.155:50051')
+            # TODO: Clean After Successful Release
+            # channel = grpc.insecure_channel('192.168.12.155:50051')
+            channel = grpc.insecure_channel(config['client']['channel_address'])
             self.stub = pb2_grpc.RobotServerStub(channel)
             print("Motor Logs will appear in the machine where the Robot Server is run")
         elif self.connection == 'physical':
             # Initialize Classes For Motor Control
-            self.controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
+
+            # TODO: Clean After Successful Release
+            # self.controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
+            # self.ri = RobotInterface(controller=self.controller)
+
+            self.controller = DynamixelController(device_name=config['physical']['dxl_motor_port'], motor_ids=[1, 2])
             self.ri = RobotInterface(controller=self.controller)
 
             # Connect to Redis Server for Publishing Lidar Data
-            self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
+            # self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
+
+            self.redis_client = redis.Redis(host=config['physical']['redis_host'], port=config['physical']['redis_port'], db=0)
         else:
             raise NotImplementedError
 
@@ -227,10 +237,55 @@ class Robot():
     def get_relative_transformation(self, motor_differentials):
         pass
 
+    def local_planner(self, motion_command):
+        robot_radius = 200
+        motion_type, dist = motion_command
+        if motion_type == 'linear':
+            coords, raw_lidar_data = self.read_lidar_updated(wait_for_updated_reading=True) # Coords: (M, 3), Raw Lidar Data: (M, 2)
+
+            cur_state = np.array([0.0, 0.0, 0.0]) # Current State (Local Frame)
+            desired_state = np.array([dist, 0.0, 0.0]) # Desired State (Local Frame)
+
+            # Filter Out Coords Near Robot
+            p2p_dists = point_to_points_distance(cur_state[:2], coords[:, :2]).flatten()
+            print(p2p_dists.shape)
+            coords = coords[p2p_dists > robot_radius]
+
+            line_segment = np.array([[0.0, 0.0, dist, 0.0]])
+            dists = point_segment_distance(line_segment, coords[:, :2]) # (1, M)
+            dists = dists.flatten()
+
+            collision_coords_mask = dists < robot_radius
+
+            if np.sum(collision_coords_mask) > 0:
+                collision_coords = coords[collision_coords_mask]
+
+                coord_dist_to_start = np.linalg.norm(collision_coords, axis=1)
+                problem_coord = collision_coords[np.argmin(coord_dist_to_start)]
+
+                problem_coord = problem_coord[:2]
+
+                a = 1
+                b = -2 * problem_coord[0]
+                c = (problem_coord[0]**2 + problem_coord[1]**2 - robot_radius**2)
+                
+                sol1 = (-b + np.sqrt(b**2 - 4*a*c)) / 2
+                sol2 = (-b - np.sqrt(b**2 - 4*a*c)) / 2
+
+                dist_candidates = np.array([sol1, sol2])
+                dist_idx = np.argmin(np.abs(dist_candidates))
+
+                return ['linear', dist_candidates[dist_idx]]
+                
+        return motion_command
+
     def command_motion_trial(self, motion_command):
         """
         Return motion differential
         """
+        print(f"Original Motion Command: {motion_command}")
+        # motion_command = self.local_planner(motion_command)
+        print(f"Locally Planned Motion Command: {motion_command}")
         motion_type, dist = motion_command
         if self.connection == 'simulated':
             m = self.motion_command_to_pseudo_motor_diffs(motion_command)
@@ -326,7 +381,7 @@ class Robot():
     
 if __name__ == "__main__":
 
-    robot = Robot(simulated=False, connection='client')
+    robot = Robot(connection='simulated')
     # robot.command_motion_trial(['linear', -400])
     # robot.command_motion_trial(['angular', np.pi/2])
     robot.command_motion_trial(['linear', 400])
