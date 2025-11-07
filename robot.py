@@ -5,6 +5,7 @@ import redis
 import rerun as rr
 import numpy as np
 import matplotlib.pyplot as plt
+import logging
 # import threading
 
 import grpc
@@ -17,7 +18,9 @@ from config import config
 from dxl_controller import DynamixelController
 from robot_interface import RobotInterface
 from simulate_lidar import SimulatedLidar
-from utils import create_rectangle_geometry, point_segment_distance, point_to_points_distance
+from utils import create_rectangle_geometry, point_segment_distance, point_to_points_distance, register_logger
+
+logger = register_logger(logger_name=__name__, log_filename='robot', level=logging.INFO, std_err=False)
 
 class Robot():
     def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ', connection='simulated'):
