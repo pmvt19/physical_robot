@@ -32,6 +32,17 @@ class Robot():
         # Initialize Current State (Starts at [x=0.0, y=0.0, theta=0.0])
         self.state = np.array([0.0, 0.0, 0.0])
 
+        # Robot Specific Variables:
+        # self.r -> move to Robot as self.wheel_radius
+        # self.L -> move to Robot as self.wheelbase_length
+
+        self.wheel_radius = (66.5/2)
+        self.wheelbase_length = 210
+
+        # TODO: Remove after successful rollout (Use self.wheel_radius and self.wheelbase_length)
+        self.r = self.wheel_radius
+        self.L = self.wheelbase_length
+
         # If Robot is not required to be tied to the physical robot, don't initialize the controllers
         if self.connection == 'simulated':
             self.const_reference_map_for_lidar = None
@@ -242,6 +253,7 @@ class Robot():
     def get_relative_transformation(self, motor_differentials):
         pass
 
+    ### --- Motion Monitoring --- ###
     def local_planner(self, motion_command):
         robot_radius = 200
         motion_type, dist = motion_command
@@ -283,6 +295,162 @@ class Robot():
                 return ['linear', dist_candidates[dist_idx]]
                 
         return motion_command
+    
+    # def active_lidar_monitoring(self, pause_motion, thread_stop):
+    #     threshold = 200
+
+    #     while not thread_stop.is_set():
+    #         _, raw_lidar_data = self.read_lidar_updated(wait_for_updated_reading=False)
+    #         dists = raw_lidar_data[:, 1]
+    #         min_dist = np.min(dists)
+
+    #         if min_dist < threshold:
+    #             pause_motion.set()
+    #         else:
+    #             pause_motion.clear()
+
+    ### --- Motion Monitoring --- ###
+    
+        # TODO:
+    # move_dist -> move_linear (DONE)
+    # rotate_rad -> move_angular (DONE)
+    # self.r -> move to Robot as self.wheel_radius
+    # self.L -> move to Robot as self.wheelbase_length
+    # Swap Prints to Logs
+    
+    def move_linear(self, mm=100):
+        logger.info(f"Moving Linear: {mm} mm")
+        init_motor_pos = self.ri.get_motor_positions()
+        # print(f"Initial Motor Positions: {init_motor_pos}")
+        logger.info(f"Initial Motor Positions: {init_motor_pos}")
+
+        cir = self.r * 2 * np.pi
+
+        required_revs = mm / cir
+
+        req_pulse = int(required_revs * self.pulse_per_rev)
+
+        desired_motor_pos_1 = init_motor_pos[0] + req_pulse
+        desired_motor_pos_2 = init_motor_pos[1] - req_pulse
+        logger.info(f"Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
+
+
+        self.controller.set_position(id=1, position=desired_motor_pos_1)
+        self.controller.set_position(id=2, position=desired_motor_pos_2)
+
+        
+        # thread_stop = threading.Event() # Thread Shared Variable
+        # pause_motion = threading.Event() # Thread Shared Variable
+        # was_paused = False # Function Local Variable
+
+        # Start the Monitoring Thread
+        # monitoring_thread = threading.Thread(target=self.active_lidar_monitor, args=(pause_motion, thread_stop,))
+        # monitoring_thread.start()
+
+        while np.sum(self.ri.get_motor_velocity()) > 0:
+            # if pause_motion: # Check this condition??
+            #     self.set_torque(TORQUE_DISABLE)
+            #     was_paused = True
+            # elif was_paused:
+            #     self.set_torque(TORQUE_ENABLE)
+            #     print("Continuing Movement")
+            #     self.controller.set_position(id=1, position=desired_motor_pos_1)
+            #     self.controller.set_position(id=2, position=desired_motor_pos_2)
+            #     was_paused = False
+            continue
+
+        # Stop the Monitoring Thread
+        # thread_stop.set()
+        # monitoring_thread.join()
+        
+        final_motor_pos = self.ri.get_motor_positions()
+
+
+        if desired_motor_pos_1 < 0:
+            logger.info("Deflating final motor position 1")
+            final_motor_pos[0] -= self.controller.max_motor_position
+
+        if desired_motor_pos_2 < 0:
+            logger.info("Deflating final motor position 2")
+            final_motor_pos[1] -= self.controller.max_motor_position
+
+        logger.info(f"Final Motor Positions: {final_motor_pos}")
+        return self.compute_linear_motion(init_motor_pos, final_motor_pos)
+    
+    def move_angular(self, rad=np.pi/2):
+        logger.info(f"Moving Angular: {rad} radians")
+        init_motor_pos = self.ri.get_motor_positions()
+        logger.info(f"Initial Motor Positions: {init_motor_pos}")
+
+        cir = self.r * 2 * np.pi
+        body_cir = 2 * np.pi * (self.L / 2)
+
+        rotation_percentage = -rad / (2 * np.pi)
+
+        wheel_travel_dist = body_cir * rotation_percentage
+
+        required_revs = wheel_travel_dist / cir
+
+        req_pulse = int(required_revs * self.ri.pulse_per_rev)
+
+        desired_motor_pos_1 = init_motor_pos[0] + req_pulse
+        desired_motor_pos_2 = init_motor_pos[1] + req_pulse
+        logger.info(f"Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
+
+        # TODO: Is this bad design??
+        self.controller.set_position(id=1, position=desired_motor_pos_1)
+        self.controller.set_position(id=2, position=desired_motor_pos_2)
+
+        while np.sum(self.ri.get_motor_velocity()) > 0:
+            continue
+        
+        final_motor_pos = self.ri.get_motor_positions()
+        if desired_motor_pos_1 < 0:
+            logger.info("Deflating final motor position 1")
+            final_motor_pos[0] -= self.controller.max_motor_position
+            
+        if desired_motor_pos_2 < 0:
+            logger.info("Deflating final motor position 2")
+            final_motor_pos[1] -= self.controller.max_motor_position
+        
+        logger.info(f"Final Motor Positions: {final_motor_pos}")
+        return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
+    
+
+    def compute_linear_motion(self, init_mp, final_mp):
+        logger.debug(f"Compute Linear Motion")
+        init_mp = np.array(init_mp)
+        final_mp = np.array(final_mp)
+        logger.debug(f"Initial Motor Positions: {init_mp}")
+        logger.debug(f"Final Motor Positions: {init_mp}")
+
+        diff = final_mp - init_mp
+        logger.debug(f"Motor Differentials: {diff}")
+
+        revs = diff / self.ri.pulse_per_rev
+
+        cir = np.pi * 66.5 # TODO: Avoid Magic Number
+
+        dists = revs * cir 
+        return dists
+    
+    def compute_rotation_motion(self, init_mp, final_mp):
+        logger.debug(f"Compute Rotation Motion")
+        init_mp = np.array(init_mp)
+        final_mp = np.array(final_mp)
+        logger.debug(f"Initial Motor Positions: {init_mp}")
+        logger.debug(f"Final Motor Positions: {init_mp}")
+
+        motor_pos_diff = final_mp - init_mp
+        logger.debug(f"Motor Differentials: {motor_pos_diff}")
+
+        rev_diff = motor_pos_diff / self.ri.pulse_per_rev
+        # rot_diff = ri.r * rev_diff / (ri.L / 2)
+        rot_diff = 2 * self.r * rev_diff / (self.L)
+
+        rad_rotated = rot_diff * (2*np.pi)
+
+        return rad_rotated
 
     def command_motion_trial(self, motion_command):
         """
@@ -306,25 +474,14 @@ class Robot():
         elif self.connection == 'physical':
             # Consider moving this to RobotInterface in a function called "ExecuteMotion or CommandMotion or..."
             if motion_type == 'linear':
-                m = self.ri.move_dist(dist)
+                # m = self.ri.move_dist(dist) # TODO: Remove after successful rollout
+                m = self.move_linear(dist)
             elif motion_type == 'angular':
-                m = self.ri.rotate_rad(dist)
+                # m = self.ri.rotate_rad(dist) # TODO: Remove after successful rollout
+                m = self.move_angular(dist)
             else:
                 raise NotImplementedError
         return m
-
-    # def active_lidar_monitoring(self, pause_motion, thread_stop):
-    #     threshold = 200
-
-    #     while not thread_stop.is_set():
-    #         _, raw_lidar_data = self.read_lidar_updated(wait_for_updated_reading=False)
-    #         dists = raw_lidar_data[:, 1]
-    #         min_dist = np.min(dists)
-
-    #         if min_dist < threshold:
-    #             pause_motion.set()
-    #         else:
-    #             pause_motion.clear()
 
     
     # TODO: Add ability to toggle between grid coords and world coords

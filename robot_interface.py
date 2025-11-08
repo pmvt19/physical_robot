@@ -107,140 +107,150 @@ class RobotInterface():
     #     final_motor_pos = self.get_motor_positions()
 
     #     return self.compute_linear_motion(init_motor_pos, final_motor_pos)
+
+    ### --- START LIFT --- ###
+
+    # # TODO:
+    # # move_dist -> move_linear
+    # # rotate_rad -> move_angular
+    # # self.r -> move to Robot as self.wheel_radius
+    # # self.L -> move to Robot as self.wheelbase_length
+    # # Swap Prints to Logs
     
-    def move_dist(self, mm=100):
-        self.set_torque(TORQUE_DISABLE)
-        init_motor_pos = self.get_motor_positions()
-        self.set_torque(TORQUE_ENABLE)
-        print(f"Initial Motor Positions: {init_motor_pos}")
-        logger.debug(f"Initial Motor Positions: {init_motor_pos}")
+    # def move_dist(self, mm=100):
+    #     self.set_torque(TORQUE_DISABLE)
+    #     init_motor_pos = self.get_motor_positions()
+    #     self.set_torque(TORQUE_ENABLE)
+    #     print(f"Initial Motor Positions: {init_motor_pos}")
+    #     logger.debug(f"Initial Motor Positions: {init_motor_pos}")
 
-        cir = self.r * 2 * np.pi
+    #     cir = self.r * 2 * np.pi
 
-        required_revs = mm / cir
+    #     required_revs = mm / cir
 
-        req_pulse = int(required_revs * self.pulse_per_rev)
+    #     req_pulse = int(required_revs * self.pulse_per_rev)
 
-        desired_motor_pos_1 = init_motor_pos[0] + req_pulse
-        desired_motor_pos_2 = init_motor_pos[1] - req_pulse
-        print(f"Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
+    #     desired_motor_pos_1 = init_motor_pos[0] + req_pulse
+    #     desired_motor_pos_2 = init_motor_pos[1] - req_pulse
+    #     print(f"Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
 
 
-        self.controller.set_position(id=1, position=desired_motor_pos_1)
-        self.controller.set_position(id=2, position=desired_motor_pos_2)
+    #     self.controller.set_position(id=1, position=desired_motor_pos_1)
+    #     self.controller.set_position(id=2, position=desired_motor_pos_2)
 
         
-        # thread_stop = threading.Event() # Thread Shared Variable
-        # pause_motion = threading.Event() # Thread Shared Variable
-        # was_paused = False # Function Local Variable
+    #     # thread_stop = threading.Event() # Thread Shared Variable
+    #     # pause_motion = threading.Event() # Thread Shared Variable
+    #     # was_paused = False # Function Local Variable
 
-        # Start the Monitoring Thread
-        # monitoring_thread = threading.Thread(target=self.active_lidar_monitor, args=(pause_motion, thread_stop,))
-        # monitoring_thread.start()
+    #     # Start the Monitoring Thread
+    #     # monitoring_thread = threading.Thread(target=self.active_lidar_monitor, args=(pause_motion, thread_stop,))
+    #     # monitoring_thread.start()
 
-        while np.sum(self.get_motor_velocity()) > 0:
-            # if pause_motion: # Check this condition??
-            #     self.set_torque(TORQUE_DISABLE)
-            #     was_paused = True
-            # elif was_paused:
-            #     self.set_torque(TORQUE_ENABLE)
-            #     print("Continuing Movement")
-            #     self.controller.set_position(id=1, position=desired_motor_pos_1)
-            #     self.controller.set_position(id=2, position=desired_motor_pos_2)
-            #     was_paused = False
-            continue
+    #     while np.sum(self.get_motor_velocity()) > 0:
+    #         # if pause_motion: # Check this condition??
+    #         #     self.set_torque(TORQUE_DISABLE)
+    #         #     was_paused = True
+    #         # elif was_paused:
+    #         #     self.set_torque(TORQUE_ENABLE)
+    #         #     print("Continuing Movement")
+    #         #     self.controller.set_position(id=1, position=desired_motor_pos_1)
+    #         #     self.controller.set_position(id=2, position=desired_motor_pos_2)
+    #         #     was_paused = False
+    #         continue
 
-        # Stop the Monitoring Thread
-        # thread_stop.set()
-        # monitoring_thread.join()
+    #     # Stop the Monitoring Thread
+    #     # thread_stop.set()
+    #     # monitoring_thread.join()
         
-        final_motor_pos = self.get_motor_positions()
+    #     final_motor_pos = self.get_motor_positions()
 
 
-        if desired_motor_pos_1 < 0:
-            print("Deflating final motor position 1")
-            final_motor_pos[0] -= self.controller.max_motor_position
+    #     if desired_motor_pos_1 < 0:
+    #         print("Deflating final motor position 1")
+    #         final_motor_pos[0] -= self.controller.max_motor_position
 
-        if desired_motor_pos_2 < 0:
-            print("Deflating final motor position 2")
-            final_motor_pos[1] -= self.controller.max_motor_position
+    #     if desired_motor_pos_2 < 0:
+    #         print("Deflating final motor position 2")
+    #         final_motor_pos[1] -= self.controller.max_motor_position
 
-        print(f"Final Motor Positions: {final_motor_pos}")
-        return self.compute_linear_motion(init_motor_pos, final_motor_pos)
+    #     print(f"Final Motor Positions: {final_motor_pos}")
+    #     return self.compute_linear_motion(init_motor_pos, final_motor_pos)
     
-    def rotate_rad(self, rad=np.pi/2):
-        init_motor_pos = self.get_motor_positions()
-        print(f"Initial Motor Positions: {init_motor_pos}")
+    # def rotate_rad(self, rad=np.pi/2):
+    #     init_motor_pos = self.get_motor_positions()
+    #     print(f"Initial Motor Positions: {init_motor_pos}")
 
-        cir = self.r * 2 * np.pi
-        body_cir = 2 * np.pi * (self.L / 2)
+    #     cir = self.r * 2 * np.pi
+    #     body_cir = 2 * np.pi * (self.L / 2)
 
-        rotation_percentage = -rad / (2 * np.pi)
+    #     rotation_percentage = -rad / (2 * np.pi)
 
-        wheel_travel_dist = body_cir * rotation_percentage
+    #     wheel_travel_dist = body_cir * rotation_percentage
 
-        required_revs = wheel_travel_dist / cir
+    #     required_revs = wheel_travel_dist / cir
 
-        req_pulse = int(required_revs * self.pulse_per_rev)
+    #     req_pulse = int(required_revs * self.pulse_per_rev)
 
-        desired_motor_pos_1 = init_motor_pos[0] + req_pulse
-        desired_motor_pos_2 = init_motor_pos[1] + req_pulse
-        print(f"Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
+    #     desired_motor_pos_1 = init_motor_pos[0] + req_pulse
+    #     desired_motor_pos_2 = init_motor_pos[1] + req_pulse
+    #     print(f"Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
 
-        self.controller.set_position(id=1, position=desired_motor_pos_1)
-        self.controller.set_position(id=2, position=desired_motor_pos_2)
+    #     self.controller.set_position(id=1, position=desired_motor_pos_1)
+    #     self.controller.set_position(id=2, position=desired_motor_pos_2)
 
-        while np.sum(self.get_motor_velocity()) > 0:
-            continue
+    #     while np.sum(self.get_motor_velocity()) > 0:
+    #         continue
         
-        print(f"Before Update Init: {init_motor_pos}")
-        final_motor_pos = self.get_motor_positions()
-        if desired_motor_pos_1 < 0:
-            print("Deflating final motor position 1")
-            final_motor_pos[0] -= self.controller.max_motor_position
+    #     print(f"Before Update Init: {init_motor_pos}")
+    #     final_motor_pos = self.get_motor_positions()
+    #     if desired_motor_pos_1 < 0:
+    #         print("Deflating final motor position 1")
+    #         final_motor_pos[0] -= self.controller.max_motor_position
             
-        if desired_motor_pos_2 < 0:
-            print("Deflating final motor position 2")
-            final_motor_pos[1] -= self.controller.max_motor_position
+    #     if desired_motor_pos_2 < 0:
+    #         print("Deflating final motor position 2")
+    #         final_motor_pos[1] -= self.controller.max_motor_position
         
-        print(f"After Update Init: {init_motor_pos}")
-        print(f"Data Type init: {init_motor_pos.dtype}")
+    #     print(f"After Update Init: {init_motor_pos}")
+    #     print(f"Data Type init: {init_motor_pos.dtype}")
         
-        print(f"Final Motor Positions: {final_motor_pos}")
-        return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
+    #     print(f"Final Motor Positions: {final_motor_pos}")
+    #     return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
     
 
-    def compute_linear_motion(self, init_mp, final_mp):
-        init_mp = np.array(init_mp)
-        final_mp = np.array(final_mp)
-        print(init_mp, final_mp)
+    # def compute_linear_motion(self, init_mp, final_mp):
+    #     init_mp = np.array(init_mp)
+    #     final_mp = np.array(final_mp)
+    #     print(init_mp, final_mp)
 
-        diff = final_mp - init_mp
-        print(f"Motor Differentials: {diff}")
+    #     diff = final_mp - init_mp
+    #     print(f"Motor Differentials: {diff}")
 
-        revs = diff / 4096
+    #     revs = diff / 4096
 
-        cir = np.pi * 66.5
+    #     cir = np.pi * 66.5
 
-        dists = revs * cir 
-        return dists
+    #     dists = revs * cir 
+    #     return dists
     
-    def compute_rotation_motion(self, init_mp, final_mp):
-        init_mp = np.array(init_mp)
-        final_mp = np.array(final_mp)
-        print(init_mp, final_mp)
+    # def compute_rotation_motion(self, init_mp, final_mp):
+    #     init_mp = np.array(init_mp)
+    #     final_mp = np.array(final_mp)
+    #     print(init_mp, final_mp)
 
-        motor_pos_diff = final_mp - init_mp
-        print(f"Motor Differentials: {motor_pos_diff}")
+    #     motor_pos_diff = final_mp - init_mp
+    #     print(f"Motor Differentials: {motor_pos_diff}")
 
-        rev_diff = motor_pos_diff / 4096
-        # rot_diff = ri.r * rev_diff / (ri.L / 2)
-        rot_diff = 2 * self.r * rev_diff / (self.L)
+    #     rev_diff = motor_pos_diff / 4096
+    #     # rot_diff = ri.r * rev_diff / (ri.L / 2)
+    #     rot_diff = 2 * self.r * rev_diff / (self.L)
 
-        rad_rotated = rot_diff * (2*np.pi)
+    #     rad_rotated = rot_diff * (2*np.pi)
 
-        return rad_rotated
+    #     return rad_rotated
 
+    ### --- END LIFT --- ###
 
     def get_motor_positions(self):
         motor_id_1_pos = self.controller.get_position(id=1)
