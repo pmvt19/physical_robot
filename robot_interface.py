@@ -79,6 +79,23 @@ class RobotInterface():
 
         self.controller_lock.release()
         return np.array([v1, v2])
+    
+    def set_motor_positions(self, positions):
+        self.controller_lock.acquire()
+
+        self.controller.set_position(id=1, position=positions[0])
+        self.controller.set_position(id=2, position=positions[1])
+
+        self.controller_lock.release()
+    
+    def get_motor_positions(self):
+        self.controller_lock.acquire()
+
+        motor_id_1_pos = self.controller.get_position(id=1)
+        motor_id_2_pos = self.controller.get_position(id=2)
+        self.controller_lock.release()
+
+        return np.array([motor_id_1_pos, motor_id_2_pos], dtype=np.int64)
         
     def move_forward(self):
         self.controller_lock.acquire()
@@ -120,14 +137,7 @@ class RobotInterface():
 
         self.controller_lock.release()
 
-    def get_motor_positions(self):
-        self.controller_lock.acquire()
-
-        motor_id_1_pos = self.controller.get_position(id=1)
-        motor_id_2_pos = self.controller.get_position(id=2)
-        self.controller_lock.release()
-        # return np.array([motor_id_1_pos, motor_id_2_pos], dtype=np.uint64)
-        return np.array([motor_id_1_pos, motor_id_2_pos], dtype=np.int64)
+    
 
 
 
