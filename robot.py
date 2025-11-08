@@ -39,6 +39,8 @@ class Robot():
         self.wheel_radius = (66.5/2)
         self.wheelbase_length = 210
 
+        self.guard_active_motion = True
+
         # TODO: Remove after successful rollout (Use self.wheel_radius and self.wheelbase_length)
         self.r = self.wheel_radius
         self.L = self.wheelbase_length
@@ -314,8 +316,8 @@ class Robot():
         # TODO:
     # move_dist -> move_linear (DONE)
     # rotate_rad -> move_angular (DONE)
-    # self.r -> move to Robot as self.wheel_radius
-    # self.L -> move to Robot as self.wheelbase_length
+    # self.r -> move to Robot as self.wheel_radius (DONE)
+    # self.L -> move to Robot as self.wheelbase_length (DONE)
     # Swap Prints to Logs
     
     def move_linear(self, mm=100):
@@ -338,30 +340,34 @@ class Robot():
         self.controller.set_position(id=1, position=desired_motor_pos_1)
         self.controller.set_position(id=2, position=desired_motor_pos_2)
 
-        
-        # thread_stop = threading.Event() # Thread Shared Variable
-        # pause_motion = threading.Event() # Thread Shared Variable
-        # was_paused = False # Function Local Variable
+        if self.guard_active_motion:
+            # thread_stop = threading.Event() # Thread Shared Variable
+            # pause_motion = threading.Event() # Thread Shared Variable
+            # was_paused = False # Function Local Variable
 
-        # Start the Monitoring Thread
-        # monitoring_thread = threading.Thread(target=self.active_lidar_monitor, args=(pause_motion, thread_stop,))
-        # monitoring_thread.start()
+            # Start the Monitoring Thread
+            # monitoring_thread = threading.Thread(target=self.active_lidar_monitor, args=(pause_motion, thread_stop,))
+            # monitoring_thread.start()
 
-        while np.sum(self.ri.get_motor_velocity()) > 0:
-            # if pause_motion: # Check this condition??
-            #     self.set_torque(TORQUE_DISABLE)
-            #     was_paused = True
-            # elif was_paused:
-            #     self.set_torque(TORQUE_ENABLE)
-            #     print("Continuing Movement")
-            #     self.controller.set_position(id=1, position=desired_motor_pos_1)
-            #     self.controller.set_position(id=2, position=desired_motor_pos_2)
-            #     was_paused = False
-            continue
+            while np.sum(self.ri.get_motor_velocity()) > 0:
+                # if pause_motion: # Check this condition??
+                #     self.set_torque(TORQUE_DISABLE)
+                #     was_paused = True
+                # elif was_paused:
+                #     self.set_torque(TORQUE_ENABLE)
+                #     print("Continuing Movement")
+                #     self.controller.set_position(id=1, position=desired_motor_pos_1)
+                #     self.controller.set_position(id=2, position=desired_motor_pos_2)
+                #     was_paused = False
+                continue
 
-        # Stop the Monitoring Thread
-        # thread_stop.set()
-        # monitoring_thread.join()
+            # Stop the Monitoring Thread
+            # thread_stop.set()
+            # monitoring_thread.join()
+        else:
+
+            while np.sum(self.ri.get_motor_velocity()) > 0:
+                continue
         
         final_motor_pos = self.ri.get_motor_positions()
 
