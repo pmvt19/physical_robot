@@ -342,6 +342,9 @@ class Robot():
             else:
                 pause_motion.clear()
 
+    def is_moving(self):
+        return np.sum(self.ri.get_motor_velocity()) > 0
+
 
     ### --- Motion Monitoring --- ###
     
