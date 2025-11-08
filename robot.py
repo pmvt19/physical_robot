@@ -409,6 +409,27 @@ class Robot():
             #     self.controller.set_position(id=1, position=desired_motor_pos_1)
             #     self.controller.set_position(id=2, position=desired_motor_pos_2)
 
+            # REFERNCE: Working Pause Mechanism on the Robot
+            # while self.is_moving():
+            #     while pause_motion.is_set(): # Check this condition??
+            #         if not was_paused:
+            #             print("Disabling Motion")
+            #             self.controller_lock.acquire()
+            #             self.ri.set_torque(TORQUE_DISABLE)
+            #             self.controller_lock.release()
+            #             was_paused = True
+
+            #     if was_paused:
+            #         self.controller_lock.acquire()
+            #         self.ri.set_torque(TORQUE_ENABLE)
+            #         self.controller_lock.release()
+            #         print("Continuing Movement")
+            #         self.controller_lock.acquire()
+            #         self.controller.set_position(id=1, position=desired_motor_pos_1)
+            #         self.controller.set_position(id=2, position=desired_motor_pos_2)
+            #         self.controller_lock.release()
+            #         was_paused = False
+
             # Stop the Monitoring Thread
             thread_stop.set()
             monitoring_thread.join()
