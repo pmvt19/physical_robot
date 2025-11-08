@@ -45,6 +45,10 @@ class Robot():
         self.r = self.wheel_radius
         self.L = self.wheelbase_length
 
+        # Thresholds
+        self.active_distance_threshold = 300
+        self.local_planner_distance_threshold = 400
+
         # If Robot is not required to be tied to the physical robot, don't initialize the controllers
         if self.connection == 'simulated':
             self.const_reference_map_for_lidar = None
@@ -257,7 +261,6 @@ class Robot():
 
     ### --- Motion Monitoring --- ###
     def local_planner(self, motion_command):
-        robot_radius = 200
         motion_type, dist = motion_command
         if motion_type == 'linear':
             coords, raw_lidar_data = self.read_lidar_updated(wait_for_updated_reading=True) # Coords: (M, 3), Raw Lidar Data: (M, 2)
@@ -268,13 +271,13 @@ class Robot():
             # Filter Out Coords Near Robot
             p2p_dists = point_to_points_distance(cur_state[:2], coords[:, :2]).flatten()
             print(p2p_dists.shape)
-            coords = coords[p2p_dists > robot_radius]
+            coords = coords[p2p_dists > self.local_planner_distance_threshold]
 
             line_segment = np.array([[0.0, 0.0, dist, 0.0]])
             dists = point_segment_distance(line_segment, coords[:, :2]) # (1, M)
             dists = dists.flatten()
 
-            collision_coords_mask = dists < robot_radius
+            collision_coords_mask = dists < self.local_planner_distance_threshold
 
             if np.sum(collision_coords_mask) > 0:
                 collision_coords = coords[collision_coords_mask]
@@ -286,7 +289,7 @@ class Robot():
 
                 a = 1
                 b = -2 * problem_coord[0]
-                c = (problem_coord[0]**2 + problem_coord[1]**2 - robot_radius**2)
+                c = (problem_coord[0]**2 + problem_coord[1]**2 - self.local_planner_distance_threshold**2)
                 
                 sol1 = (-b + np.sqrt(b**2 - 4*a*c)) / 2
                 sol2 = (-b - np.sqrt(b**2 - 4*a*c)) / 2
@@ -299,14 +302,13 @@ class Robot():
         return motion_command
     
     def active_lidar_monitoring(self, pause_motion, thread_stop):
-        threshold = 300
 
         while not thread_stop.is_set():
             _, raw_lidar_data = self.read_lidar_updated(wait_for_updated_reading=False)
             dists = raw_lidar_data[:, 1]
             min_dist = np.min(dists)
 
-            if min_dist < threshold:
+            if min_dist < self.active_distance_threshold:
                 pause_motion.set()
             else:
                 pause_motion.clear()
@@ -332,7 +334,7 @@ class Robot():
 
         required_revs = mm / cir
 
-        req_pulse = int(required_revs * self.pulse_per_rev)
+        req_pulse = int(required_revs * self.ri.pulse_per_rev)
 
         desired_motor_pos_1 = init_motor_pos[0] + req_pulse
         desired_motor_pos_2 = init_motor_pos[1] - req_pulse
