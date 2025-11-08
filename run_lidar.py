@@ -4,12 +4,14 @@ from rplidar import RPLidar
 
 import redis
 
+from config import config
+
 def start_lidar():
 
     # Connect to Redis
     redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
-    lidar = RPLidar('/dev/tty.usbserial-14120', baudrate=460800)
+    lidar = RPLidar(config['physical']['lidar_port'], baudrate=460800)
     time.sleep(5)
     lidar.clean_input()
 
