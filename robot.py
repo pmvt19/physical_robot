@@ -6,7 +6,7 @@ import rerun as rr
 import numpy as np
 import matplotlib.pyplot as plt
 import logging
-# import threading
+import threading
 
 import grpc
 import generated.robot_data_pb2 as pb2
@@ -15,7 +15,7 @@ import generated.robot_data_pb2_grpc as pb2_grpc
 from shapely import Point, Polygon, affinity
 
 from config import config
-from dxl_controller import DynamixelController
+from dxl_controller import DynamixelController, TORQUE_ENABLE, TORQUE_DISABLE
 from robot_interface import RobotInterface
 from simulate_lidar import SimulatedLidar
 from utils import create_rectangle_geometry, point_segment_distance, point_to_points_distance, register_logger
@@ -298,18 +298,18 @@ class Robot():
                 
         return motion_command
     
-    # def active_lidar_monitoring(self, pause_motion, thread_stop):
-    #     threshold = 200
+    def active_lidar_monitoring(self, pause_motion, thread_stop):
+        threshold = 300
 
-    #     while not thread_stop.is_set():
-    #         _, raw_lidar_data = self.read_lidar_updated(wait_for_updated_reading=False)
-    #         dists = raw_lidar_data[:, 1]
-    #         min_dist = np.min(dists)
+        while not thread_stop.is_set():
+            _, raw_lidar_data = self.read_lidar_updated(wait_for_updated_reading=False)
+            dists = raw_lidar_data[:, 1]
+            min_dist = np.min(dists)
 
-    #         if min_dist < threshold:
-    #             pause_motion.set()
-    #         else:
-    #             pause_motion.clear()
+            if min_dist < threshold:
+                pause_motion.set()
+            else:
+                pause_motion.clear()
 
     ### --- Motion Monitoring --- ###
     
@@ -319,6 +319,8 @@ class Robot():
     # self.r -> move to Robot as self.wheel_radius (DONE)
     # self.L -> move to Robot as self.wheelbase_length (DONE)
     # Swap Prints to Logs
+
+    ### --- Commanding Robot Motions --- ###
     
     def move_linear(self, mm=100):
         logger.info(f"Moving Linear: {mm} mm")
@@ -349,21 +351,42 @@ class Robot():
             # monitoring_thread = threading.Thread(target=self.active_lidar_monitoring, args=(pause_motion, thread_stop,))
             # monitoring_thread.start()
 
+            thread_stop = threading.Event() # Thread Shared Variable
+            pause_motion = threading.Event() # Thread Shared Variable
+            was_paused = False # Function Local Variable
+
+            # Start the Monitoring Thread
+            monitoring_thread = threading.Thread(target=self.active_lidar_monitoring, args=(pause_motion, thread_stop,))
+            monitoring_thread.start()
+
             while np.sum(self.ri.get_motor_velocity()) > 0:
-                # if pause_motion: # Check this condition??
-                #     self.set_torque(TORQUE_DISABLE)
-                #     was_paused = True
-                # elif was_paused:
-                #     self.set_torque(TORQUE_ENABLE)
-                #     print("Continuing Movement")
-                #     self.controller.set_position(id=1, position=desired_motor_pos_1)
-                #     self.controller.set_position(id=2, position=desired_motor_pos_2)
-                #     was_paused = False
-                continue
+                while pause_motion.is_set(): # Check this condition??
+                    # print("Disabling Motion")
+                    self.ri.set_torque(TORQUE_DISABLE)
+
+                self.ri.set_torque(TORQUE_ENABLE)
+                # print("Continuing Movement")
+                self.controller.set_position(id=1, position=desired_motor_pos_1)
+                self.controller.set_position(id=2, position=desired_motor_pos_2)
+
+            # while np.sum(self.ri.get_motor_velocity()) > 0:
+            #     # if pause_motion: # Check this condition??
+            #     #     self.set_torque(TORQUE_DISABLE)
+            #     #     was_paused = True
+            #     # elif was_paused:
+            #     #     self.set_torque(TORQUE_ENABLE)
+            #     #     print("Continuing Movement")
+            #     #     self.controller.set_position(id=1, position=desired_motor_pos_1)
+            #     #     self.controller.set_position(id=2, position=desired_motor_pos_2)
+            #     #     was_paused = False
+            #     continue
 
             # Stop the Monitoring Thread
             # thread_stop.set()
             # monitoring_thread.join()
+
+            thread_stop.set()
+            monitoring_thread.join()
         else:
 
             while np.sum(self.ri.get_motor_velocity()) > 0:
@@ -488,6 +511,8 @@ class Robot():
             else:
                 raise NotImplementedError
         return m
+    
+    ### --- Commanding Robot Motions --- ###
 
     
     # TODO: Add ability to toggle between grid coords and world coords
