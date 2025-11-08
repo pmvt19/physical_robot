@@ -23,7 +23,7 @@ from utils import create_rectangle_geometry, point_segment_distance, point_to_po
 logger = register_logger(logger_name=__name__, log_filename='robot', level=logging.INFO, std_err=False)
 
 class Robot():
-    def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ', connection='simulated'):
+    def __init__(self, connection='simulated'):
         self.connection = connection
         
         # TODO: Do some design work and see if this is necessary, I'm leaning to not having this, (It's not used internally)
@@ -345,14 +345,6 @@ class Robot():
         self.controller.set_position(id=2, position=desired_motor_pos_2)
 
         if self.guard_active_motion:
-            # thread_stop = threading.Event() # Thread Shared Variable
-            # pause_motion = threading.Event() # Thread Shared Variable
-            # was_paused = False # Function Local Variable
-
-            # Start the Monitoring Thread
-            # monitoring_thread = threading.Thread(target=self.active_lidar_monitoring, args=(pause_motion, thread_stop,))
-            # monitoring_thread.start()
-
             thread_stop = threading.Event() # Thread Shared Variable
             pause_motion = threading.Event() # Thread Shared Variable
             was_paused = False # Function Local Variable
@@ -371,22 +363,7 @@ class Robot():
                 self.controller.set_position(id=1, position=desired_motor_pos_1)
                 self.controller.set_position(id=2, position=desired_motor_pos_2)
 
-            # while np.sum(self.ri.get_motor_velocity()) > 0:
-            #     # if pause_motion: # Check this condition??
-            #     #     self.set_torque(TORQUE_DISABLE)
-            #     #     was_paused = True
-            #     # elif was_paused:
-            #     #     self.set_torque(TORQUE_ENABLE)
-            #     #     print("Continuing Movement")
-            #     #     self.controller.set_position(id=1, position=desired_motor_pos_1)
-            #     #     self.controller.set_position(id=2, position=desired_motor_pos_2)
-            #     #     was_paused = False
-            #     continue
-
             # Stop the Monitoring Thread
-            # thread_stop.set()
-            # monitoring_thread.join()
-
             thread_stop.set()
             monitoring_thread.join()
         else:
