@@ -346,7 +346,7 @@ class Robot():
             # was_paused = False # Function Local Variable
 
             # Start the Monitoring Thread
-            # monitoring_thread = threading.Thread(target=self.active_lidar_monitor, args=(pause_motion, thread_stop,))
+            # monitoring_thread = threading.Thread(target=self.active_lidar_monitoring, args=(pause_motion, thread_stop,))
             # monitoring_thread.start()
 
             while np.sum(self.ri.get_motor_velocity()) > 0:
@@ -522,6 +522,7 @@ class Robot():
         heading_line_ep = np.array([np.cos(theta), np.sin(theta)]) * heading_line_length + np.array([x, y])
         ax.plot([x, heading_line_ep[0]], [y, heading_line_ep[1]], color='red')
 
+    # TODO: Optimize this function
     def state_pairs_to_motion_commands(self, state1, state2):
         state_transition_motion_commands = []
 
