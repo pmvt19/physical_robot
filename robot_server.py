@@ -28,6 +28,7 @@ class RobotServerServicer(pb2_grpc.RobotServer):
 
         # self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
         self.robot = Robot(connection='physical')
+        self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
     def GetLatestLidarData(self, request, context):
         """Implements the RPC method."""
@@ -64,10 +65,12 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         # elif motion_type == 'angular':
         #     m = self.ri.rotate_rad(dist)
 
-        if motion_type == 'linear':
-            m = self.robot.ri.move_dist(dist)
-        elif motion_type == 'angular':
-            m = self.robot.ri.rotate_rad(dist)
+        # if motion_type == 'linear':
+        #     m = self.robot.ri.move_dist(dist)
+        # elif motion_type == 'angular':
+        #     m = self.robot.ri.rotate_rad(dist)
+
+        m = self.robot.command_motion_trial([motion_type, dist])
         
         motion_distance = pb2.MotionDistance(
             left_wheel_dist  =   m[0],
