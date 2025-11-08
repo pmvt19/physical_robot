@@ -313,6 +313,9 @@ class Robot():
             else:
                 pause_motion.clear()
 
+    def advanced_active_lidar_monitoring(self, pause_motion, thread_stop):
+        pass
+
     ### --- Motion Monitoring --- ###
     
         # TODO:
@@ -362,6 +365,18 @@ class Robot():
                 # print("Continuing Movement")
                 self.controller.set_position(id=1, position=desired_motor_pos_1)
                 self.controller.set_position(id=2, position=desired_motor_pos_2)
+
+            # TODO: Try out this method of pausing the motors
+            # while np.sum(self.ri.get_motor_velocity()) > 0:
+            #     while pause_motion.is_set(): # Check this condition??
+            #         # print("Disabling Motion")
+            #         current_motor_pos_1, current_motor_pos_2 = self.ri.get_motor_positions()
+            #         self.controller.set_position(id=1, position=current_motor_pos_1)
+            #         self.controller.set_position(id=2, position=current_motor_pos_2)
+
+            #     # print("Continuing Movement")
+            #     self.controller.set_position(id=1, position=desired_motor_pos_1)
+            #     self.controller.set_position(id=2, position=desired_motor_pos_2)
 
             # Stop the Monitoring Thread
             thread_stop.set()
