@@ -342,6 +342,40 @@ class Robot():
             else:
                 pause_motion.clear()
 
+    ## --- FOR TESTING ONLY -- ##
+    def advanced_active_lidar_monitoring_with_visualization(self, pause_motion, thread_stop, desired_motor_pos_1, desired_motor_pos_2):
+
+        rr.init("Visualize Lidar Brakes", spawn=True)
+        start_time = time.time()
+        while not thread_stop.is_set():
+            current_motor_pos_1, current_motor_pos_2 = self.ri.get_motor_positions()
+
+            pulse_diff_motor_1 = desired_motor_pos_1 - current_motor_pos_1
+            revs_till_goal = pulse_diff_motor_1 / self.ri.pulse_per_rev
+            dist_to_goal = revs_till_goal * self.wheel_circumference
+
+            line_segment = np.array([[0.0, 0.0, dist_to_goal, 0.0]])
+            coords, raw_lidar_data = self.read_lidar_updated(wait_for_updated_reading=False)
+
+            # Filter Out Coords Near Robot
+            p2p_dists = point_to_points_distance(np.array([0.0, 0.0]), coords[:, :2]).flatten()
+            coords = coords[p2p_dists > self.active_distance_threshold]
+
+            dists = point_segment_distance(line_segment, coords[:, :2]) # (1, M)
+            dists = dists.flatten()
+
+            collision_coords_mask = dists < self.active_distance_threshold
+
+            if np.sum(collision_coords_mask) > 0:
+                pause_motion.set()
+            else:
+                pause_motion.clear()
+
+            rr.set_time("time", duration=time.time()-start_time)
+            rr.log("lidar points", rr.Points3D(coords))
+            rr.log("robot location", rr.Points2D([[[0.0, 0.0]]]), radii=(self.wheelbase_length/2))
+    ## --- FOR TESTING ONLY -- ##
+    
     def is_moving(self):
         return np.sum(self.ri.get_motor_velocity()) > 0
 
@@ -385,6 +419,7 @@ class Robot():
             # Start the Monitoring Thread
             # monitoring_thread = threading.Thread(target=self.active_lidar_monitoring, args=(pause_motion, thread_stop,))
             monitoring_thread = threading.Thread(target=self.advanced_active_lidar_monitoring, args=(pause_motion, thread_stop, desired_motor_pos_1, desired_motor_pos_2,))
+            # monitoring_thread = threading.Thread(target=self.advanced_active_lidar_monitoring_with_visualization, args=(pause_motion, thread_stop, desired_motor_pos_1, desired_motor_pos_2,))
             monitoring_thread.start()
 
             while np.sum(self.ri.get_motor_velocity()) > 0:
