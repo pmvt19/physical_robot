@@ -21,14 +21,9 @@ from robot import Robot
 
 class RobotServerServicer(pb2_grpc.RobotServer):
     """The server implementation of the RobotServer service."""
-    def __init__(self, device_name='/dev/tty.usbserial-FTAKRMAJ'):
-        # controller = DynamixelController(device_name=device_name, motor_ids=[1, 2])
-        # self.ri = RobotInterface(controller=controller)
-        # self.ri.set_profile_velocity()
-
-        # self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
+    def __init__(self):
         self.robot = Robot(connection='physical')
-        self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
+        # self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
     def GetLatestLidarData(self, request, context):
         """Implements the RPC method."""
@@ -41,10 +36,9 @@ class RobotServerServicer(pb2_grpc.RobotServer):
             context.set_details(request.message)
             return pb2.LidarData() # Return an empty response
         
-        _, lidar_data, timestamp = self.robot._get_single_lidar_reading(wait_for_updated_reading=False) # Don't wait for updated lidar, just send the current reading
-        # lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
-        # timestamp = int(float(self.redis_client.get('time')) * 100000) # TODO: THIS IS BAD
-        timestamp = int(timestamp * 100000) # TODO: THIS IS BAD
+        lidar_data = np.frombuffer(self.robot.redis_client.get("lidar_data")).reshape(-1, 2)
+        timestamp = int(float(self.robot.redis_client.get('time')) * 100000) # TODO: THIS IS BAD
+
         angles = lidar_data[:, 0]
         dists = lidar_data[:, 1]
 
@@ -61,16 +55,6 @@ class RobotServerServicer(pb2_grpc.RobotServer):
     def SendMotionCommand(self, command, context):
         motion_type = command.motion_type
         dist = command.distance
-
-        # if motion_type == 'linear':
-        #     m = self.ri.move_dist(dist)
-        # elif motion_type == 'angular':
-        #     m = self.ri.rotate_rad(dist)
-
-        # if motion_type == 'linear':
-        #     m = self.robot.ri.move_dist(dist)
-        # elif motion_type == 'angular':
-        #     m = self.robot.ri.rotate_rad(dist)
 
         m = self.robot.command_motion_trial([motion_type, dist])
         
