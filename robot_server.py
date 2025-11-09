@@ -41,8 +41,10 @@ class RobotServerServicer(pb2_grpc.RobotServer):
             context.set_details(request.message)
             return pb2.LidarData() # Return an empty response
         
-        lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
-        timestamp = int(float(self.redis_client.get('time')) * 100000) # TODO: THIS IS BAD
+        _, lidar_data, timestamp = self.robot._get_single_lidar_reading(wait_for_updated_reading=False) # Don't wait for updated lidar, just send the current reading
+        # lidar_data = np.frombuffer(self.redis_client.get("lidar_data")).reshape(-1, 2)
+        # timestamp = int(float(self.redis_client.get('time')) * 100000) # TODO: THIS IS BAD
+        timestamp = int(timestamp * 100000) # TODO: THIS IS BAD
         angles = lidar_data[:, 0]
         dists = lidar_data[:, 1]
 

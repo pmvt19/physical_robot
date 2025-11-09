@@ -144,7 +144,7 @@ class Robot():
             z_coords = np.ones_like(x_coords)
 
             coords = np.stack((x_coords, y_coords, z_coords), axis=1)
-            return coords, lidar_data
+            return coords, lidar_data, init_time
 
     def read_lidar_updated(self, manual_verification=False, wait_for_updated_reading=False):
         # coords, lidar_data = self._get_single_lidar_reading(wait_for_updated_reading)
@@ -161,7 +161,7 @@ class Robot():
 
         user_input = 'yes'
         while user_input == 'yes':
-            coords, lidar_data = self._get_single_lidar_reading(wait_for_updated_reading)
+            coords, lidar_data, _ = self._get_single_lidar_reading(wait_for_updated_reading)
             if manual_verification:
                 plt.scatter(coords[:, 0], coords[:, 1])
                 plt.show()
