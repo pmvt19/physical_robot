@@ -6,18 +6,37 @@ import matplotlib.pyplot as plt
 import pickle
 import time
 
+# from config import scene_name
+
+"""
+saves/
+    -scenes/
+        -scene_name/
+            -map.pickle
+            -prm.pickle
+            -incremental_imgs/
+
+
+"""
+
 
 # TODO: Rename this file and function?
 
 def run_interactive_robot():
     pass
 
+def init_directories():
+    pass
+
 if __name__ == "__main__":
 
     ## TODO: Will update directory structure soon
-    run_num = 4
+    run_num = 6
     dump_dir = f'dumps/run{run_num}'
     imgs_dir = f'maps_saved/run{run_num}'
+
+    scene_name = 'tmp'
+    map_save_dir = f'saves/scenes/{scene_name}'
     ## TODO: Will update directory structure soon
 
 
@@ -60,7 +79,8 @@ if __name__ == "__main__":
         plt.show()
         plt.cla()
         map.visualize(ax=plt.gca())
-        plt.savefig(f'{imgs_dir}/map_{i}.png')
+        # plt.savefig(f'{imgs_dir}/map_{i}.png')
+        plt.savefig(f'{map_save_dir}/map_imgs/map_{i}.png')
         i+=1
 
         pickle.dump(map, open(f"{dump_dir}/map_object.pickle", "wb"))
