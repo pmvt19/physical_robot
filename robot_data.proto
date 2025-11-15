@@ -24,9 +24,30 @@ message MotionDistance {
     float right_wheel_dist = 2;
 }
 
+message Image {
+    bytes img_bytes = 1;
+    repeated int64 shape = 2;
+    string type = 3;
+}
+
+message CameraData {
+    Image rgb_img = 1;
+    Image depth_img = 2;
+    int64 timestamp = 3;
+}
+
+// message OakdData {
+//     optional Image rgb_img = 1;
+//     optional Image depth_img = 2;
+//     // optional float accelerometer = 3;
+//     // optional float gyroscope = 4;
+// }
+
 // Services
 service RobotServer {
     rpc GetLatestLidarData(Acknowledge) returns (LidarData);
+
+    rpc GetLatestImageData(Acknowledge) returns (CameraData);
 
     rpc SendMotionCommand(MotionCommand) returns (MotionDistance);
 }
