@@ -40,7 +40,7 @@ class Robot():
         self.wheel_circumference = 2 * self.wheel_radius * np.pi
         self.wheelbase_length = 210
 
-        self.guard_active_motion = True
+        self.guard_active_motion = False
 
         # TODO: Remove after successful rollout (Use self.wheel_radius and self.wheelbase_length)
         self.r = self.wheel_radius
