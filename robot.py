@@ -39,6 +39,7 @@ class Robot():
         self.wheel_radius = (66.5/2)
         self.wheel_circumference = 2 * self.wheel_radius * np.pi
         self.wheelbase_length = 210
+        self.robot_radius = self.wheelbase_length / 2
 
         self.guard_active_motion = False
 
@@ -172,7 +173,20 @@ class Robot():
         return coords, lidar_data
     
     def read_rgb_camera(self):
-        pass
+        if self.connection == 'simulated':
+            raise NotImplementedError
+        elif self.connection == 'client':
+            # Make RPC Call here 
+            request_ack = pb2.Acknowledge(
+                success=True,
+                message="Client is ready for data!"
+            )
+
+            camera_data = self.stub.GetLatestImageData(request_ack)
+            rgb_img = np.frombuffer(camera_data.rgb_img.img_bytes, dtype=np.uint8).reshape(480, 640, 3)
+            depth_img = np.frombuffer(camera_data.depth_img.img_bytes, dtype=np.uint16).reshape(240, 320)
+            return rgb_img, depth_img
+
     def read_depth_camera(self):
         pass
     def read_imu(self):
@@ -244,7 +258,7 @@ class Robot():
     def command_motion_and_predict_state(self, state, motion_command):
         m = self.command_motion_trial(motion_command)
         predicted_state = self.predict_state(state, m)
-        return predicted_state
+        return m, predicted_state
     
     def request_motion_command_from_user(self):
         """
