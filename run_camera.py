@@ -57,7 +57,7 @@ def start_camera():
             redis_client.set('stereo_img_shape', np.array(stereo_img.shape).tobytes())
 
             # Publish Time Images Were Grabbed
-            redis_client.set('time', time.time())
+            redis_client.set('camera_time', time.time())
     
 
     except KeyboardInterrupt:
