@@ -4,9 +4,6 @@ import redis
 import numpy as np
 import depthai as dai
 
-# Connect to Redis
-redis_client = redis.Redis(host='localhost', port=6379, db=0)
-
 def processDepthFrame(depthFrame):
     depth_downscaled = depthFrame[::4]
     if np.all(depth_downscaled == 0):
@@ -18,45 +15,54 @@ def processDepthFrame(depthFrame):
     return cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_HOT)
 
 def start_camera():
-    with dai.Pipeline() as pipeline:
-        color = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_A)
-        monoLeft = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_B)
-        monoRight = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_C)
-        stereo = pipeline.create(dai.node.StereoDepth)
+    redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
-        stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.DEFAULT)
-        stereo.setOutputSize(640, 480)
+    pipeline = dai.Pipeline()
 
-        colorCamOut = color.requestOutput((640, 480))
-        monoLeftOut = monoLeft.requestOutput((640, 480))
-        monoRightOut = monoRight.requestOutput((640, 480))
+    color = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_A)
+    monoLeft = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_B)
+    monoRight = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_C)
+    stereo = pipeline.create(dai.node.StereoDepth)
 
-        monoLeftOut.link(stereo.left)
-        monoRightOut.link(stereo.right)
+    stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.DEFAULT)
+    stereo.setOutputSize(640, 480)
 
-        colorOut = colorCamOut.createOutputQueue()
-        leftOut = monoLeftOut.createOutputQueue()
-        rightOut = monoRightOut.createOutputQueue()
-        stereoOut = stereo.depth.createOutputQueue()
+    colorCamOut = color.requestOutput((640, 480))
+    monoLeftOut = monoLeft.requestOutput((640, 480))
+    monoRightOut = monoRight.requestOutput((640, 480))
 
-        pipeline.start()
-        try:
-            while pipeline.isRunning():
-                colorFrame : dai.ImgFrame = colorOut.get()
-                stereoFrame : dai.ImgFrame = stereoOut.get()
+    monoLeftOut.link(stereo.left)
+    monoRightOut.link(stereo.right)
 
-                rgb_img : np.ndarray = colorFrame.getFrame()
-                stereo_img : np.ndarray = stereoFrame.getFrame()
+    colorOut = colorCamOut.createOutputQueue()
+    stereoOut = stereo.depth.createOutputQueue()
 
-                redis_client.set('rgb_img', rgb_img.tobytes())
-                redis_client.set('stereo_img', stereo_img.tobytes())
-                redis_client.set('time', time.time())
+    pipeline.start()
+    try:
+        print("Running Pipeline")
+        while pipeline.isRunning():
+            colorFrame : dai.ImgFrame = colorOut.get()
+            stereoFrame : dai.ImgFrame = stereoOut.get()
 
-        except KeyboardInterrupt:
-            print("\nCtrl+C detected. Performing cleanup...")
-            print("Cleanup complete. Exiting.")
-        
-        pipeline.stop()
+            # rgb_img : np.ndarray = colorFrame.getFrame()
+            rgb_img : np.ndarray = colorFrame.getCvFrame() # np.uint8
+            stereo_img : np.ndarray = stereoFrame.getFrame() # np.uint16
+
+            # Publish RGB Image Data
+            redis_client.set('rgb_img', rgb_img.flatten().tobytes())
+            redis_client.set('rgb_img_shape', np.array(rgb_img.shape).tobytes())
+
+            # Publish Stereo Image Data
+            redis_client.set('stereo_img', stereo_img.tobytes())
+            redis_client.set('stereo_img_shape', np.array(stereo_img.shape).tobytes())
+
+            # Publish Time Images Were Grabbed
+            redis_client.set('time', time.time())
+    
+
+    except KeyboardInterrupt:
+        print("\nCtrl+C detected. Performing cleanup...")
+        print("Cleanup complete. Exiting.")
 
 if __name__ == '__main__':
     start_camera()
