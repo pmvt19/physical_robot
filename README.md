@@ -1,6 +1,9 @@
 ```
 physical_robot/
 ├── physical_robot/
+    ├──generated/
+        ├──robot_data_pb2_grpc.py...
+
     ├──saves/
         ├──scenes/
             ├──tmp/
@@ -11,6 +14,7 @@ physical_robot/
         ├──basic_map.py
         ├──map.py
         ├──advanced_map.py
+        ├──abstract_map.py
 
     ├──shell_scripts/
         ├──proto_gen.sh
@@ -29,6 +33,10 @@ physical_robot/
         ├──utils.py
         ├──test_utils.py
 
+    ├──hardware/
+        ├──robot_interface.py (robot_motor_interface.py)
+        ├──dxl_controller.py
+
     ├──sensors/
         ├──physical/
             ├──run_camera.py
@@ -42,18 +50,34 @@ physical_robot/
         ├──run_robot.py
         ├──run_localize_and_plan.py
 
+    ├──robot/
+        ├──robot.py
+        ├──robot_space.py
+        ├──robot_server.py
+
+    ├──algorithms/
+        ├──icp.py
+        ├──particle_filter.py
+
+    ├──config/
+        ├──config.py
+
+    ├──protos/
+        ├──robot_data.proto
 
     ├──tests/
         ├──test_sensors/
             ├──test_lidar.py
             ├──test_camera.py
-            ├──test_imu.py??
+            ├──test_imu.py
         ├──test_processes/
             ├──test_particle_filter.py
             ├──test_slam.py??
 
 
-
+Remaining files:
+- icp.py
+- particle_filter.py
 
 │   ├── components/
 │   │   ├── Button.js
