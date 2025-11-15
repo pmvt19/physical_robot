@@ -113,7 +113,7 @@ def localize_mpc_planning(robot : PhysicalRobotSpace, target : NumpyState):
             # m = robot.command_motion_trial(motion_command)
             m, predicted_state = robot.command_motion_and_predict_state(current_state, motion_command)
 
-            scan, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
+            coords, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
 
             # # FIXED??
             # ## TODO: CLEAN THIS HACK
@@ -128,7 +128,7 @@ def localize_mpc_planning(robot : PhysicalRobotSpace, target : NumpyState):
             current_state = updated_state
 
             # Refine the State:
-            T = run_icp(scan, mymap.get_points(), current_state, filter_init_outliers=False, visualize=False)
+            T = run_icp(coords, mymap.get_points(), current_state, filter_init_outliers=False, visualize=False)
             refined_state = transformation_mat_to_state(T)
             current_state = refined_state
             print(f"Current State: {current_state}")
@@ -173,7 +173,8 @@ if __name__ == '__main__':
     print(f"Using Seed: {seed}")
     np.random.seed(seed)
 
-    mymap = load_saved_map(directory='dumps/run1')
+    # mymap = load_saved_map(directory='dumps/run1')
+    mymap = load_saved_map(directory='saves/scenes/tmp/')
     robot = PhysicalRobotSpace(mymap)
     robot.edge_validity_delta = 200.0
 
