@@ -58,14 +58,18 @@ def create_or_load_prm(scene) -> PRM:
     # prm_path = f'saves/scenes/{scene}/planning/prm_graph.pickle'
     prm_path = f'{planning_dir}/prm_graph.pickle'
 
-    prm = PRM(env=robot, num_samples=10000, num_neighbors=10, validate_edges=True)
+    # prm = PRM(env=robot, num_samples=10000, num_neighbors=10, validate_edges=True)
+    prm = None
     if os.path.exists(prm_path):
-        prm_graph = pickle.load(open('dumps/run1/prm_graph.pickle', 'rb'))
+        prm = PRM(env=robot, num_samples=10000, num_neighbors=10, validate_edges=False)
+        prm_graph = pickle.load(open(prm_path, 'rb'))
         prm.graph = prm_graph
     else:
+        prm = PRM(env=robot, num_samples=10000, num_neighbors=10, validate_edges=True)
         prm.create_graph()
         os.makedirs(planning_dir, exist_ok=True)
         pickle.dump(prm.graph, open(prm_path, 'wb'))
+    return prm
 
 
 def localize_mpc_planning(robot : PhysicalRobotSpace, target : NumpyState):
@@ -105,7 +109,7 @@ def localize_mpc_planning(robot : PhysicalRobotSpace, target : NumpyState):
         path_segment = [p.value for p in path_segment]
 
         motion_commands = robot.path_to_motion_commands(path_segment)
-        motion_commands = robot.smooth_motion_commands(motion_commands)
+        # motion_commands = robot.smooth_motion_commands(motion_commands)
         
         # current_state = start_state_value
         for motion_command in motion_commands:
@@ -136,34 +140,34 @@ def localize_mpc_planning(robot : PhysicalRobotSpace, target : NumpyState):
 
 
 
-def localize_robot(robot : PhysicalRobotSpace):
-    pf = ParticleFilter(map_obj=robot.map)
-    pf.initialize(num_particles=10000)
+# def localize_robot(robot : PhysicalRobotSpace):
+#     pf = ParticleFilter(map_obj=robot.map)
+#     pf.initialize(num_particles=10000)
 
-    motion_commands = [['angular', 1.57],
-                       ['angular', 1.57],
-                       ['angular', 1.57],
-                       ['angular', 1.57],]
-    for motion_command in motion_commands:
-        m = robot.command_motion_trial(motion_command)
-        scan, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
+#     motion_commands = [['angular', 1.57],
+#                        ['angular', 1.57],
+#                        ['angular', 1.57],
+#                        ['angular', 1.57],]
+#     for motion_command in motion_commands:
+#         m = robot.command_motion_trial(motion_command)
+#         scan, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
 
-        ## TODO: CLEAN THIS HACK
-        lidar_data = np.copy(lidar_data)
-        lidar_data[:, 0] = 360 - lidar_data[:, 0]
-        lidar_data[:, 0] = lidar_data[:, 0] + 90
-        lidar_data[:, 0] = lidar_data[:, 0] % 360
-        lidar_data[:, 0] = np.deg2rad(lidar_data[:, 0])
-        ## TODO: CLEAN THIS HACK
+#         ## TODO: CLEAN THIS HACK
+#         lidar_data = np.copy(lidar_data)
+#         lidar_data[:, 0] = 360 - lidar_data[:, 0]
+#         lidar_data[:, 0] = lidar_data[:, 0] + 90
+#         lidar_data[:, 0] = lidar_data[:, 0] % 360
+#         lidar_data[:, 0] = np.deg2rad(lidar_data[:, 0])
+#         ## TODO: CLEAN THIS HACK
 
-        updated_state = pf.step(motion_delta=motion_command, scan=lidar_data)
+#         updated_state = pf.step(motion_delta=motion_command, scan=lidar_data)
 
-    pf.visualize_particles(plt.gca())
-    pf.map.visualize_points(plt.gca())
-    # plt.scatter(scan[:, 0], scan[:, 1], color='purple')
-    plt.scatter(updated_state[0], updated_state[1], color='orange', zorder=2)
-    plt.show()
-    return updated_state
+#     pf.visualize_particles(plt.gca())
+#     pf.map.visualize_points(plt.gca())
+#     # plt.scatter(scan[:, 0], scan[:, 1], color='purple')
+#     plt.scatter(updated_state[0], updated_state[1], color='orange', zorder=2)
+#     plt.show()
+#     return updated_state
 
 # def localize_and_move(robot : PhysicalRobotSpace, target):
 #     pass
@@ -174,18 +178,24 @@ if __name__ == '__main__':
     np.random.seed(seed)
 
     # mymap = load_saved_map(directory='dumps/run1')
-    mymap = load_saved_map(directory='saves/scenes/tmp/')
+    mymap = load_saved_map(directory='saves/scenes/tmp/map')
     robot = PhysicalRobotSpace(mymap)
     robot.edge_validity_delta = 200.0
 
     mymap.visualize_points(plt.gca())
     plt.show()
 
+    ## For old map
     # target = robot.make_state(np.array([1291.0, -1255.0, 0.0])) # In front of bathroom door
     # target = robot.make_state(np.array([-1148.0, -4425.0, 0.0])) # Inside of bedroom
-    target = robot.make_state(np.array([3039.0, 1715.0, 0.0])) # In front of fridge
+    # target = robot.make_state(np.array([3039.0, 1715.0, 0.0])) # In front of fridge
 
+    ## For tmp map
+
+    # target = robot.make_state(np.array([0.0, 0.0, 0.0])) # Origin
+    target = robot.make_state(np.array([-3855.0, -691.0, 0.0])) # In fromt of bedroom door
     localize_mpc_planning(robot, target)
+    
 
 
 
