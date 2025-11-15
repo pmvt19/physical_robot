@@ -25,6 +25,10 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         self.robot = Robot(connection='physical')
         # self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
+    def _getAndFormatTimestamp(self, key):
+        return int(float(self.robot.redis_client.get(key)) * 100000) # TODO: THIS IS BAD
+
+
     def GetLatestLidarData(self, request, context):
         """Implements the RPC method."""
         print(f"Server received request: success={request.success}, message='{request.message}'")
@@ -51,6 +55,46 @@ class RobotServerServicer(pb2_grpc.RobotServer):
 
         # 2. Return the data
         return fake_data
+    
+    def GetLatestCameraData(self, request, context):
+        """Implements the RPC method."""
+
+        # Get All RGB Image Data
+        rgb_img_bytes = self.robot.redis_client.get('rgb_img')
+        rgb_img_shape = self.robot.redis_client.get('rgb_img_shape')
+        rgb_img_type = self.robot.redis_client.get('rgb_img_type')
+
+        # Get All Depth Image Data
+        depth_img_bytes = self.robot.redis_client.get('stereo_img')
+        depth_img_shape = self.robot.redis_client.get('stereo_img_shape')
+        depth_img_type = self.robot.redis_client.get('stereo_img_type')
+
+        # Publish Time Images Were Grabbed
+        timestamp = self._getAndFormatTimestamp(key='camera_time')
+
+        ## TODO: DO SOME PROCESSING TO THE RAW DATA??
+
+        ## TODO: DO SOME PROCESSING TO THE RAW DATA??
+
+        rgb_img = pb2.Image(
+            bytes=rgb_img_bytes,
+            shape=rgb_img_shape,
+            type=rgb_img_type
+        )
+
+        depth_img = pb2.Image(
+            bytes=depth_img_bytes,
+            shape=depth_img_shape,
+            type=depth_img_type
+        )
+
+        camera_data = pb2.CameraData(
+            rgb_img=rgb_img,
+            depth_img=depth_img,
+            timestamp=timestamp
+        )
+
+        return camera_data
     
     def SendMotionCommand(self, command, context):
         motion_type = command.motion_type
