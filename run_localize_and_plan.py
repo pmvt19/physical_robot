@@ -1,9 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+import os
 
+from icp import run_icp
 from robot import Robot
 from map import Map
+from utils import transformation_mat_to_state
 from test_utils import generate_fake_map, load_saved_map
 from motion_planning.space import RobotSpace
 from motion_planning.state import NumpyState, AngularNumpyState
@@ -32,13 +35,14 @@ def localize_robot(robot : PhysicalRobotSpace, pf : ParticleFilter):
         m = robot.command_motion_trial(motion_command)
         scan, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
 
-        ## TODO: CLEAN THIS HACK
-        lidar_data = np.copy(lidar_data)
-        lidar_data[:, 0] = 360 - lidar_data[:, 0]
-        lidar_data[:, 0] = lidar_data[:, 0] + 90
-        lidar_data[:, 0] = lidar_data[:, 0] % 360
-        lidar_data[:, 0] = np.deg2rad(lidar_data[:, 0])
-        ## TODO: CLEAN THIS HACK
+        # FIXED??
+        # ## TODO: CLEAN THIS HACK
+        # lidar_data = np.copy(lidar_data)
+        # lidar_data[:, 0] = 360 - lidar_data[:, 0]
+        # lidar_data[:, 0] = lidar_data[:, 0] + 90
+        # lidar_data[:, 0] = lidar_data[:, 0] % 360
+        # lidar_data[:, 0] = np.deg2rad(lidar_data[:, 0])
+        # ## TODO: CLEAN THIS HACK
 
         updated_state = pf.step(motion_delta=motion_command, scan=lidar_data)
 
@@ -48,6 +52,21 @@ def localize_robot(robot : PhysicalRobotSpace, pf : ParticleFilter):
     plt.scatter(updated_state[0], updated_state[1], color='orange', zorder=2)
     plt.show()
     return updated_state
+
+def create_or_load_prm(scene) -> PRM:
+    planning_dir = f'saves/scenes/{scene}/planning'
+    # prm_path = f'saves/scenes/{scene}/planning/prm_graph.pickle'
+    prm_path = f'{planning_dir}/prm_graph.pickle'
+
+    prm = PRM(env=robot, num_samples=10000, num_neighbors=10, validate_edges=True)
+    if os.path.exists(prm_path):
+        prm_graph = pickle.load(open('dumps/run1/prm_graph.pickle', 'rb'))
+        prm.graph = prm_graph
+    else:
+        prm.create_graph()
+        os.makedirs(planning_dir, exist_ok=True)
+        pickle.dump(prm.graph, open(prm_path, 'wb'))
+
 
 def localize_mpc_planning(robot : PhysicalRobotSpace, target : NumpyState):
     pf = ParticleFilter(map_obj=robot.map)
@@ -61,9 +80,12 @@ def localize_mpc_planning(robot : PhysicalRobotSpace, target : NumpyState):
     # prm.create_graph()
     # pickle.dump(prm.graph, open('dumps/run1/prm_graph.pickle', 'wb'))
     
-    prm = PRM(env=robot, num_samples=10000, num_neighbors=10, validate_edges=True)
-    prm_graph = pickle.load(open('dumps/run1/prm_graph.pickle', 'rb'))
-    prm.graph = prm_graph
+    # prm = PRM(env=robot, num_samples=10000, num_neighbors=10, validate_edges=True)
+    # prm_graph = pickle.load(open('dumps/run1/prm_graph.pickle', 'rb'))
+    # prm.graph = prm_graph
+
+    prm : PRM = create_or_load_prm(scene='tmp')
+    
 
     
 
@@ -93,16 +115,22 @@ def localize_mpc_planning(robot : PhysicalRobotSpace, target : NumpyState):
 
             scan, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
 
-            ## TODO: CLEAN THIS HACK
-            lidar_data = np.copy(lidar_data)
-            lidar_data[:, 0] = 360 - lidar_data[:, 0]
-            lidar_data[:, 0] = lidar_data[:, 0] + 90
-            lidar_data[:, 0] = lidar_data[:, 0] % 360
-            lidar_data[:, 0] = np.deg2rad(lidar_data[:, 0])
-            ## TODO: CLEAN THIS HACK
+            # # FIXED??
+            # ## TODO: CLEAN THIS HACK
+            # lidar_data = np.copy(lidar_data)
+            # lidar_data[:, 0] = 360 - lidar_data[:, 0]
+            # lidar_data[:, 0] = lidar_data[:, 0] + 90
+            # lidar_data[:, 0] = lidar_data[:, 0] % 360
+            # lidar_data[:, 0] = np.deg2rad(lidar_data[:, 0])
+            # ## TODO: CLEAN THIS HACK
 
             updated_state = pf.step(motion_delta=motion_command, scan=lidar_data)
             current_state = updated_state
+
+            # Refine the State:
+            T = run_icp(scan, mymap.get_points(), current_state, filter_init_outliers=False, visualize=False)
+            refined_state = transformation_mat_to_state(T)
+            current_state = refined_state
             print(f"Current State: {current_state}")
         
 
