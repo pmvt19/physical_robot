@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import time
+import os
 
 # from config import scene_name
 
@@ -25,18 +26,16 @@ saves/
 def run_interactive_robot():
     pass
 
-def init_directories():
-    pass
+def init_directories(top_level_dir):
+    os.makedirs(f'{top_level_dir}/map_imgs', exist_ok=True)
+    os.makedirs(f'{top_level_dir}/map', exist_ok=True)
 
 if __name__ == "__main__":
 
     ## TODO: Will update directory structure soon
-    run_num = 6
-    dump_dir = f'dumps/run{run_num}'
-    imgs_dir = f'maps_saved/run{run_num}'
-
     scene_name = 'tmp'
     map_save_dir = f'saves/scenes/{scene_name}'
+    init_directories(map_save_dir)
     ## TODO: Will update directory structure soon
 
 
@@ -79,13 +78,13 @@ if __name__ == "__main__":
         plt.show()
         plt.cla()
         map.visualize(ax=plt.gca())
-        # plt.savefig(f'{imgs_dir}/map_{i}.png')
+
         plt.savefig(f'{map_save_dir}/map_imgs/map_{i}.png')
         i+=1
 
-        pickle.dump(map, open(f"{dump_dir}/map_object.pickle", "wb"))
-        pickle.dump(map.map, open(f"{dump_dir}/map_map.pickle", "wb"))
-        pickle.dump(map.get_points(), open(f"{dump_dir}/map_points.pickle", "wb"))
+        pickle.dump(map, open(f"{map_save_dir}/map/map_object.pickle", "wb"))
+        pickle.dump(map.map, open(f"{map_save_dir}/map/map_map.pickle", "wb"))
+        pickle.dump(map.get_points(), open(f"{map_save_dir}/map/map_points.pickle", "wb"))
     
     print("Finished")
     plt.cla()
