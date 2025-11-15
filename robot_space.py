@@ -58,7 +58,7 @@ class PhysicalRobotSpace(Robot, RobotSpace):
 
         points = self.map.get_points()
         map_circles = np.concatenate((points, np.ones((points.shape[0], 1), dtype=np.float32) * (self.map.resolution / 2 * np.sqrt(2))), axis=1)
-        batch_robot_circles = np.concatenate((states[:, :2], np.ones(len(states), dtype=np.float32).reshape(-1, 1) * self.radius), axis=1)
+        batch_robot_circles = np.concatenate((states[:, :2], np.ones(len(states), dtype=np.float32).reshape(-1, 1) * self.robot_radius), axis=1)
         B = batch_robot_circles.shape[0]
 
         stacked_validities = []
