@@ -345,8 +345,8 @@ class Robot():
     ## --- FOR TESTING ONLY -- ##
     def advanced_active_lidar_monitoring_with_visualization(self, pause_motion, thread_stop, desired_motor_pos_1, desired_motor_pos_2):
 
-        rr.init("Visualize Lidar Brakes", spawn=True)
-        start_time = time.time()
+        rr.init(f"Visualize Lidar Brakes_{desired_motor_pos_2}", spawn=True)
+        # start_time = time.time()
         while not thread_stop.is_set():
             current_motor_pos_1, current_motor_pos_2 = self.ri.get_motor_positions()
 
@@ -371,11 +371,14 @@ class Robot():
             else:
                 pause_motion.clear()
 
-            rr.set_time("time", duration=time.time()-start_time)
+            # rr.set_time("time", duration=time.time()-start_time)
+            rr.set_time("time", duration=time.time())
             rr.log("lidar points", rr.Points3D(coords))
-            rr.log("robot location", rr.Points2D([[[0.0, 0.0]]]), radii=(self.wheelbase_length/2))
+            rr.log("robot location", rr.Points2D([[0.0, 0.0]], color=[0, 255, 0], radii=(self.wheelbase_length/2)))
+        # rr.log_clear()
+        rr.disconnect()
     ## --- FOR TESTING ONLY -- ##
-    
+
     def is_moving(self):
         return np.sum(self.ri.get_motor_velocity()) > 0
 
