@@ -84,6 +84,7 @@ class Robot():
         """
         pass
 
+    ### ------- Reading Sensors ------- ###
     
     def _get_single_lidar_reading(self, wait_for_updated_reading):
         if self.connection == 'simulated':
@@ -169,6 +170,14 @@ class Robot():
             else:
                 break
         return coords, lidar_data
+    
+    def read_rgb_camera(self):
+        pass
+    def read_depth_camera(self):
+        pass
+    def read_imu(self):
+        pass
+    ### ------- Reading Sensors ------- ###
     
     def motion_command_to_pseudo_motor_diffs(self, motion_command):
         motion_type, pseudo_avg_motion = motion_command
