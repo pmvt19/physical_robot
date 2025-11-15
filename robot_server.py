@@ -56,7 +56,7 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         # 2. Return the data
         return fake_data
     
-    def GetLatestCameraData(self, request, context):
+    def GetLatestImageData(self, request, context):
         """Implements the RPC method."""
 
         # Get All RGB Image Data
@@ -77,13 +77,13 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         ## TODO: DO SOME PROCESSING TO THE RAW DATA??
 
         rgb_img = pb2.Image(
-            bytes=rgb_img_bytes,
+            img_bytes=rgb_img_bytes,
             shape=rgb_img_shape,
             type=rgb_img_type
         )
 
         depth_img = pb2.Image(
-            bytes=depth_img_bytes,
+            img_bytes=depth_img_bytes,
             shape=depth_img_shape,
             type=depth_img_type
         )
