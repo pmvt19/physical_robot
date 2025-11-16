@@ -108,13 +108,12 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         gyro_z = self.robot.redis_client.get('gyro_z')
 
         imu_data = pb2.IMUData(
-            accel_x=accel_x,
-            accel_y=accel_y,
-            accel_z=accel_z,
-            gyro_x=gyro_x,
-            gyro_y=gyro_y,
-            gyro_z=gyro_z,
-            timestamp=self._getAndFormatTimestamp(key='imu_time')
+            accel_x=float(accel_x),
+            accel_y=float(accel_y),
+            accel_z=float(accel_z),
+            gyro_x=float(gyro_x),
+            gyro_y=float(gyro_y),
+            gyro_z=float(gyro_z)
         )
 
         return imu_data
