@@ -36,12 +36,36 @@ message CameraData {
     int64 timestamp = 3;
 }
 
-// message OakdData {
-//     optional Image rgb_img = 1;
-//     optional Image depth_img = 2;
-//     // optional float accelerometer = 3;
-//     // optional float gyroscope = 4;
-// }
+message IMUData {
+    int64 accel_x = 1;
+    int64 accel_y = 2;
+    int64 accel_z = 3;
+
+    int64 gyro_x = 4;
+    int64 gyro_y = 5;
+    int64 gyro_z = 6;
+}
+
+message OakdLiteData {
+    CameraData camera_data = 1;
+    IMUData imu_Data = 2;
+    int64 timestamp = 3;
+}
+
+message RobotState {
+    int64 motor_position_left = 1;
+    int64 motor_position_right = 2;
+    int64 motor_velocity_left = 3;
+    int64 motor_velocity_right = 4;
+    repeated float robot_state = 5;
+}
+
+message MonitoringState {
+    LidarData lidar_data = 1;
+    CameraData camera_data = 2;
+    IMUData imu_data = 3;
+    RobotState robot_state = 4;
+}
 
 // Services
 service RobotServer {
