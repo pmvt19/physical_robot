@@ -23,6 +23,18 @@ def start_camera():
     monoLeft = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_B)
     monoRight = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_C)
     stereo = pipeline.create(dai.node.StereoDepth)
+    imu = pipeline.create(dai.node.IMU)
+
+
+    # enable ACCELEROMETER_RAW at 500 hz rate
+    imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER_RAW, 480)
+
+    # enable GYROSCOPE_RAW at 400 hz rate
+    imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_RAW, 400)
+
+    imu.setBatchReportThreshold(1)
+    imu.setMaxBatchReports(10)
+    imuOut = imu.out.createOutputQueue(maxSize=1, blocking=False)
 
     stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.DEFAULT)
     stereo.setOutputSize(640, 480)
@@ -43,6 +55,7 @@ def start_camera():
         while pipeline.isRunning():
             colorFrame : dai.ImgFrame = colorOut.get()
             stereoFrame : dai.ImgFrame = stereoOut.get()
+            imuData = imuOut.get()
 
             # rgb_img : np.ndarray = colorFrame.getFrame()
             rgb_img : np.ndarray = colorFrame.getCvFrame() # np.uint8
@@ -60,6 +73,33 @@ def start_camera():
 
             # Publish Time Images Were Grabbed
             redis_client.set('camera_time', time.time())
+            
+            # Grab IMU Data
+            imuData = imuOut.get()
+
+            # Get Single IMU Packet
+            imuPacket = imuData.packets[0]
+
+            # Separate Accelerometer and Gyroscope Values
+            acceleroValues = imuPacket.acceleroMeter
+            gyroValues = imuPacket.gyroscope
+            
+            # Get Timestamps
+            acceleroTs = acceleroValues.getTimestamp()
+            gyroTs = gyroValues.getTimestamp()
+
+            # Publish Accelerometer Data
+            redis_client.set('accel_x', acceleroValues.x)
+            redis_client.set('accel_y', acceleroValues.y)
+            redis_client.set('accel_z', acceleroValues.z)
+
+            # Publish Gyroscope Data
+            redis_client.set('gyro_x', gyroValues.x)
+            redis_client.set('gyro_y', gyroValues.y)
+            redis_client.set('gyro_z', gyroValues.z)
+
+            # Publish Time IMU Data Was Grabbed
+            redis_client.set('imu_time', time.time())
     
 
     except KeyboardInterrupt:
