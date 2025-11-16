@@ -98,14 +98,14 @@ class RobotServerServicer(pb2_grpc.RobotServer):
     
     def GetLatestIMUData(self, request, context):
         # Publish Accelerometer Data
-        accel_x = self.robot.redis_client.set('accel_x')
-        accel_y = self.robot.redis_client.set('accel_y')
-        accel_z = self.robot.redis_client.set('accel_z')
+        accel_x = self.robot.redis_client.get('accel_x')
+        accel_y = self.robot.redis_client.get('accel_y')
+        accel_z = self.robot.redis_client.get('accel_z')
 
         # Publish Gyroscope Data
-        gyro_x = self.robot.redis_client.set('gyro_x')
-        gyro_y = self.robot.redis_client.set('gyro_y')
-        gyro_z = self.robot.redis_client.set('gyro_z')
+        gyro_x = self.robot.redis_client.get('gyro_x')
+        gyro_y = self.robot.redis_client.get('gyro_y')
+        gyro_z = self.robot.redis_client.get('gyro_z')
 
         imu_data = pb2.IMUData(
             accel_x=accel_x,
