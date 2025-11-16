@@ -199,6 +199,11 @@ class Robot():
                 message="Client is ready for data!"
             )
             imu_data = self.stub.GetLatestIMUData(request_ack)
+
+            accel_data = [imu_data.accel_x, imu_data.accel_y, imu_data.accel_z]
+            gyro_data = [imu_data.gyro_x, imu_data.gyro_y, imu_data.gyro_z]
+
+            return accel_data, gyro_data
             
         elif self.connection == 'physical':
             raise NotImplementedError
