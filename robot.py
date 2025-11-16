@@ -190,7 +190,18 @@ class Robot():
     def read_depth_camera(self):
         pass
     def read_imu(self):
-        pass
+        if self.connection == 'simulated':
+            raise NotImplementedError
+        elif self.connection == 'client':
+
+            request_ack = pb2.Acknowledge(
+                success=True,
+                message="Client is ready for data!"
+            )
+            imu_data = self.stub.GetLatestIMUData(request_ack)
+            
+        elif self.connection == 'physical':
+            raise NotImplementedError
     ### ------- Reading Sensors ------- ###
     
     def motion_command_to_pseudo_motor_diffs(self, motion_command):

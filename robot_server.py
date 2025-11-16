@@ -96,6 +96,29 @@ class RobotServerServicer(pb2_grpc.RobotServer):
 
         return camera_data
     
+    def GetLatestIMUData(self, request, context):
+        # Publish Accelerometer Data
+        accel_x = self.robot.redis_client.set('accel_x')
+        accel_y = self.robot.redis_client.set('accel_y')
+        accel_z = self.robot.redis_client.set('accel_z')
+
+        # Publish Gyroscope Data
+        gyro_x = self.robot.redis_client.set('gyro_x')
+        gyro_y = self.robot.redis_client.set('gyro_y')
+        gyro_z = self.robot.redis_client.set('gyro_z')
+
+        imu_data = pb2.IMUData(
+            accel_x=accel_x,
+            accel_y=accel_y,
+            accel_z=accel_z,
+            gyro_x=gyro_x,
+            gyro_y=gyro_y,
+            gyro_z=gyro_z,
+            timestamp=self._getAndFormatTimestamp(key='imu_time')
+        )
+
+        return imu_data
+    
     def SendMotionCommand(self, command, context):
         motion_type = command.motion_type
         dist = command.distance

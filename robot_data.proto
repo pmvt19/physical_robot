@@ -37,13 +37,13 @@ message CameraData {
 }
 
 message IMUData {
-    int64 accel_x = 1;
-    int64 accel_y = 2;
-    int64 accel_z = 3;
+    float accel_x = 1;
+    float accel_y = 2;
+    float accel_z = 3;
 
-    int64 gyro_x = 4;
-    int64 gyro_y = 5;
-    int64 gyro_z = 6;
+    float gyro_x = 4;
+    float gyro_y = 5;
+    float gyro_z = 6;
 }
 
 message OakdLiteData {
@@ -72,6 +72,8 @@ service RobotServer {
     rpc GetLatestLidarData(Acknowledge) returns (LidarData);
 
     rpc GetLatestImageData(Acknowledge) returns (CameraData);
+
+    rpc GetLatestIMUData(Acknowledge) returns (IMUData);
 
     rpc SendMotionCommand(MotionCommand) returns (MotionDistance);
 }
