@@ -198,7 +198,7 @@ class Robot():
                 success=True,
                 message="Client is ready for data!"
             )
-            imu_data = self.stub.GetLatestIMUData(request_ack)
+            imu_data = self.stub.GetLatestIMUData(request_ack, timeout=2)
 
             accel_data = [imu_data.accel_x, imu_data.accel_y, imu_data.accel_z]
             gyro_data = [imu_data.gyro_x, imu_data.gyro_y, imu_data.gyro_z]
