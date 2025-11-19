@@ -7,6 +7,11 @@ class SemanticMap(Map):
         self.map : Map = map_obj
         self.semantic_layer = np.zeros((self.map.shape[0], self.map.shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
 
+        self.layer_name_to_idx = {
+            'room' : 0,
+            'object' : 1
+        }
+
     def update_semantic_map(self, semantics):
         """
         semantics: TBD on what input this is
@@ -28,5 +33,10 @@ class SemanticMap(Map):
         # IDEA: Implement this function in C++ and use python bindings here?
         raise NotImplementedError
     
-    def visualize(self, ax, color='blue'):
-        self.map.visualize(ax, color)
+    def visualize(self, ax, color='blue', layer=None):
+        self.map.visualize(ax[0], color)
+
+        # Visualize Semantic Layer (Each Room or Object should be its own color)
+        if layer:
+            semantic_layer = self.semantic_layer[:, :, self.layer_name_to_idx[layer]]
+            ax[1].imshow(semantic_layer) # TODO: BAD NOT HEATMAP, SHOULD CONVERT TO RGB IMG?
