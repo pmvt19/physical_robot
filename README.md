@@ -20,7 +20,7 @@ physical_robot/
     ├──shell_scripts/
         ├──proto_gen.sh
         ├──start_lidar_process.sh
-        ├──start_camera_process.sh (TODO)
+        ├──start_camera_process.sh
         ├──start_sensor_suite.sh (TODO)
 
     ├──debugging/
