@@ -15,10 +15,13 @@ physical_robot/
         ├──map.py
         ├──advanced_map.py
         ├──abstract_map.py
+        ├──semantic_map.py (TODO)
 
     ├──shell_scripts/
         ├──proto_gen.sh
         ├──start_lidar_process.sh
+        ├──start_camera_process.sh (TODO)
+        ├──start_sensor_suite.sh (TODO)
 
     ├──debugging/
         ├──debug.py
@@ -49,6 +52,13 @@ physical_robot/
         ├──run_localization_robot.py
         ├──run_robot.py
         ├──run_localize_and_plan.py
+        ├──run_nlp_mp_robot.py (TODO)
+
+    ├──machine_learning/ (TODO)
+        ├──image_processing/
+            ├──image_segmentator.py
+        ├──language_processing/
+            ├──language_processor.py
 
     ├──robot/
         ├──robot.py
