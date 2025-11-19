@@ -83,11 +83,21 @@ physical_robot/
         ├──test_processes/
             ├──test_particle_filter.py
             ├──test_slam.py??
+    
+    ├──main.py??
 
 
 Remaining files:
 - icp.py
 - particle_filter.py
+
+Planned files:
+- image_segmentator.py
+- language_processor.py
+- run_nlp_mp_robot.py
+- start_sensor_suite.sh
+- start_camera_process.sh
+- semantic_map.py
 
 │   ├── components/
 │   │   ├── Button.js
