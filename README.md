@@ -21,7 +21,7 @@ physical_robot/
         ├──proto_gen.sh
         ├──start_lidar_process.sh
         ├──start_camera_process.sh
-        ├──start_sensor_suite.sh (TODO)
+        ├──start_sensor_suite.sh
 
     ├──debugging/
         ├──debug.py
