@@ -1,4 +1,5 @@
 import logging
+import time
 import numpy as np
 from shapely import Polygon
 
@@ -29,6 +30,15 @@ def transformation_mat_to_state(T):
     x = T[0, 2]
     y = T[1, 2]
     return np.array([x, y, theta])
+
+def timer(base_fn):
+    def enhanced_fn(*args, **kwargs):
+          st = time.time()
+          result = base_fn(*args, **kwargs)
+          et = time.time()
+          print(f"Time to run {base_fn.__name__}: {et - st} secs")
+          return result
+    return enhanced_fn
 
 ### Geometry Utils ###
 def batch_line_segments_to_batch_points_dist(self, line_segment_eps, points):
