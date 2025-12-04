@@ -1,11 +1,14 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
+import time
+from heapq import *
 from map import Map
-
+from utils import timer
 class SemanticMap(Map):
     def __init__(self, map_obj):
         self.map : Map = map_obj
-        self.semantic_layer = np.zeros((self.map.shape[0], self.map.shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
+        self.semantic_layer = np.zeros((self.map.map.shape[0], self.map.map.shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
+        self.flood_filled_map = None
 
         self.layer_name_to_idx = {
             'room' : 0,
@@ -27,16 +30,114 @@ class SemanticMap(Map):
     def update(self, scan, predicted_state):
         return self.map.update(scan, predicted_state)
     
+    @timer
     def flood_fill(self):
         # Queue with starting seed for classes
         # BFS and labeling classes with closest labels
         # IDEA: Implement this function in C++ and use python bindings here?
-        raise NotImplementedError
+        # raise NotImplementedError
+
+        map_points = self.map.get_points()
+        grid_coords = self.map.batch_world_to_grid_coords(map_points)
+        q = []
+        for x, y in grid_coords:
+            # heappush(q, coord)
+            label = self.semantic_layer[x, y]
+            q.append((x,y,label))
+
+        self.flood_filled_map = np.copy(self.semantic_layer)
+        
+        neighbors = [(0,-1),(0,1),(1,0),(-1,0)]
+        # neighbors = [(0,-1),(0,1),(1,0),(-1,0),(1,1),(-1,-1),(-1,1),(1,-1)]
+        # neighbors = [(1,1),(-1,-1),(-1,1),(1,-1)]
+        # neighbors = [(-1,0),(0,-1),(0,1),(1,0)]
+        visited = set()
+        N, M = self.map.map.shape
+        while q:
+            x, y, label = q.pop(0)
+            if (x, y) in visited:
+                continue
+            visited.add((x,y))
+            print(f"Visited Size: {len(visited)}", end='\r')
+            self.flood_filled_map[x,y] = label
+            
+            for dx, dy in neighbors:
+                nx = x + dx
+                ny = y + dy
+                if nx >= 0 and nx < M and ny >= 0 and ny < N and self.map.map[nx, ny] == 0 and (nx, ny) not in visited: #TODO: Check why this improves speed
+                    q.append((nx, ny, label))
+
     
     def visualize(self, ax, color='blue', layer=None):
-        self.map.visualize(ax[0], color)
+        if layer is None:
+            self.map.visualize(ax)
+            return
+
+        # self.map.visualize(ax[0], color)
+        self.map.visualize(ax[0])
 
         # Visualize Semantic Layer (Each Room or Object should be its own color)
         if layer:
             semantic_layer = self.semantic_layer[:, :, self.layer_name_to_idx[layer]]
-            ax[1].imshow(semantic_layer) # TODO: BAD NOT HEATMAP, SHOULD CONVERT TO RGB IMG?
+            ax[1].imshow(np.rot90(semantic_layer)) # TODO: BAD NOT HEATMAP, SHOULD CONVERT TO RGB IMG?
+
+        # TODO: Properly handle how this should work is it 2 dims per layer?
+        if self.flood_filled_map is not None:
+            flood_filled_layer = self.flood_filled_map[:, :, self.layer_name_to_idx[layer]]
+            ax[2].imshow(np.rot90(flood_filled_layer))
+
+
+def pseudolabel_map(semantic_map : SemanticMap):
+    # semantic_map.visualize(plt.gca())
+    semantic_map.map.visualize_points(plt.gca())
+    plt.show()
+
+    # Inject Fake Semantic Labels
+    map_points = semantic_map.map.get_points() # (9312, 2) for apartment labels
+    # print(type(map_points), map_points.shape)
+    # exit()
+
+    label_values = np.zeros((map_points.shape[0],)).astype(np.int32)
+    office_label_mask = np.logical_and(map_points[:, 0] < -1514, map_points[:, 1] > 1000)
+    label_values[office_label_mask] = 1
+
+    dining_room_label_mask = np.logical_and(map_points[:, 0] > -729, map_points[:, 1] > 809)
+    label_values[dining_room_label_mask] = 2
+
+    kitchen_label_mask = np.logical_and(map_points[:, 0] > 1249, map_points[:, 1] > -1200)
+    label_values[kitchen_label_mask] = 3
+
+    room_label_mask = np.logical_and(map_points[:, 0] < -655, map_points[:, 1] < -1241)
+    label_values[room_label_mask] = 4
+
+    entrance_label_mask = np.logical_and(map_points[:, 0] > 859, map_points[:, 1] < -4113)
+    label_values[entrance_label_mask] = 5
+    
+    grid_coords = semantic_map.map.batch_world_to_grid_coords(map_points)
+
+    semantic_map.semantic_layer[grid_coords[:, 0], grid_coords[:, 1], 0] = label_values
+    plt.imshow(np.rot90(semantic_map.semantic_layer[:, :, 0]))
+    plt.show()
+
+if __name__ == '__main__':
+    from test_utils import load_saved_map
+
+    map_obj = load_saved_map(directory='./saves/scenes/apartment/map')
+    semantic_map = SemanticMap(map_obj=map_obj)
+
+    pseudolabel_map(semantic_map)
+    semantic_map.flood_fill()
+
+    fig, ax = plt.subplots(1, 3)
+
+    semantic_map.visualize(ax, layer='room')
+    plt.show()
+
+
+
+    # TEST
+    # random_values = np.random.random(size=(1200*1200))
+    # st = time.time()
+    # np.sort(random_values)
+    # et = time.time()
+    # print(f"Time: {et - st}")
