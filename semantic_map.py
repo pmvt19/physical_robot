@@ -4,6 +4,8 @@ import time
 from heapq import *
 from map import Map
 from utils import timer
+from sklearn.neighbors import KDTree
+
 class SemanticMap(Map):
     def __init__(self, map_obj):
         self.map : Map = map_obj
@@ -31,7 +33,15 @@ class SemanticMap(Map):
         return self.map.update(scan, predicted_state)
     
     @timer
-    def flood_fill(self):
+    def flood_fill(self, method='bfs'):
+        if method == 'bfs':
+            self._bfs_flood_fill()
+        elif method == 'nearest_neighbor':
+            self._nearest_neighbor_flood_fill()
+        else:
+            raise ValueError(f"Unknown flood fill method: {method}")
+    
+    def _bfs_flood_fill(self):
         # Queue with starting seed for classes
         # BFS and labeling classes with closest labels
         # IDEA: Implement this function in C++ and use python bindings here?
@@ -58,7 +68,7 @@ class SemanticMap(Map):
             if (x, y) in visited:
                 continue
             visited.add((x,y))
-            print(f"Visited Size: {len(visited)}", end='\r')
+            # print(f"Visited Size: {len(visited)}", end='\r')
             self.flood_filled_map[x,y] = label
             
             for dx, dy in neighbors:
@@ -66,6 +76,18 @@ class SemanticMap(Map):
                 ny = y + dy
                 if nx >= 0 and nx < M and ny >= 0 and ny < N and self.map.map[nx, ny] == 0 and (nx, ny) not in visited: #TODO: Check why this improves speed
                     q.append((nx, ny, label))
+    
+    def _nearest_neighbor_flood_fill(self):
+        map_points = self.map.get_points()
+        grid_coords = self.map.batch_world_to_grid_coords(map_points)
+        kd_tree = KDTree(grid_coords)
+        semantic_labels = self.semantic_layer[grid_coords[:, 0], grid_coords[:, 1]]
+        grid_xs, grid_ys = np.where(self.map.map == 0)
+        grid_coords = np.stack((grid_xs, grid_ys), axis=1)
+        _, idxes = kd_tree.query(grid_coords, k=1)
+        self.flood_filled_map = np.copy(self.semantic_layer)
+        self.flood_filled_map[grid_xs, grid_ys] = semantic_labels[idxes[:, 0]]
+
 
     
     def visualize(self, ax, color='blue', layer=None):
@@ -126,7 +148,7 @@ if __name__ == '__main__':
     semantic_map = SemanticMap(map_obj=map_obj)
 
     pseudolabel_map(semantic_map)
-    semantic_map.flood_fill()
+    semantic_map.flood_fill(method='bfs')
 
     fig, ax = plt.subplots(1, 3)
 
