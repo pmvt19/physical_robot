@@ -33,15 +33,15 @@ class SemanticMap(Map):
         return self.map.update(scan, predicted_state)
     
     @timer
-    def flood_fill(self, method='bfs'):
+    def flood_fill(self, limit_fill_extent=False, method='bfs'):
         if method == 'bfs':
-            self._bfs_flood_fill()
+            self._bfs_flood_fill(limit_fill_extent)
         elif method == 'nearest_neighbor':
-            self._nearest_neighbor_flood_fill()
+            self._nearest_neighbor_flood_fill(limit_fill_extent)
         else:
             raise ValueError(f"Unknown flood fill method: {method}")
     
-    def _bfs_flood_fill(self):
+    def _bfs_flood_fill(self, limit_fill_extent=False):
         # Queue with starting seed for classes
         # BFS and labeling classes with closest labels
         # IDEA: Implement this function in C++ and use python bindings here?
@@ -62,7 +62,14 @@ class SemanticMap(Map):
         # neighbors = [(1,1),(-1,-1),(-1,1),(1,-1)]
         # neighbors = [(-1,0),(0,-1),(0,1),(1,0)]
         visited = set()
-        N, M = self.map.map.shape
+
+        min_x, min_y = 0, 0
+        max_x, max_y = self.map.map.shape
+
+        if limit_fill_extent:
+            min_x, min_y = np.min(grid_coords, axis=0)
+            max_x, max_y = np.max(grid_coords, axis=0)
+
         while q:
             x, y, label = q.pop(0)
             if (x, y) in visited:
@@ -74,19 +81,27 @@ class SemanticMap(Map):
             for dx, dy in neighbors:
                 nx = x + dx
                 ny = y + dy
-                if nx >= 0 and nx < M and ny >= 0 and ny < N and self.map.map[nx, ny] == 0 and (nx, ny) not in visited: #TODO: Check why this improves speed
+                if nx >= min_x and nx < max_x and ny >= min_y and ny < max_y and self.map.map[nx, ny] == 0 and (nx, ny) not in visited: #TODO: Check why this improves speed
                     q.append((nx, ny, label))
     
-    def _nearest_neighbor_flood_fill(self):
+    def _nearest_neighbor_flood_fill(self, limit_fill_extent=False):
         map_points = self.map.get_points()
         grid_coords = self.map.batch_world_to_grid_coords(map_points)
+        min_grid_coords = np.min(grid_coords, axis=0)
+        max_grid_coords = np.max(grid_coords, axis=0)
         kd_tree = KDTree(grid_coords)
         semantic_labels = self.semantic_layer[grid_coords[:, 0], grid_coords[:, 1]]
         grid_xs, grid_ys = np.where(self.map.map == 0)
         grid_coords = np.stack((grid_xs, grid_ys), axis=1)
+        if limit_fill_extent:
+            semantic_labeling_mask_xs = np.logical_and(grid_coords[:, 0] >= min_grid_coords[0], grid_coords[:, 0] <= max_grid_coords[0])
+            semantic_labeling_mask_ys = np.logical_and(grid_coords[:, 1] >= min_grid_coords[1], grid_coords[:, 1] <= max_grid_coords[1])
+            semantic_labeling_mask = np.logical_and(semantic_labeling_mask_xs, semantic_labeling_mask_ys)
+            grid_coords = grid_coords[semantic_labeling_mask]
         _, idxes = kd_tree.query(grid_coords, k=1)
         self.flood_filled_map = np.copy(self.semantic_layer)
-        self.flood_filled_map[grid_xs, grid_ys] = semantic_labels[idxes[:, 0]]
+        # self.flood_filled_map[grid_xs, grid_ys] = semantic_labels[idxes[:, 0]]
+        self.flood_filled_map[grid_coords[:, 0], grid_coords[:, 1]] = semantic_labels[idxes[:, 0]]
 
 
     
@@ -148,11 +163,23 @@ if __name__ == '__main__':
     semantic_map = SemanticMap(map_obj=map_obj)
 
     pseudolabel_map(semantic_map)
-    semantic_map.flood_fill(method='bfs')
+    semantic_map.flood_fill(limit_fill_extent=False, method='nearest_neighbor')
 
-    fig, ax = plt.subplots(1, 3)
+    fig, ax = plt.subplots(2, 3)
 
-    semantic_map.visualize(ax, layer='room')
+    semantic_map.visualize(ax[0], layer='room')
+
+    semantic_map.map.visualize_points(ax[1][0])
+    # Imports only needed here for prm creation
+    from motion_planning.prm import PRM
+    from run_localize_and_plan import create_or_load_prm
+    from robot_space import PhysicalRobotSpace
+
+    robot = PhysicalRobotSpace(semantic_map.map)
+    prm : PRM = create_or_load_prm(scene='apartment', robot=robot)
+
+    semantic_map.map.visualize_points(ax[1][1])
+    prm.draw(ax[1][1])
     plt.show()
 
 
