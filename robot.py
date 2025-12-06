@@ -58,7 +58,13 @@ class Robot():
         elif self.connection == 'client':
             # TODO: Clean After Successful Release
             # channel = grpc.insecure_channel('192.168.12.155:50051')
-            channel = grpc.insecure_channel(config['client']['channel_address'])
+
+            # Define the maximum receive message length (e.g., 10 MB)
+            MAX_RECEIVE_MESSAGE_LENGTH = 10 * 1024 * 1024  # 10 MB
+
+            # Create a gRPC channel with the increased message size limit
+            options = [('grpc.max_receive_message_length', MAX_RECEIVE_MESSAGE_LENGTH)]
+            channel = grpc.insecure_channel(config['client']['channel_address'], options=options)
             self.stub = pb2_grpc.RobotServerStub(channel)
             print("Motor Logs will appear in the machine where the Robot Server is run")
         elif self.connection == 'physical':
