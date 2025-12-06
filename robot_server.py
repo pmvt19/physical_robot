@@ -76,6 +76,9 @@ class RobotServerServicer(pb2_grpc.RobotServer):
 
         ## TODO: DO SOME PROCESSING TO THE RAW DATA??
 
+        rgb_img_shape = tuple(np.frombuffer(rgb_img_shape, dtype=np.int64))
+        depth_img_shape = tuple(np.frombuffer(depth_img_shape, dtype=np.int64))
+
         rgb_img = pb2.NumpyArray(
             img_bytes=rgb_img_bytes,
             shape=rgb_img_shape,
@@ -127,6 +130,9 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         pcl_colors_bytes = self.robot.redis_client.get('pcl_colors')
         pcl_colors_shape = self.robot.redis_client.get('pcl_colors_shape')
         pcl_colors_type = self.robot.redis_client.get('pcl_colors_type')
+
+        pcl_coords_shape = tuple(np.frombuffer(pcl_coords_shape, dtype=np.int64))
+        pcl_colors_shape = tuple(np.frombuffer(pcl_colors_shape, dtype=np.int64))
 
         pcl_coords = pb2.NumpyArray(
             img_bytes=pcl_coords_bytes,
