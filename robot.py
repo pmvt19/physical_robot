@@ -189,8 +189,8 @@ class Robot():
             )
 
             camera_data = self.stub.GetLatestImageData(request_ack)
-            rgb_img = np.frombuffer(camera_data.rgb_img.img_bytes, dtype=np.uint8).reshape(480, 640, 3)
-            depth_img = np.frombuffer(camera_data.depth_img.img_bytes, dtype=np.uint16).reshape(240, 320)
+            rgb_img = np.frombuffer(camera_data.rgb_img.img_bytes, dtype=camera_data.rgb_img.type).reshape(*camera_data.rgb_img.shape)
+            depth_img = np.frombuffer(camera_data.depth_img.img_bytes, dtype=camera_data.depth_img.type).reshape(*camera_data.depth_img.shape)
             return rgb_img, depth_img
         else:
             raise NotImplementedError
@@ -204,7 +204,7 @@ class Robot():
                 success=True,
                 message="Client is ready for data!"
             )
-
+            
             camera_data = self.stub.GetLatestImageData(request_ack)
             depth_img_proto = camera_data.depth_img
             depth_img = np.frombuffer(depth_img_proto.img_bytes, dtype=depth_img_proto.type).reshape(*depth_img_proto.shape)
