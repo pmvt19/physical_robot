@@ -24,15 +24,21 @@ message MotionDistance {
     float right_wheel_dist = 2;
 }
 
-message Image {
+message NumpyArray {
     bytes img_bytes = 1;
     repeated int64 shape = 2;
     string type = 3;
 }
 
 message CameraData {
-    Image rgb_img = 1;
-    Image depth_img = 2;
+    NumpyArray rgb_img = 1;
+    NumpyArray depth_img = 2;
+    int64 timestamp = 3;
+}
+
+message PointCloudData {
+    NumpyArray point_cloud_coords = 1;
+    NumpyArray point_cloud_colors = 2;
     int64 timestamp = 3;
 }
 
@@ -49,7 +55,8 @@ message IMUData {
 message OakdLiteData {
     CameraData camera_data = 1;
     IMUData imu_Data = 2;
-    int64 timestamp = 3;
+    PointCloudData point_cloud_data = 3;
+    int64 timestamp = 4;
 }
 
 message RobotState {
@@ -74,6 +81,8 @@ service RobotServer {
     rpc GetLatestImageData(Acknowledge) returns (CameraData);
 
     rpc GetLatestIMUData(Acknowledge) returns (IMUData);
+
+    rpc GetLatestOakdLiteData(Acknowledge) returns (OakdLiteData);
 
     rpc SendMotionCommand(MotionCommand) returns (MotionDistance);
 }

@@ -76,13 +76,13 @@ class RobotServerServicer(pb2_grpc.RobotServer):
 
         ## TODO: DO SOME PROCESSING TO THE RAW DATA??
 
-        rgb_img = pb2.Image(
+        rgb_img = pb2.NumpyArray(
             img_bytes=rgb_img_bytes,
             shape=rgb_img_shape,
             type=rgb_img_type
         )
 
-        depth_img = pb2.Image(
+        depth_img = pb2.NumpyArray(
             img_bytes=depth_img_bytes,
             shape=depth_img_shape,
             type=depth_img_type
@@ -117,6 +117,55 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         )
 
         return imu_data
+    
+    def GetLatestPointCloudData(self, request, context):
+        # Get Point Cloud Data
+        pcl_coords_bytes = self.robot.redis_client.get('pcl_coords')
+        pcl_coords_shape = self.robot.redis_client.get('pcl_coords_shape')
+        pcl_coords_type = self.robot.redis_client.get('pcl_coords_type')
+
+        pcl_colors_bytes = self.robot.redis_client.get('pcl_colors')
+        pcl_colors_shape = self.robot.redis_client.get('pcl_colors_shape')
+        pcl_colors_type = self.robot.redis_client.get('pcl_colors_type')
+
+        pcl_coords = pb2.NumpyArray(
+            img_bytes=pcl_coords_bytes,
+            shape=pcl_coords_shape,
+            type=pcl_coords_type
+        )
+
+        pcl_colors = pb2.NumpyArray(
+            img_bytes=pcl_colors_bytes,
+            shape=pcl_colors_shape,
+            type=pcl_colors_type
+        )
+
+        point_cloud_data = pb2.PointCloudData(
+            point_cloud_coords=pcl_coords,
+            point_cloud_colors=pcl_colors,
+            timestamp=self._getAndFormatTimestamp('camera_time')
+        )
+
+        return point_cloud_data
+    
+    def GetLatestOakdLiteData(self, request, context):
+        # Get Camera Data
+        camera_data = self.GetLatestImageData(request, context)
+
+        # Get IMU Data
+        imu_data = self.GetLatestIMUData(request, context)
+
+        # Get Point Cloud Data
+        point_cloud_data = self.GetLatestPointCloudData(request, context)
+
+        oakd_lite_data = pb2.OakdLiteData(
+            camera_data=camera_data,
+            imu_Data=imu_data,
+            point_cloud_data=point_cloud_data,
+            timestamp=self._getAndFormatTimestamp('camera_time')
+        )
+
+        return oakd_lite_data
     
     def SendMotionCommand(self, command, context):
         motion_type = command.motion_type

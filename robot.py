@@ -190,7 +190,43 @@ class Robot():
             raise NotImplementedError
 
     def read_depth_camera(self):
-        pass
+        if self.connection == 'simulated':
+            raise NotImplementedError
+        elif self.connection == 'client':
+            # Make RPC Call here 
+            request_ack = pb2.Acknowledge(
+                success=True,
+                message="Client is ready for data!"
+            )
+
+            camera_data = self.stub.GetLatestImageData(request_ack)
+            depth_img_proto = camera_data.depth_img
+            depth_img = np.frombuffer(depth_img_proto.img_bytes, dtype=depth_img_proto.type).reshape(*depth_img_proto.shape)
+            return depth_img
+        else:
+            raise NotImplementedError
+        
+    def read_point_cloud(self):
+        if self.connection == 'simulated':
+            raise NotImplementedError
+        elif self.connection == 'client':
+            # Make RPC Call here 
+            request_ack = pb2.Acknowledge(
+                success=True,
+                message="Client is ready for data!"
+            )
+
+            oakd_lite_data = self.stub.GetLatestOakdLiteData(request_ack)
+
+            point_cloud_data_proto = oakd_lite_data.point_cloud_data
+
+            point_cloud_coords = np.frombuffer(point_cloud_data_proto.point_cloud_coords.img_bytes, dtype=point_cloud_data_proto.point_cloud_coords.type).reshape(*point_cloud_data_proto.point_cloud_coords.shape)
+            point_cloud_colors = np.frombuffer(point_cloud_data_proto.point_cloud_colors.img_bytes, dtype=point_cloud_data_proto.point_cloud_colors.type).reshape(*point_cloud_data_proto.point_cloud_colors.shape)
+
+            return point_cloud_coords, point_cloud_colors
+        else:
+            raise NotImplementedError
+
     def read_imu(self):
         if self.connection == 'simulated':
             raise NotImplementedError
