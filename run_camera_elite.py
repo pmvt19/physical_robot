@@ -75,7 +75,7 @@ with dai.Pipeline() as p:
         # Publish Stereo Image Data
         redis_client.set('stereo_img', depth_img.tobytes())
         redis_client.set('stereo_img_shape', np.array(depth_img.shape).tobytes()) # TODO: FIX
-        redis_client.set('rgb_img_type', depth_img.dtype.str)
+        redis_client.set('stereo_img_type', depth_img.dtype.str)
 
         # Publish Time Images Were Grabbed
         redis_client.set('camera_time', time.time())
