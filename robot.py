@@ -186,6 +186,8 @@ class Robot():
             rgb_img = np.frombuffer(camera_data.rgb_img.img_bytes, dtype=np.uint8).reshape(480, 640, 3)
             depth_img = np.frombuffer(camera_data.depth_img.img_bytes, dtype=np.uint16).reshape(240, 320)
             return rgb_img, depth_img
+        else:
+            raise NotImplementedError
 
     def read_depth_camera(self):
         pass
