@@ -5,6 +5,7 @@ from heapq import *
 from map import Map
 from utils import timer
 from sklearn.neighbors import KDTree
+from icp import run_icp
 
 class SemanticMap(Map):
     def __init__(self, map_obj):
@@ -17,6 +18,20 @@ class SemanticMap(Map):
             'object' : 1
         }
 
+    def update(self, lidar_coords, pc_flattened_coords_and_labels, predicted_state):
+        T = run_icp(lidar_coords, self.get_points(), predicted_state, visualize=False)
+        updated_theta = np.arctan2(T[1,0],T[0,0]) % (2*np.pi)
+        updated_x = T[0, 2]
+        updated_y = T[1, 2]
+
+        aligned_lidar_coords = (T@lidar_coords.T).T
+        pc_flattened_coords = pc_flattened_coords_and_labels[:, :2]
+        aligned_pc_flattened_coords = (T@pc_flattened_coords.T).T
+        aligned_pc_flattened_coords_and_labels = np.concatenate((aligned_pc_flattened_coords, pc_flattened_coords_and_labels[:, 2:]), axis=1)
+        self.update_map(aligned_lidar_coords, aligned_pc_flattened_coords_and_labels)
+        return np.array([updated_x, updated_y, updated_theta])
+
+
     def update_semantic_map(self, semantics):
         """
         semantics: TBD on what input this is
@@ -24,10 +39,16 @@ class SemanticMap(Map):
         Maybe a (N, 4) matrix where axis {0,1,2} is the point in 3d world coords and axis {3} is a label??
         Maybe a (N, 5) matrix where axis {0,1,2} is the point in 3d world coords and axis {3, 4} are labels??
         """
-        raise NotImplementedError
+        semantic_grid_coords = self.map.batch_world_to_grid_coords(semantics[:, :2])
+        # TODO: Validate coord boundaries TODO IMPORTANT
+        self.semantic_layer[semantic_grid_coords[:, 0], semantic_grid_coords[:, 1], 0] = semantics[:, 2]
 
     def update_map(self, aligned_scan, semantics):
+        # Update the geometric map
         self.map.update_map(aligned_scan)
+
+        # Update the semantic map
+        self.update_semantic_map(semantics)
     
     def update(self, scan, predicted_state):
         return self.map.update(scan, predicted_state)
