@@ -18,6 +18,19 @@ class SemanticMap():
             'object' : 1
         }
 
+        self.object_to_id = {
+            'none-reserved' : 0
+        }
+    
+    # TODO Improve the logic here
+    def get_object_id(self, object):
+        if object in self.object_to_id:
+            return self.object_to_id[object]
+        else:
+            next_id = len(self.object_to_id)
+            self.object_to_id[object] = next_id
+            return self.object_to_id[object]
+
     def update(self, lidar_coords, pc_flattened_coords_and_labels, predicted_state, option=False):
         T = run_icp(lidar_coords, self.map.get_points(), predicted_state, visualize=False)
         updated_theta = np.arctan2(T[1,0],T[0,0]) % (2*np.pi)
