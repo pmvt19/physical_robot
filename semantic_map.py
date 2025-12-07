@@ -47,7 +47,17 @@ class SemanticMap():
         """
         semantic_grid_coords = self.map.batch_world_to_grid_coords(semantics[:, :2])
         # TODO: Validate coord boundaries TODO IMPORTANT
-        self.semantic_layer[semantic_grid_coords[:, 0], semantic_grid_coords[:, 1], 0] = semantics[:, 2]
+        N, M = self.map.map.shape
+        valid_mask = np.logical_and.reduce((
+            semantic_grid_coords[:, 0] >= 0,
+            semantic_grid_coords[:, 0] < N,
+            semantic_grid_coords[:, 1] >= 0,
+            semantic_grid_coords[:, 1] < M
+        ))
+        print("valid points:", valid_mask.sum(), "out of", semantic_grid_coords.shape[0])
+        semantic_grid_coords = semantic_grid_coords[valid_mask]
+        semantic_info = semantics[:, 2][valid_mask]
+        self.semantic_layer[semantic_grid_coords[:, 0], semantic_grid_coords[:, 1], 0] = semantic_info
 
     def update_map(self, aligned_scan, semantics):
         # Update the geometric map
