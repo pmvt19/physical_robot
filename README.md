@@ -98,6 +98,14 @@ Planned files:
 - start_sensor_suite.sh
 - start_camera_process.sh
 - semantic_map.py
+- run_slam_semantic_mapping.py
+
+Files to Rename:
+- run_interactive_robot.py -> run_slam.py
+- run_localization_robot.py -> run_global_localization.py
+- run_localize_and_plan.py -> run_motion_planning.py??
+
+- run_camera.py -> run_oakd_lite.py or run_oakd_camera.py
 
 │   ├── components/
 │   │   ├── Button.js
