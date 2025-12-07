@@ -6,6 +6,7 @@ from map import Map
 from utils import timer
 from sklearn.neighbors import KDTree
 from icp import run_icp
+from skimage.segmentation import expand_labels
 
 class SemanticMap():
     def __init__(self, map_obj):
@@ -82,8 +83,9 @@ class SemanticMap():
     def map_update(self, scan, predicted_state): # Previously update
         return self.map.update(scan, predicted_state)
     
-    def inflate_semantics(self):
-        pass
+    def inflate_semantics(self, distance=10):
+        self.semantic_layer[:, :, 0] = expand_labels(self.semantic_layer[:, :, 0], distance=distance)
+        self.semantic_layer[:, :, 1] = expand_labels(self.semantic_layer[:, :, 1], distance=distance)
 
     def inflate_obstacles(self):
         self.map.inflate_obstacles()
@@ -223,6 +225,7 @@ if __name__ == '__main__':
     semantic_map = SemanticMap(map_obj=map_obj)
 
     pseudolabel_map(semantic_map)
+    semantic_map.inflate_semantics(30)
     semantic_map.flood_fill(limit_fill_extent=False, method='nearest_neighbor')
 
     fig, ax = plt.subplots(2, 3)
@@ -239,7 +242,7 @@ if __name__ == '__main__':
     prm : PRM = create_or_load_prm(scene='apartment', robot=robot)
 
     semantic_map.map.visualize_points(ax[1][1])
-    prm.draw(ax[1][1])
+    # prm.draw(ax[1][1])
     plt.show()
 
 
