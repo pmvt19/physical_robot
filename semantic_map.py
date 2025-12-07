@@ -82,6 +82,16 @@ class SemanticMap():
     def map_update(self, scan, predicted_state): # Previously update
         return self.map.update(scan, predicted_state)
     
+    def inflate_semantics(self):
+        pass
+
+    def inflate_obstacles(self):
+        self.map.inflate_obstacles()
+
+    def expand_map(self):
+        print("Semantic Map does not support expansions yet")
+        raise NotImplementedError
+    
     @timer
     def flood_fill(self, limit_fill_extent=False, method='bfs'):
         if method == 'bfs':
