@@ -7,7 +7,7 @@ from utils import timer
 from sklearn.neighbors import KDTree
 from icp import run_icp
 
-class SemanticMap(Map):
+class SemanticMap():
     def __init__(self, map_obj):
         self.map : Map = map_obj
         self.semantic_layer = np.zeros((self.map.map.shape[0], self.map.map.shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
@@ -18,15 +18,21 @@ class SemanticMap(Map):
             'object' : 1
         }
 
-    def update(self, lidar_coords, pc_flattened_coords_and_labels, predicted_state):
-        T = run_icp(lidar_coords, self.get_points(), predicted_state, visualize=False)
+    def update(self, lidar_coords, pc_flattened_coords_and_labels, predicted_state, option=False):
+        T = run_icp(lidar_coords, self.map.get_points(), predicted_state, visualize=False)
         updated_theta = np.arctan2(T[1,0],T[0,0]) % (2*np.pi)
         updated_x = T[0, 2]
         updated_y = T[1, 2]
 
         aligned_lidar_coords = (T@lidar_coords.T).T
         pc_flattened_coords = pc_flattened_coords_and_labels[:, :2]
-        aligned_pc_flattened_coords = (T@pc_flattened_coords.T).T
+
+        # Make Homogeneous Coordinates
+        homogeneous_pc_flattened_coords = np.hstack((pc_flattened_coords, np.ones((len(pc_flattened_coords), 1))))
+
+        aligned_pc_flattened_coords = (T@homogeneous_pc_flattened_coords.T).T
+        aligned_pc_flattened_coords = aligned_pc_flattened_coords[:, :2] # Remove Homogeneous Coordinates
+
         aligned_pc_flattened_coords_and_labels = np.concatenate((aligned_pc_flattened_coords, pc_flattened_coords_and_labels[:, 2:]), axis=1)
         self.update_map(aligned_lidar_coords, aligned_pc_flattened_coords_and_labels)
         return np.array([updated_x, updated_y, updated_theta])
@@ -50,7 +56,7 @@ class SemanticMap(Map):
         # Update the semantic map
         self.update_semantic_map(semantics)
     
-    def update(self, scan, predicted_state):
+    def map_update(self, scan, predicted_state): # Previously update
         return self.map.update(scan, predicted_state)
     
     @timer
