@@ -34,6 +34,13 @@ def identify_room():
     Identify what room we are looking at based on image
     """
 
+def init_directories(top_level_dir):
+    os.makedirs(f'{top_level_dir}/semantic_map_imgs', exist_ok=True)
+    os.makedirs(f'{top_level_dir}/semantic_map', exist_ok=True)
+
+    os.makedirs(f'{top_level_dir}/geometric_map_imgs', exist_ok=True)
+    os.makedirs(f'{top_level_dir}/geometric_map', exist_ok=True)
+
 def label_filtered_pc(image_segmenter : ImageSegmenter, semantic_map : SemanticMap, pc, prediction, prompts):
     all_instance_labeled_filtered_pc = np.empty((0, 4))
     for prompt in prompts:
@@ -45,6 +52,11 @@ def label_filtered_pc(image_segmenter : ImageSegmenter, semantic_map : SemanticM
     return all_instance_labeled_filtered_pc
 
 def semantic_slam():
+
+    scene_name = 'semantic_apartment'
+    map_save_dir = f'saves/scenes/{scene_name}'
+    init_directories(map_save_dir)
+
     image_segmenter = ImageSegmenter()
 
     robot = Robot(connection='client')
@@ -52,8 +64,9 @@ def semantic_slam():
     map = Map(initial_scan=scan)
     semantic_map = SemanticMap(map)
 
-    object_list = ['oven', 'cabinet', 'table', 'backpack', 'bed', 'refrigerator', 'tv', 'window']
+    object_list = ['oven', 'cabinet', 'table', 'backpack', 'bed', 'refrigerator', 'tv', 'window', 'bottle', 'chair', 'clothes']
 
+    i = 0
     while True:
         motion_command = robot.request_motion_command_from_user()
         if motion_command[0] == '': # No Motion Command
@@ -69,14 +82,16 @@ def semantic_slam():
         rgb_img, _ = robot.read_rgb_camera()
         pc, colors = robot.read_point_cloud()
 
+        print("Segmenting Images")
         prediction, labels = image_segmenter.segment_image(rgb_img)
 
         # TESTING ONLY VISUALIZATION
-        image_segmenter.draw_panoptic_segmentation(plt.gca(), prediction['segmentation'], prediction['segments_info'])
+        # image_segmenter.draw_panoptic_segmentation(plt.gca(), prediction['segmentation'], prediction['segments_info'])
         # TESTING ONLY VISUALIZATION
 
         filtered_pc = label_filtered_pc(image_segmenter, semantic_map, pc, prediction, object_list)
         pc_flattened_coords = np.stack((filtered_pc[:, 0], filtered_pc[:, 2]), axis=1)
+        print("Finished Filtering PC")
 
         # TODO: HACK Address this hack : #rotate 90 degrees clockwise
         theta = -np.pi / 2  # 90 degrees in radians
@@ -95,12 +110,25 @@ def semantic_slam():
 
         fig, ax = plt.subplots(1, 2)
         semantic_map.visualize(ax, layer='room')
-        plt.show()
+        plt.savefig(f'{map_save_dir}/semantic_map_imgs/semantic_map_{i}.png')
 
+        # fig, ax = plt.subplots(1, 2)
+        # semantic_map.visualize(ax, layer='room')
+        # plt.show()
+
+        pickle.dump(semantic_map.map, open(f"{map_save_dir}/geometric_map/map_object.pickle", "wb"))
+        pickle.dump(semantic_map.map.map, open(f"{map_save_dir}/geometric_map/map_map.pickle", "wb"))
+        pickle.dump(semantic_map.map.get_points(), open(f"{map_save_dir}/geometric_map/map_points.pickle", "wb"))
+
+        pickle.dump(semantic_map, open(f"{map_save_dir}/semantic_map/semantic_map_object.pickle", "wb"))
+        pickle.dump(semantic_map.semantic_layer, open(f"{map_save_dir}/semantic_map/semantic_layer.pickle", "wb"))
+        pickle.dump(semantic_map.object_to_id, open(f"{map_save_dir}/semantic_map/semantic_info.pickle", "wb"))
+        print("Done Saving Maps")
         # fig, ax = plt.subplots(1, 3)
         # semantic_map.flood_fill(limit_fill_extent=True, method='nearest_neighbor')
         # semantic_map.visualize(ax, layer='room')
         # plt.show()
+        i += 1
 
 
 
