@@ -45,7 +45,7 @@ def localize_robot(robot : PhysicalRobotSpace, pf : ParticleFilter):
     plt.show()
     return updated_state
 
-def create_or_load_prm(scene) -> PRM:
+def create_or_load_prm(scene, robot) -> PRM:
     planning_dir = f'saves/scenes/{scene}/planning'
     # prm_path = f'saves/scenes/{scene}/planning/prm_graph.pickle'
     prm_path = f'{planning_dir}/prm_graph.pickle'
