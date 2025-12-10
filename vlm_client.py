@@ -10,42 +10,12 @@ import numpy as np
 from PIL import Image
 import io
 
-# Load API Key from .env
-load_dotenv()
-
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-
-# # Initialize the GenAI client and specify the model
-# MODEL_ID = "gemini-robotics-er-1.5-preview"
-# # PROMPT = """
-# #           What is this image?
-# #         """
-# PROMPT = ASSIGN_ROOM_LABE_ONLY_PROMPT
-# client = genai.Client(api_key=GEMINI_API_KEY)
-
-# # Load your image
-# with open("/Users/pravaltelagi/oakd_camera/saves/apartment/rgb_imgs/0004.png", 'rb') as f:
-#     image_bytes = f.read()
-
-# image_response = client.models.generate_content(
-#     model=MODEL_ID,
-#     contents=[
-#         types.Part.from_bytes(
-#             data=image_bytes,
-#             mime_type='image/png',
-#         ),
-#         PROMPT
-#     ],
-#     config = types.GenerateContentConfig(
-#         temperature=0.5,
-#         thinking_config=types.ThinkingConfig(thinking_budget=0)
-#     )
-# )
-
-# print(image_response.text)
-
 class VLMClient():
     def __init__(self):
+        # Load API Key from .env
+        load_dotenv()
+        GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+
         self.model_id = "gemini-robotics-er-1.5-preview"
         self.client = genai.Client(api_key=GEMINI_API_KEY)
 
