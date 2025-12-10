@@ -1,5 +1,6 @@
 import numpy as np
 from map import Map
+from semantic_map import SemanticMap
 
 import pickle
 
@@ -31,3 +32,10 @@ def load_saved_map(directory='dumps/run1'):
     mymap = Map(initial_scan=map_points)
     
     return mymap
+
+def load_saved_semantic_map(directory='saves/scenes/semantic_apartment'):
+    map_points = pickle.load(open(f"{directory}/geometric_map/map_points.pickle", "rb"))
+    mymap = Map(initial_scan=map_points)
+
+    semantic_map = pickle.load(open(f"{directory}/semantic_map/semantic_map_object.pickle", "rb"))
+    return semantic_map
