@@ -44,7 +44,7 @@ There should be a more advanced map that will compute the probability of free sp
 implemented later.
 """
 class Map():
-    def __init__(self, initial_scan, resolution=10.0, origin=(45, 92)):
+    def __init__(self, resolution=10.0, origin=(45, 92)):
         self.resolution = resolution
 
         # map size
@@ -60,17 +60,21 @@ class Map():
 
         print(f"Origin: {(self.mx, self.my)}")
 
-        # if origin:
-        #     self.mx = origin[0]
-        #     self.my = origin[1]
-
-        self.update_map(initial_scan)
-
         ## --- Computing Grid Centers --- ##
         self._compute_grid_centers()
         ## --- Computing Grid Centers --- ##
 
+        # if origin:
+        #     self.mx = origin[0]
+        #     self.my = origin[1]
+
+        # self.update_map(initial_scan)
+    # TODO: Fix in run_interactive_robot.py, run_semantic_slam.py, test_utils.py, simulation.py (archive)
+    def init_map(self, initial_scan):
+        self.update_map(initial_scan)
+        
     def _compute_grid_centers(self):
+        print('computing grid centers')
         x_idxes = np.arange(self.map.shape[0])
         y_idxes = np.arange(self.map.shape[1])
 
@@ -189,7 +193,7 @@ class Map():
         min_y = np.min(grid_coords[:, 1])
         max_y = np.max(grid_coords[:, 1])
 
-        N, M = self.map.shape
+        N, M, *_ = self.map.shape
 
         is_valid = (min_x >= 0 and max_x < N and min_y >= 0 and max_y < M) # Check if grid_coords are within bounds
         return is_valid
@@ -216,7 +220,7 @@ class Map():
         expansion_buffer = 0.3 # Increasing buffer size to prevent map expansion from being too small
         buffered_max_idx_diff = int((max_idx_diff * (1 + expansion_buffer)) + 0.5) # 0.5 is for Rounding
         
-        N, M = self.map.shape
+        N, M, *_ = self.map.shape
         new_map_size_discretized = np.array([N + 2*buffered_max_idx_diff, M + 2*buffered_max_idx_diff]) # In Idx Coords
         return new_map_size_discretized
 
