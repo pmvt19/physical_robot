@@ -60,10 +60,6 @@ class Map():
 
         print(f"Origin: {(self.mx, self.my)}")
 
-        ## --- Computing Grid Centers --- ##
-        self._compute_grid_centers()
-        ## --- Computing Grid Centers --- ##
-
         # if origin:
         #     self.mx = origin[0]
         #     self.my = origin[1]
@@ -72,17 +68,7 @@ class Map():
     # TODO: Fix in run_interactive_robot.py, run_semantic_slam.py, test_utils.py, simulation.py (archive)
     def init_map(self, initial_scan):
         self.update_map(initial_scan)
-        
-    def _compute_grid_centers(self):
-        print('computing grid centers')
-        x_idxes = np.arange(self.map.shape[0])
-        y_idxes = np.arange(self.map.shape[1])
 
-        xs, ys = np.meshgrid(x_idxes, y_idxes)
-        all_idxes = np.stack((xs.flatten(), ys.flatten()), axis=1)
-        self.grid_centers = self.batch_grid_to_approx_world_coords(all_idxes) + (self.resolution / 2)
-
-    
     def world_to_grid_coords(self, coords):
         ## Division Needed
         x, y = coords
@@ -127,17 +113,6 @@ class Map():
 
         self.update_map(aligned_scan)
         return np.array([updated_x, updated_y, updated_theta])
-    
-    def compute_close_cells(line_segments):
-        # Batch to Line Segments dists
-        # dists = line_segs_to_points_dists(line_segments, self.grid_centers (flattened...)) # Use Gemini to get this
-        # dists.reshape # Need make sure we are reshaping correctly 
-        # - Mainly, not sure if meshgrid reshaping will order the points correctly
-        # mask = dists < (resolution * math.sqrt(2))
-        # return mask??
-
-        # Return mask of what cells need to be updated
-        raise NotImplementedError
     
     def set_known_clear(self, aligned_scan, updated_state):
         x, y = updated_state
@@ -242,7 +217,6 @@ class Map():
         ### --- Expand Map Here --- ###
         new_grid_coords = self.batch_world_to_grid_coords(approx_world_coords)
         self.map[new_grid_coords[:, 0], new_grid_coords[:, 1]] = values # TODO: Linked with previous todo in this function^
-        self._compute_grid_centers()
 
     def draw_state(self, ax, state):
         x, y, theta = state
