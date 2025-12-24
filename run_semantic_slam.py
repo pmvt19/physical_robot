@@ -53,7 +53,7 @@ def label_filtered_pc(image_segmenter : ImageSegmenter, semantic_map : SemanticM
 
 def semantic_slam():
 
-    scene_name = 'semantic_apartment'
+    scene_name = 'tmp_semantic_apartment'
     map_save_dir = f'saves/scenes/{scene_name}'
     init_directories(map_save_dir)
 
@@ -61,7 +61,8 @@ def semantic_slam():
 
     robot = Robot(connection='client')
     scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
-    map = Map(initial_scan=scan)
+    map = Map()
+    map.init_map(initial_scan=scan)
     semantic_map = SemanticMap(map)
 
     object_list = ['oven', 'cabinet', 'table', 'backpack', 'bed', 'refrigerator', 'tv', 'window', 'bottle', 'chair', 'clothes']

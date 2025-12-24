@@ -46,7 +46,8 @@ if __name__ == "__main__":
     
     scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
 
-    map = Map(initial_scan=scan)
+    map = Map()
+    map.init_map(initial_scan=scan)
 
     map.visualize(ax=plt.gca())
     plt.show()
@@ -67,7 +68,7 @@ if __name__ == "__main__":
         robot.state = predicted_state
 
         print(robot.state)
-        scan, _ = robot.read_lidar_updated(manual_verification=False, wait_for_updated_reading=True)
+        scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
         print(f"Scan Size: {scan.shape}")
         updated_state = map.update(scan, predicted_state)
         print(robot.state)
