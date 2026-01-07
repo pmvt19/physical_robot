@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from icp import run_icp
 from scipy.signal import convolve2d
 from shapely import Point
+import pickle
 
 
 # map_size = (100, 100)
@@ -233,6 +234,9 @@ class Map():
     def visualize_points(self, ax):
         points = self.get_points()
         ax.scatter(points[:, 0], points[:, 1])
+
+    def save(self, map_save_dir):
+        pickle.dump(self, open(f"{map_save_dir}/map/map_object.pickle", "wb"))
 
 
 if __name__ == '__main__':
