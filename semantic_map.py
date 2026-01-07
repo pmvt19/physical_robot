@@ -191,23 +191,28 @@ class SemanticMap():
         self.flood_filled_map = np.copy(self.semantic_layer)
         self.flood_filled_map[grid_coords[:, 0], grid_coords[:, 1]] = semantic_labels[idxes[:, 0]]
     
-    def visualize(self, ax, color='blue', layer=None):
-        if layer is None:
-            self.map.visualize(ax)
-            return
-
-        # self.map.visualize(ax[0], color)
+    def visualize(self, ax, visualize_layers=False, visualize_flood_fills=False):
         self.map.visualize(ax[0])
 
-        # Visualize Semantic Layer (Each Room or Object should be its own color)
-        if layer:
-            semantic_layer = self.semantic_layer[:, :, self.layer_name_to_idx[layer]]
-            ax[1].imshow(np.rot90(semantic_layer)) # TODO: BAD NOT HEATMAP, SHOULD CONVERT TO RGB IMG?
+        if visualize_layers:
+            semantic_room_layer = self.semantic_layer[:, :, self.layer_name_to_idx['room']]
+            semantic_object_layer = self.semantic_layer[:, :, self.layer_name_to_idx['object']]
 
-        # TODO: Properly handle how this should work is it 2 dims per layer?
-        if self.flood_filled_map is not None:
-            flood_filled_layer = self.flood_filled_map[:, :, self.layer_name_to_idx[layer]]
-            ax[2].imshow(np.rot90(flood_filled_layer))
+            # ax[1].set_title("Room Layer Semantics")
+            ax[1].imshow(np.rot90(semantic_room_layer))
+
+            # ax[2].set_title("Object Layer Semantics")
+            ax[2].imshow(np.rot90(semantic_object_layer))
+
+        if visualize_layers and visualize_flood_fills:
+            # ax[3].set_title("Room Layer Semantics - Flood Fill")
+            ax[3].imshow(np.rot90(self.flood_filled_map[self.layer_name_to_idx['room']]))
+
+            # ax[4].set_title("Object Layer Semantics - Flood Fill")
+            ax[4].imshow(np.rot90(self.flood_filled_map[self.layer_name_to_idx['object']]))
+    
+        if not visualize_layers and visualize_flood_fills:
+            print("Cannot visualize only flood fills")
 
 
 def pseudolabel_map(semantic_map : SemanticMap):
