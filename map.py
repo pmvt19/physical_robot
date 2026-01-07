@@ -49,8 +49,8 @@ class Map():
 
         # map size
         # map_size_literal = np.array([12.0, 12.0]) # TODO: Figure out how to compute this value
-        map_size_literal = np.array([12000.0, 12000.0]) # TODO: Figure out how to compute this value
-        # map_size_literal = np.array([20000.0, 20000.0]) # TODO: Figure out how to compute this value
+        # map_size_literal = np.array([12000.0, 12000.0]) # TODO: Figure out how to compute this value
+        map_size_literal = np.array([20000.0, 20000.0]) # TODO: Figure out how to compute this value
         map_size_discretized = (map_size_literal // self.resolution).astype(np.int32)
         print(f"Map Size Discritized Size: {map_size_discretized}")
         self.map = np.zeros(map_size_discretized)
@@ -122,7 +122,7 @@ class Map():
         dist_mask = self.compute_close_cells(line_segments)
         self.map[dist_mask] = 0.0
 
-    def update_map(self, aligned_scan):
+    def update_map(self, aligned_scan, updated_state=None):
         idxes = self.batch_world_to_grid_coords(aligned_scan)
         is_valid = self.validate_map_boundaries(idxes)
         # TODO: Clean this up if correct
@@ -133,6 +133,8 @@ class Map():
             idxes = self.batch_world_to_grid_coords(aligned_scan)
             self.map[idxes[:, 0], idxes[:, 1]] = 1
             
+    def get_map_2d(self):
+        return self.map
     
     def get_points(self):
         idxes = np.where(self.map == 1)
