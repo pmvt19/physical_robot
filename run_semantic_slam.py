@@ -9,6 +9,9 @@ import os
 from image_segmentation import ImageSegmenter
 import rerun as rr
 from semantic_map import SemanticMap
+from vlm_client import VLMClient
+from prompts import ASSIGN_ROOM_LABEL_ONLY_PROMPT
+import cv2
 
 """
 This file is not used for running slam yet, but actually used for generating semantic information for point clouds
@@ -51,13 +54,22 @@ def label_filtered_pc(image_segmenter : ImageSegmenter, semantic_map : SemanticM
 
     return all_instance_labeled_filtered_pc
 
+def align_point_cloud(pc_flattened_coords):
+    theta = -np.pi / 2  # 90 degrees in radians
+    rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
+                                    [np.sin(theta), np.cos(theta)]])
+    pc_flattened_coords = pc_flattened_coords.dot(rotation_matrix.T)
+    return pc_flattened_coords
+
+
 def semantic_slam():
 
-    scene_name = 'tmp_semantic_apartment'
+    scene_name = 'testing'
     map_save_dir = f'saves/scenes/{scene_name}'
     init_directories(map_save_dir)
 
     image_segmenter = ImageSegmenter()
+    vlm_client = VLMClient()
 
     robot = Robot(connection='client')
     scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
@@ -83,6 +95,14 @@ def semantic_slam():
         rgb_img, _ = robot.read_rgb_camera()
         pc, colors = robot.read_point_cloud()
 
+        # Save Captured Image
+        # TODO: SAVE IMAGE
+        plt.imshow(rgb_img)
+        plt.savefig(f"{map_save_dir}/camera_imgs/img_{i}.png")
+        plt.clf()
+
+
+        # Get Panoptic Segmentation of Image from Model
         print("Segmenting Images")
         prediction, labels = image_segmenter.segment_image(rgb_img)
 
@@ -94,14 +114,24 @@ def semantic_slam():
         pc_flattened_coords = np.stack((filtered_pc[:, 0], filtered_pc[:, 2]), axis=1)
         print("Finished Filtering PC")
 
-        # TODO: HACK Address this hack : #rotate 90 degrees clockwise
-        theta = -np.pi / 2  # 90 degrees in radians
-        rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
-                                     [np.sin(theta), np.cos(theta)]])
-        pc_flattened_coords = pc_flattened_coords.dot(rotation_matrix.T)
-        # TODO: HACK rotation done
+        # TODO: GET ROOM LEVEL ANNOTATION
+        room_label_response = vlm_client.image_text_query(rgb_img, ASSIGN_ROOM_LABEL_ONLY_PROMPT)
+        room_label = room_label_response.text
+        print(room_label, "ROOM LABEL")
+        # TODO: GET ROOM LEVEL ANNOTATION
 
-        pc_flattened_coords_and_labels = np.concatenate((pc_flattened_coords, filtered_pc[:, 3:4].astype(np.int64)), axis=1)
+        # TODO: HACK Address this hack inside reading the sensor data itself?
+        pc_flattened_coords = align_point_cloud(pc_flattened_coords)
+
+        # pc_flattened_coords_and_labels = np.concatenate((pc_flattened_coords, filtered_pc[:, 3:4].astype(np.int64)), axis=1)
+        object_id_labels = filtered_pc[:, 3:4]
+        room_id_labels = np.ones_like(object_id_labels) * semantic_map.get_room_id(room_label)
+        pc_id_labels = np.concatenate((room_id_labels, object_id_labels), axis=1).astype(np.int64)
+        # pc_flattened_coords_and_labels = np.concatenate((pc_flattened_coords, filtered_pc[:, 3:4].astype(np.int64)), axis=1)
+        print(pc_flattened_coords.shape, pc_id_labels.shape)
+        pc_flattened_coords_and_labels = np.concatenate((pc_flattened_coords, pc_id_labels), axis=1)
+        print(pc_flattened_coords_and_labels.shape)
+        # exit()
 
         updated_state = semantic_map.update(lidar_coords, pc_flattened_coords_and_labels, predicted_state)
         robot.state = updated_state
@@ -125,10 +155,19 @@ def semantic_slam():
         pickle.dump(semantic_map.semantic_layer, open(f"{map_save_dir}/semantic_map/semantic_layer.pickle", "wb"))
         pickle.dump(semantic_map.object_to_id, open(f"{map_save_dir}/semantic_map/semantic_info.pickle", "wb"))
         print("Done Saving Maps")
-        # fig, ax = plt.subplots(1, 3)
+
+        print(semantic_map.object_to_id)
+        print(semantic_map.room_to_id)
+
+        fig, ax = plt.subplots(1, 2)
         # semantic_map.flood_fill(limit_fill_extent=True, method='nearest_neighbor')
-        # semantic_map.visualize(ax, layer='room')
-        # plt.show()
+        semantic_map.visualize(ax, layer='room')
+        plt.show()
+
+        fig, ax = plt.subplots(1, 2)
+        # semantic_map.flood_fill(limit_fill_extent=True, method='nearest_neighbor')
+        semantic_map.visualize(ax, layer='object')
+        plt.show()
         i += 1
 
 
