@@ -85,6 +85,9 @@ class AdvancedMap(Map):
         pc_idxes = np.stack((xs, ys), axis=1)
         pc_coords = self.batch_grid_to_approx_world_coords(pc_idxes)
         return pc_coords
+
+    def get_map_2d(self):
+        return self.map_to_probability_map()
     
     def map_layer_to_coords_and_values(self, map_layer : np.ndarray):
         idxes = np.where(map_layer> 0)
