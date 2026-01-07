@@ -1,6 +1,7 @@
 from robot import Robot
 from basic_map import BasicMap
 from map import Map
+from advanced_map import AdvancedMap
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -41,6 +42,8 @@ def init_directories(top_level_dir):
     os.makedirs(f'{top_level_dir}/semantic_map_imgs', exist_ok=True)
     os.makedirs(f'{top_level_dir}/semantic_map', exist_ok=True)
 
+    os.makedirs(f'{top_level_dir}/camera_imgs', exist_ok=True)
+
     os.makedirs(f'{top_level_dir}/geometric_map_imgs', exist_ok=True)
     os.makedirs(f'{top_level_dir}/geometric_map', exist_ok=True)
 
@@ -64,7 +67,7 @@ def align_point_cloud(pc_flattened_coords):
 
 def semantic_slam(monitoring_mode=False):
 
-    scene_name = 'testing'
+    scene_name = 'advanced_semantic_apartment'
     map_save_dir = f'saves/scenes/{scene_name}'
     init_directories(map_save_dir)
 
@@ -73,7 +76,8 @@ def semantic_slam(monitoring_mode=False):
 
     robot = Robot(connection='client')
     scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
-    map = Map()
+    map = AdvancedMap()
+    # map = Map()
     map.init_map(initial_scan=scan)
     semantic_map = SemanticMap(map)
 
@@ -96,11 +100,7 @@ def semantic_slam(monitoring_mode=False):
         pc, colors = robot.read_point_cloud()
 
         # Save Captured Image
-        # TODO: SAVE IMAGE
-        plt.imshow(rgb_img)
-        plt.savefig(f"{map_save_dir}/camera_imgs/img_{i}.png")
-        plt.clf()
-
+        cv2.imwrite(f"{map_save_dir}/camera_imgs/img_{i}.png", rgb_img)
 
         # Get Panoptic Segmentation of Image from Model
         print("Segmenting Images")
@@ -128,20 +128,17 @@ def semantic_slam(monitoring_mode=False):
         robot.state = updated_state
         print("Updated State", robot.state)
 
-        print(semantic_map.object_to_id)
-
         fig, ax = plt.subplots(1, 3)
-        # semantic_map.visualize(ax, layer='room')
         semantic_map.visualize(ax, visualize_layers=True)
         plt.savefig(f'{map_save_dir}/semantic_map_imgs/semantic_map_{i}.png')
 
-        pickle.dump(semantic_map.map, open(f"{map_save_dir}/geometric_map/map_object.pickle", "wb"))
-        pickle.dump(semantic_map.map.map, open(f"{map_save_dir}/geometric_map/map_map.pickle", "wb"))
-        pickle.dump(semantic_map.map.get_points(), open(f"{map_save_dir}/geometric_map/map_points.pickle", "wb"))
+        # pickle.dump(semantic_map.map, open(f"{map_save_dir}/geometric_map/map_object.pickle", "wb"))
+        # pickle.dump(semantic_map.map.map, open(f"{map_save_dir}/geometric_map/map_map.pickle", "wb"))
+        # pickle.dump(semantic_map.map.get_points(), open(f"{map_save_dir}/geometric_map/map_points.pickle", "wb"))
 
         pickle.dump(semantic_map, open(f"{map_save_dir}/semantic_map/semantic_map_object.pickle", "wb"))
-        pickle.dump(semantic_map.semantic_layer, open(f"{map_save_dir}/semantic_map/semantic_layer.pickle", "wb"))
-        pickle.dump(semantic_map.object_to_id, open(f"{map_save_dir}/semantic_map/semantic_info.pickle", "wb"))
+        # pickle.dump(semantic_map.semantic_layer, open(f"{map_save_dir}/semantic_map/semantic_layer.pickle", "wb"))
+        # pickle.dump(semantic_map.object_to_id, open(f"{map_save_dir}/semantic_map/semantic_info.pickle", "wb"))
         print("Done Saving Maps")
 
         print(semantic_map.object_to_id)
@@ -149,9 +146,14 @@ def semantic_slam(monitoring_mode=False):
 
         plt.clf()
         fig, ax = plt.subplots(1, 3)
-        # semantic_map.flood_fill(limit_fill_extent=True, method='nearest_neighbor')
         semantic_map.visualize(ax, visualize_layers=True)
         plt.show()
+
+        # semantic_map.flood_fill(limit_fill_extent=False, method='nearest_neighbor')
+        # plt.clf()
+        # fig, ax = plt.subplots(1, 5)
+        # semantic_map.visualize(ax, visualize_layers=True, visualize_flood_fills=True)
+        # plt.show()
 
         # fig, ax = plt.subplots(1, 3)
         # # semantic_map.flood_fill(limit_fill_extent=True, method='nearest_neighbor')
