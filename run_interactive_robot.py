@@ -82,10 +82,8 @@ if __name__ == "__main__":
 
         plt.savefig(f'{map_save_dir}/map_imgs/map_{i}.png')
         i+=1
-
-        pickle.dump(map, open(f"{map_save_dir}/map/map_object.pickle", "wb"))
-        pickle.dump(map.map, open(f"{map_save_dir}/map/map_map.pickle", "wb"))
-        pickle.dump(map.get_points(), open(f"{map_save_dir}/map/map_points.pickle", "wb"))
+        
+        map.save(map_save_dir)
     
     print("Finished")
     plt.cla()
