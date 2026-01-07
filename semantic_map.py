@@ -140,7 +140,6 @@ class SemanticMap():
         grid_coords = self.map.batch_world_to_grid_coords(map_points)
         q = []
         for x, y in grid_coords:
-            # heappush(q, coord)
             label = self.semantic_layer[x, y]
             if label[0] > 0:
                 q.append((x,y,label))
@@ -165,7 +164,7 @@ class SemanticMap():
             if (x, y) in visited:
                 continue
             visited.add((x,y))
-            # print(f"Visited Size: {len(visited)}", end='\r')
+
             self.flood_filled_map[x,y] = label
             
             for dx, dy in neighbors:
@@ -190,10 +189,7 @@ class SemanticMap():
             grid_coords = grid_coords[semantic_labeling_mask]
         _, idxes = kd_tree.query(grid_coords, k=1)
         self.flood_filled_map = np.copy(self.semantic_layer)
-        # self.flood_filled_map[grid_xs, grid_ys] = semantic_labels[idxes[:, 0]]
         self.flood_filled_map[grid_coords[:, 0], grid_coords[:, 1]] = semantic_labels[idxes[:, 0]]
-
-
     
     def visualize(self, ax, color='blue', layer=None):
         if layer is None:
