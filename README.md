@@ -15,7 +15,7 @@ physical_robot/
         ├──map.py
         ├──advanced_map.py
         ├──abstract_map.py
-        ├──semantic_map.py (TODO)
+        ├──semantic_map.py
 
     ├──shell_scripts/
         ├──proto_gen.sh
@@ -31,6 +31,7 @@ physical_robot/
         ├──viz_camera.py
         ├──viz_robot_lidar.py
         ├──viz_imu.py
+        ├──viz_point_cloud.py
 
     ├──utils/
         ├──utils.py
