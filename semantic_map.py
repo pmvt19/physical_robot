@@ -8,6 +8,9 @@ from sklearn.neighbors import KDTree
 from icp import run_icp
 from skimage.segmentation import expand_labels
 
+ROOM_LAYER = 0
+OBJECT_LAYER = 1
+
 class SemanticMap():
     def __init__(self, map_obj):
         self.map : Map = map_obj
@@ -19,9 +22,21 @@ class SemanticMap():
             'object' : 1
         }
 
+        self.room_to_id = {
+            'none-reserved' : 0
+        }
+
         self.object_to_id = {
             'none-reserved' : 0
         }
+    
+    def get_room_id(self, room):
+        if room in self.room_to_id:
+            return self.room_to_id[room]
+        else:
+            next_id = len(self.room_to_id)
+            self.room_to_id[room] = next_id
+            return self.room_to_id[room]
     
     # TODO Improve the logic here
     def get_object_id(self, object):
@@ -51,16 +66,28 @@ class SemanticMap():
         self.update_map(aligned_lidar_coords, aligned_pc_flattened_coords_and_labels)
         return np.array([updated_x, updated_y, updated_theta])
 
-
     def update_semantic_map(self, semantics):
         """
-        semantics: TBD on what input this is
-
-        Maybe a (N, 4) matrix where axis {0,1,2} is the point in 3d world coords and axis {3} is a label??
-        Maybe a (N, 5) matrix where axis {0,1,2} is the point in 3d world coords and axis {3, 4} are labels??
+        semantics: (N, 4) matrix where axis {0,1} is the point in 2d world coords and axis {2, 3} are labels??
         """
         semantic_grid_coords = self.map.batch_world_to_grid_coords(semantics[:, :2])
-        # TODO: Validate coord boundaries TODO IMPORTANT
+        N, M = self.map.map.shape
+        valid_mask = np.logical_and.reduce((
+            semantic_grid_coords[:, 0] >= 0,
+            semantic_grid_coords[:, 0] < N,
+            semantic_grid_coords[:, 1] >= 0,
+            semantic_grid_coords[:, 1] < M
+        ))
+        print("valid points:", valid_mask.sum(), "out of", semantic_grid_coords.shape[0])
+        semantic_grid_coords = semantic_grid_coords[valid_mask]
+        semantic_info = semantics[:, 2:][valid_mask]
+        self.semantic_layer[semantic_grid_coords[:, 0], semantic_grid_coords[:, 1], :] = semantic_info
+    
+    def update_semantic_map_single_layer(self, semantics, layer):
+        """
+        semantics: (N, 4) matrix where axis {0,1} is the point in 2d world coords and axis {2, 3} are labels??
+        """
+        semantic_grid_coords = self.map.batch_world_to_grid_coords(semantics[:, :2])
         N, M = self.map.map.shape
         valid_mask = np.logical_and.reduce((
             semantic_grid_coords[:, 0] >= 0,
@@ -71,7 +98,7 @@ class SemanticMap():
         print("valid points:", valid_mask.sum(), "out of", semantic_grid_coords.shape[0])
         semantic_grid_coords = semantic_grid_coords[valid_mask]
         semantic_info = semantics[:, 2][valid_mask]
-        self.semantic_layer[semantic_grid_coords[:, 0], semantic_grid_coords[:, 1], 0] = semantic_info
+        self.semantic_layer[semantic_grid_coords[:, 0], semantic_grid_coords[:, 1], self.layer_name_to_idx[layer]] = semantic_info
 
     def update_map(self, aligned_scan, semantics):
         # Update the geometric map
