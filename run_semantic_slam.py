@@ -62,7 +62,7 @@ def align_point_cloud(pc_flattened_coords):
     return pc_flattened_coords
 
 
-def semantic_slam():
+def semantic_slam(monitoring_mode=False):
 
     scene_name = 'testing'
     map_save_dir = f'saves/scenes/{scene_name}'
@@ -106,32 +106,23 @@ def semantic_slam():
         print("Segmenting Images")
         prediction, labels = image_segmenter.segment_image(rgb_img)
 
-        # TESTING ONLY VISUALIZATION
-        # image_segmenter.draw_panoptic_segmentation(plt.gca(), prediction['segmentation'], prediction['segments_info'])
-        # TESTING ONLY VISUALIZATION
+        if monitoring_mode:
+            image_segmenter.draw_panoptic_segmentation(plt.gca(), prediction['segmentation'], prediction['segments_info'])
 
         filtered_pc = label_filtered_pc(image_segmenter, semantic_map, pc, prediction, object_list)
         pc_flattened_coords = np.stack((filtered_pc[:, 0], filtered_pc[:, 2]), axis=1)
         print("Finished Filtering PC")
 
-        # TODO: GET ROOM LEVEL ANNOTATION
         room_label_response = vlm_client.image_text_query(rgb_img, ASSIGN_ROOM_LABEL_ONLY_PROMPT)
         room_label = room_label_response.text
-        print(room_label, "ROOM LABEL")
-        # TODO: GET ROOM LEVEL ANNOTATION
 
         # TODO: HACK Address this hack inside reading the sensor data itself?
         pc_flattened_coords = align_point_cloud(pc_flattened_coords)
 
-        # pc_flattened_coords_and_labels = np.concatenate((pc_flattened_coords, filtered_pc[:, 3:4].astype(np.int64)), axis=1)
         object_id_labels = filtered_pc[:, 3:4]
         room_id_labels = np.ones_like(object_id_labels) * semantic_map.get_room_id(room_label)
         pc_id_labels = np.concatenate((room_id_labels, object_id_labels), axis=1).astype(np.int64)
-        # pc_flattened_coords_and_labels = np.concatenate((pc_flattened_coords, filtered_pc[:, 3:4].astype(np.int64)), axis=1)
-        print(pc_flattened_coords.shape, pc_id_labels.shape)
         pc_flattened_coords_and_labels = np.concatenate((pc_flattened_coords, pc_id_labels), axis=1)
-        print(pc_flattened_coords_and_labels.shape)
-        # exit()
 
         updated_state = semantic_map.update(lidar_coords, pc_flattened_coords_and_labels, predicted_state)
         robot.state = updated_state
@@ -139,13 +130,10 @@ def semantic_slam():
 
         print(semantic_map.object_to_id)
 
-        fig, ax = plt.subplots(1, 2)
-        semantic_map.visualize(ax, layer='room')
-        plt.savefig(f'{map_save_dir}/semantic_map_imgs/semantic_map_{i}.png')
-
-        # fig, ax = plt.subplots(1, 2)
+        fig, ax = plt.subplots(1, 3)
         # semantic_map.visualize(ax, layer='room')
-        # plt.show()
+        semantic_map.visualize(ax, visualize_layers=True)
+        plt.savefig(f'{map_save_dir}/semantic_map_imgs/semantic_map_{i}.png')
 
         pickle.dump(semantic_map.map, open(f"{map_save_dir}/geometric_map/map_object.pickle", "wb"))
         pickle.dump(semantic_map.map.map, open(f"{map_save_dir}/geometric_map/map_map.pickle", "wb"))
@@ -159,19 +147,22 @@ def semantic_slam():
         print(semantic_map.object_to_id)
         print(semantic_map.room_to_id)
 
-        fig, ax = plt.subplots(1, 2)
+        plt.clf()
+        fig, ax = plt.subplots(1, 3)
         # semantic_map.flood_fill(limit_fill_extent=True, method='nearest_neighbor')
-        semantic_map.visualize(ax, layer='room')
+        semantic_map.visualize(ax, visualize_layers=True)
         plt.show()
 
-        fig, ax = plt.subplots(1, 2)
-        # semantic_map.flood_fill(limit_fill_extent=True, method='nearest_neighbor')
-        semantic_map.visualize(ax, layer='object')
-        plt.show()
+        # fig, ax = plt.subplots(1, 3)
+        # # semantic_map.flood_fill(limit_fill_extent=True, method='nearest_neighbor')
+        # # semantic_map.visualize(ax, layer='object')
+        # semantic_map.visualize(ax, visualize_layers=True)
+        # plt.show()
         i += 1
 
 
 
 
 if __name__ == "__main__":
-    semantic_slam()
+    monitoring_mode = False
+    semantic_slam(monitoring_mode)
