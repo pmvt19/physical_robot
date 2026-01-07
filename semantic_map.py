@@ -206,10 +206,10 @@ class SemanticMap():
 
         if visualize_layers and visualize_flood_fills:
             # ax[3].set_title("Room Layer Semantics - Flood Fill")
-            ax[3].imshow(np.rot90(self.flood_filled_map[self.layer_name_to_idx['room']]))
+            ax[3].imshow(np.rot90(self.flood_filled_map[:, :, self.layer_name_to_idx['room']]))
 
             # ax[4].set_title("Object Layer Semantics - Flood Fill")
-            ax[4].imshow(np.rot90(self.flood_filled_map[self.layer_name_to_idx['object']]))
+            ax[4].imshow(np.rot90(self.flood_filled_map[:, :, self.layer_name_to_idx['object']]))
     
         if not visualize_layers and visualize_flood_fills:
             print("Cannot visualize only flood fills")
@@ -263,7 +263,7 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots(1, 3)
 
-    semantic_map.visualize(ax, layer='room')
+    semantic_map.visualize(ax, visualize_layers=True)
     plt.show()
     # semantic_map.map.visualize_points(ax[1][0])
 
