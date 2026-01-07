@@ -52,6 +52,7 @@ class SemanticMap():
         updated_theta = np.arctan2(T[1,0],T[0,0]) % (2*np.pi)
         updated_x = T[0, 2]
         updated_y = T[1, 2]
+        updated_state = np.array([updated_x, updated_y, updated_theta])
 
         aligned_lidar_coords = (T@lidar_coords.T).T
         pc_flattened_coords = pc_flattened_coords_and_labels[:, :2]
@@ -63,15 +64,16 @@ class SemanticMap():
         aligned_pc_flattened_coords = aligned_pc_flattened_coords[:, :2] # Remove Homogeneous Coordinates
 
         aligned_pc_flattened_coords_and_labels = np.concatenate((aligned_pc_flattened_coords, pc_flattened_coords_and_labels[:, 2:]), axis=1)
-        self.update_map(aligned_lidar_coords, aligned_pc_flattened_coords_and_labels)
-        return np.array([updated_x, updated_y, updated_theta])
+
+        self.update_map(aligned_lidar_coords, aligned_pc_flattened_coords_and_labels, updated_state)
+        return updated_state
 
     def update_semantic_map(self, semantics):
         """
         semantics: (N, 4) matrix where axis {0,1} is the point in 2d world coords and axis {2, 3} are labels??
         """
         semantic_grid_coords = self.map.batch_world_to_grid_coords(semantics[:, :2])
-        N, M = self.map.map.shape
+        N, M, *_ = self.map.map.shape
         valid_mask = np.logical_and.reduce((
             semantic_grid_coords[:, 0] >= 0,
             semantic_grid_coords[:, 0] < N,
@@ -100,9 +102,9 @@ class SemanticMap():
         semantic_info = semantics[:, 2][valid_mask]
         self.semantic_layer[semantic_grid_coords[:, 0], semantic_grid_coords[:, 1], self.layer_name_to_idx[layer]] = semantic_info
 
-    def update_map(self, aligned_scan, semantics):
+    def update_map(self, aligned_scan, semantics, updated_state=None):
         # Update the geometric map
-        self.map.update_map(aligned_scan)
+        self.map.update_map(aligned_scan, updated_state)
 
         # Update the semantic map
         self.update_semantic_map(semantics)
@@ -180,7 +182,7 @@ class SemanticMap():
         max_grid_coords = np.max(grid_coords, axis=0)
         kd_tree = KDTree(grid_coords)
         semantic_labels = self.semantic_layer[grid_coords[:, 0], grid_coords[:, 1]]
-        grid_xs, grid_ys = np.where(self.map.map == 0)
+        grid_xs, grid_ys = np.where(self.map.get_map_2d() < 0.5)
         grid_coords = np.stack((grid_xs, grid_ys), axis=1)
         if limit_fill_extent:
             semantic_labeling_mask_xs = np.logical_and(grid_coords[:, 0] >= min_grid_coords[0], grid_coords[:, 0] <= max_grid_coords[0])
