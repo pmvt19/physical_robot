@@ -117,14 +117,6 @@ class Map():
 
         self.update_map(aligned_scan)
         return np.array([updated_x, updated_y, updated_theta])
-    
-    def set_known_clear(self, aligned_scan, updated_state):
-        x, y = updated_state
-        s_state = np.array([x, y]).reshape(-1, 1)
-        repeated_state = np.repeat(s_state, len(aligned_scan), axis=1)
-        line_segments = np.hstack((repeated_state, aligned_scan))
-        dist_mask = self.compute_close_cells(line_segments)
-        self.map[dist_mask] = 0.0
 
     def update_map(self, aligned_scan, updated_state=None):
         idxes = self.batch_world_to_grid_coords(aligned_scan)
