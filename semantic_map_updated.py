@@ -77,7 +77,7 @@ class SemanticMap(Map):
         self.semantic_layer = np.zeros((self.get_map_2d().shape[0], self.get_map_2d().shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
         self.flood_filled_map = None
         self.map_type_name = 'semantic_map'
-        self.invalid_objects = set(['wall', 'floor', 'ceiling', 'door'])
+        self.invalid_objects = set(['wall', 'floor', 'ceiling', 'door', 'window', 'person'])
 
         self.layer_name_to_idx = {
             'room' : 0,
@@ -161,9 +161,9 @@ class SemanticMap(Map):
     def visualize(self, ax):
         # raise NotImplementedError
         self.geometric_map.visualize(ax)
-    
-    def visualize_semantics(self, ax):
-        raise NotImplementedError
+
+    def visualize_semantic_layer(self, ax, layer):
+        ax.imshow(np.rot90(self.semantic_layer[:, :, self.layer_name_to_idx[layer]]))
     
     def visualize_points(self, ax):
         raise NotImplementedError
