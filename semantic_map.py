@@ -11,11 +11,12 @@ from skimage.segmentation import expand_labels
 ROOM_LAYER = 0
 OBJECT_LAYER = 1
 
-class SemanticMap():
+class SemanticMap(Map):
     def __init__(self, map_obj):
         self.map : Map = map_obj
         self.semantic_layer = np.zeros((self.map.map.shape[0], self.map.map.shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
         self.flood_filled_map = None
+        self.map_type_name = 'semantic_map'
 
         self.layer_name_to_idx = {
             'room' : 0,
@@ -194,6 +195,7 @@ class SemanticMap():
         self.flood_filled_map[grid_coords[:, 0], grid_coords[:, 1]] = semantic_labels[idxes[:, 0]]
     
     def visualize(self, ax, visualize_layers=False, visualize_flood_fills=False):
+        # TODO: Add logic to only show geometric map if ax is not a list of axes
         self.map.visualize(ax[0])
 
         if visualize_layers:
@@ -215,6 +217,9 @@ class SemanticMap():
     
         if not visualize_layers and visualize_flood_fills:
             print("Cannot visualize only flood fills")
+    
+    def save(self, map_save_dir):
+        raise NotImplementedError
 
 
 def pseudolabel_map(semantic_map : SemanticMap):
