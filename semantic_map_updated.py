@@ -196,8 +196,38 @@ class SemanticMap(Map):
     #         print("Cannot visualize only flood fills")
     
     # def save(self, map_save_dir) # Not Required? Handled by Polymorphism??
-    def label_point_cloud(self, pc, segmented_img):
-        pass
+    def label_and_filter_point_cloud(self, pc, segmented_img, room_label):
+        """
+        Docstring for label_and_format_point_cloud
+        :param pc: (N, 3) np.ndarray a 3D Point Cloud
+        :param segmented_img: (M, N) np.ndarry with object labels from semantic map
+
+        return: (N, 4) 0: X axis coord, 1: Y axis coord, 2: room id, 3: object id
+        """
+        segmented_img_mask = segmented_img != 0
+        pc_mask = segmented_img_mask.flatten()
+
+        object_ids = segmented_img[segmented_img_mask] # (Q,)
+        room_ids = np.ones_like(object_ids) * self.get_room_id(room_label) # (Q,)
+
+        filtered_pc = pc[pc_mask] # (Q, 3)
+
+        # Remove dim 1
+        filtered_pc = np.stack((filtered_pc[:, 0], filtered_pc[:, 2]), axis=1) # (Q, 2)
+
+        # TODO: BAD HACK REMOVE THIS SOON
+        def align_point_cloud(pc_flattened_coords):
+            theta = -np.pi / 2  # 90 degrees in radians
+            rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
+                                            [np.sin(theta), np.cos(theta)]])
+            pc_flattened_coords = pc_flattened_coords.dot(rotation_matrix.T)
+            return pc_flattened_coords
+
+        # TODO HACK: USED TO ROTATE POINT CLOUD TO BE IN CORRECT ORIENTATION FOR WHEN READING (GETS REORIENTED BASED ON STATE LATER)
+        filtered_pc = align_point_cloud(filtered_pc) # TODO: TO REMOVE THIS SOON
+
+        pc_and_labels = np.concatenate((filtered_pc, room_ids.reshape(-1, 1), object_ids.reshape(-1, 1)), axis=1)
+        return pc_and_labels
 
     # Rename to semantic_update?
     def update_geometry_and_semantics(self, lidar_coords, pc_flattened_coords_and_labels, predicted_state, option=False):
