@@ -30,6 +30,8 @@ class SemanticMap(Map):
             'none-reserved' : 0
         }
     
+    ## -- GEOMETRIC MAP WRAPPER FUNCTIONS -- ##
+    
     def init_map(self, initial_scan):
         self.geometric_map.init_map(initial_scan)
     
@@ -38,23 +40,6 @@ class SemanticMap(Map):
 
     def batch_world_to_grid_coords(self, coords):
         return self.geometric_map.batch_world_to_grid_coords(coords)
-    
-    def get_room_id(self, room):
-        if room in self.room_to_id:
-            return self.room_to_id[room]
-        else:
-            next_id = len(self.room_to_id)
-            self.room_to_id[room] = next_id
-            return self.room_to_id[room]
-    
-    # TODO Improve the logic here
-    def get_object_id(self, object):
-        if object in self.object_to_id:
-            return self.object_to_id[object]
-        else:
-            next_id = len(self.object_to_id)
-            self.object_to_id[object] = next_id
-            return self.object_to_id[object]
 
     def grid_to_approx_world_coords(self, coords):
         return self.geometric_map.grid_to_approx_world_coords(coords)
@@ -91,13 +76,13 @@ class SemanticMap(Map):
         print("Semantic Map does not support expansions yet")
         raise NotImplementedError
         self.geometric_map.expand_map(req_grid_coords)
+
+    ## -- VISUALIZATION FUNCTIONS -- ##
     
     def draw_state(self, ax, state):
         raise NotImplementedError
-    
-    # Design How to Visualize Later???
+
     def visualize(self, ax):
-        # raise NotImplementedError
         self.geometric_map.visualize(ax)
 
     def visualize_semantic_layer(self, ax, layer):
@@ -108,7 +93,28 @@ class SemanticMap(Map):
         ax.imshow(np.rot90(self.flood_filled_map[:, :, self.layer_name_to_idx[layer]]))
     
     def visualize_points(self, ax):
-        raise NotImplementedError
+        self.geometric_map.visualize_points(ax)
+
+    ## -- GET ROOM AND OBJECT ID FOR SEMANTIC MAPPING FUNCTIONS -- ##
+
+    def get_room_id(self, room):
+        if room in self.room_to_id:
+            return self.room_to_id[room]
+        else:
+            next_id = len(self.room_to_id)
+            self.room_to_id[room] = next_id
+            return self.room_to_id[room]
+    
+    # TODO Improve the logic here
+    def get_object_id(self, object):
+        if object in self.object_to_id:
+            return self.object_to_id[object]
+        else:
+            next_id = len(self.object_to_id)
+            self.object_to_id[object] = next_id
+            return self.object_to_id[object]
+    
+    ## -- FORMATING IMG SEGMENTATION AND PC DATA FUNCTIONS -- ##
 
     def format_img_segmentation(self, img_segmentation, labels):
         """
@@ -155,6 +161,8 @@ class SemanticMap(Map):
 
         pc_and_labels = np.concatenate((filtered_pc, room_ids.reshape(-1, 1), object_ids.reshape(-1, 1)), axis=1)
         return pc_and_labels
+    
+    ## -- UPDATING SEMANTIC AND GEOMETRIC MAP FUNCTIONS -- ##
 
     # Rename to semantic_update?
     def update_geometry_and_semantics(self, lidar_coords, pc_flattened_coords_and_labels, predicted_state, option=False):
@@ -254,9 +262,6 @@ class SemanticMap(Map):
         self.flood_filled_map = np.copy(self.semantic_layer)
         
         neighbors = [(0,-1),(0,1),(1,0),(-1,0)]
-        # neighbors = [(0,-1),(0,1),(1,0),(-1,0),(1,1),(-1,-1),(-1,1),(1,-1)]
-        # neighbors = [(1,1),(-1,-1),(-1,1),(1,-1)]
-        # neighbors = [(-1,0),(0,-1),(0,1),(1,0)]
         visited = set()
 
         min_x, min_y = 0, 0
@@ -297,39 +302,6 @@ class SemanticMap(Map):
         _, idxes = kd_tree.query(grid_coords, k=1)
         self.flood_filled_map = np.copy(self.semantic_layer)
         self.flood_filled_map[grid_coords[:, 0], grid_coords[:, 1]] = semantic_labels[idxes[:, 0]]
-
-
-def pseudolabel_map(semantic_map : SemanticMap):
-    # semantic_map.visualize(plt.gca())
-    semantic_map.map.visualize_points(plt.gca())
-    plt.show()
-
-    # Inject Fake Semantic Labels
-    map_points = semantic_map.map.get_points() # (9312, 2) for apartment labels
-    # print(type(map_points), map_points.shape)
-    # exit()
-
-    label_values = np.zeros((map_points.shape[0],)).astype(np.int32)
-    office_label_mask = np.logical_and(map_points[:, 0] < -1514, map_points[:, 1] > 1000)
-    label_values[office_label_mask] = 1
-
-    dining_room_label_mask = np.logical_and(map_points[:, 0] > -729, map_points[:, 1] > 809)
-    label_values[dining_room_label_mask] = 2
-
-    kitchen_label_mask = np.logical_and(map_points[:, 0] > 1249, map_points[:, 1] > -1200)
-    label_values[kitchen_label_mask] = 3
-
-    room_label_mask = np.logical_and(map_points[:, 0] < -655, map_points[:, 1] < -1241)
-    label_values[room_label_mask] = 4
-
-    entrance_label_mask = np.logical_and(map_points[:, 0] > 859, map_points[:, 1] < -4113)
-    label_values[entrance_label_mask] = 5
-    
-    grid_coords = semantic_map.map.batch_world_to_grid_coords(map_points)
-
-    semantic_map.semantic_layer[grid_coords[:, 0], grid_coords[:, 1], 0] = label_values
-    plt.imshow(np.rot90(semantic_map.semantic_layer[:, :, 0]))
-    plt.show()
 
 if __name__ == '__main__':
     from test_utils import load_saved_map, load_saved_semantic_map
