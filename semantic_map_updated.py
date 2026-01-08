@@ -77,7 +77,7 @@ class SemanticMap(Map):
         self.semantic_layer = np.zeros((self.map.map.shape[0], self.map.map.shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
         self.flood_filled_map = None
         self.map_type_name = 'semantic_map'
-        self.invalid_objects = ['wall', 'floor', 'ceiling', 'door']
+        self.invalid_objects = set(['wall', 'floor', 'ceiling', 'door'])
 
         self.layer_name_to_idx = {
             'room' : 0,
@@ -196,7 +196,21 @@ class SemanticMap(Map):
     #         print("Cannot visualize only flood fills")
     
     # def save(self, map_save_dir) # Not Required? Handled by Polymorphism??
-    def label_and_filter_point_cloud(self, pc, segmented_img, room_label):
+
+    def format_img_segmentation(self, img_segmentation, labels):
+        """
+        img_segmentation: (M, N) np.ndarray img with object labels 
+        labels: list[tuple] tuple -> (segmenter_object_id, label)
+        """
+        formatted_segmented_img = np.zeros_like(img_segmentation)
+
+        for segmenter_object_id, object_label in labels:
+            if object_label.lower() not in self.invalid_objects:
+                semantic_map_object_id = self.get_object_id(object_label)
+                formatted_segmented_img[img_segmentation == segmenter_object_id] = semantic_map_object_id
+        return formatted_segmented_img
+
+    def label_and_filter_point_cloud(self, pc, formated_segmented_img, room_label):
         """
         Docstring for label_and_format_point_cloud
         :param pc: (N, 3) np.ndarray a 3D Point Cloud
@@ -204,10 +218,10 @@ class SemanticMap(Map):
 
         return: (N, 4) 0: X axis coord, 1: Y axis coord, 2: room id, 3: object id
         """
-        segmented_img_mask = segmented_img != 0
-        pc_mask = segmented_img_mask.flatten()
+        formatted_segmented_img_mask = formated_segmented_img != 0
+        pc_mask = formatted_segmented_img_mask.flatten()
 
-        object_ids = segmented_img[segmented_img_mask] # (Q,)
+        object_ids = formated_segmented_img[formatted_segmented_img_mask] # (Q,)
         room_ids = np.ones_like(object_ids) * self.get_room_id(room_label) # (Q,)
 
         filtered_pc = pc[pc_mask] # (Q, 3)
