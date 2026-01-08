@@ -139,8 +139,7 @@ class Map():
         pc_coords = self.batch_grid_to_approx_world_coords(pc_idxes)
         return pc_coords
 
-    def get_points_and_values(self):
-        threshold = 0.5 # TODO: Figure out what this value should be
+    def get_points_and_values(self, threshold=0.5):
         idxes = np.where(self.map > threshold)
         xs, ys = idxes
         pc_idxes = np.stack((xs, ys), axis=1)
@@ -229,11 +228,16 @@ class Map():
     def visualize_points(self, ax):
         points = self.get_points()
         ax.scatter(points[:, 0], points[:, 1])
-
-    def save(self, map_save_dir, file_name_ext="final"):
+    
+    def get_save_dir(self, map_save_dir):
         save_path = os.path.join(map_save_dir, self.map_type_name)
         os.makedirs(save_path, exist_ok=True)
-        pickle.dump(self, open(f"{save_path}/{self.map_type_name}_object_{file_name_ext}.pickle", "wb"))
+        return save_path
+
+    def save(self, map_save_dir, file_name_ext="final"):
+        # save_path = os.path.join(map_save_dir, self.map_type_name)
+        # os.makedirs(save_path, exist_ok=True)
+        pickle.dump(self, open(f"{self.get_save_dir(map_save_dir)}/{self.map_type_name}_object_{file_name_ext}.pickle", "wb"))
 
 if __name__ == '__main__':
     points = np.load('data/new_slam_data/scene_1.npy')
