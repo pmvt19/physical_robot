@@ -15,12 +15,7 @@ if __name__ == "__main__":
     time.sleep(1.0)
     
     # Load Premade Map
-    # map : Map = pickle.load(open("dumps/run0/map_object.pickle", "rb"))
-    # map : Map = pickle.load(open("dumps/run1/map_object.pickle", "rb")) # Map of full apartment
-    # map : Map = pickle.load(open("dumps/run3/map_object.pickle", "rb")) # Map of just bedroom (made with updated robot_interface (inverse angular directions))
-    # map : Map = pickle.load(open("dumps/run4/map_object.pickle", "rb")) # Map of just kitchen
-    # map : Map = pickle.load(open("dumps/run5/map_object.pickle", "rb")) # Map of just kitchen (With Filtered Lidar)
-    map : Map = pickle.load(open("saves/scenes/tmp/map/map_object.pickle", "rb")) # Map of Apartment
+    map : Map = pickle.load(open("saves/scenes/apartment/map/map_object.pickle", "rb")) # Map of Apartment
 
     # Create Particle Filter Object
     pf = ParticleFilter(map_obj=map)
