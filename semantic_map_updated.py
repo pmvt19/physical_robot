@@ -291,6 +291,7 @@ class SemanticMap(Map):
         semantic_info = semantics[:, 2:][valid_mask]
         self.semantic_layer[semantic_grid_coords[:, 0], semantic_grid_coords[:, 1], :] = semantic_info
     
+    # Not used currently
     def update_semantic_map_single_layer(self, semantics, layer):
         """
         semantics: (N, 3) matrix where axis {0,1} is the point in 2d world coords and axis {2} is labels
