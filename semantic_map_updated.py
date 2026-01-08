@@ -143,7 +143,7 @@ class SemanticMap(Map):
         self.geometric_map.inflate_obstacles(kernel_size=kernel_size)
 
     def validate_map_boundaries(self, grid_coords):
-        self.geometric_map.validate_map_boundaries(grid_coords)
+        return self.geometric_map.validate_map_boundaries(grid_coords)
 
     def _compute_new_map_size(self, grid_coords):
         raise NotImplementedError
