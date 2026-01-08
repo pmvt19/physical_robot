@@ -11,12 +11,13 @@ from PIL import Image
 import io
 
 class VLMClient():
-    def __init__(self):
+    def __init__(self, model_id="gemini-robotics-er-1.5-preview"):
         # Load API Key from .env
         load_dotenv()
         GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-        self.model_id = "gemini-robotics-er-1.5-preview"
+        self.model_options = ["gemini-robotics-er-1.5-preview", "gemini-2.5-flash"]
+        self.model_id = model_id
         self.client = genai.Client(api_key=GEMINI_API_KEY)
 
     def image_text_query(self, image_prompt : np.ndarray, text_prompt : str):
@@ -33,20 +34,23 @@ class VLMClient():
         # Get the bytes object
         image_bytes = byte_arr.getvalue()
 
-        image_response = self.client.models.generate_content(
-            model=self.model_id,
-            contents=[
-                types.Part.from_bytes(
-                    data=image_bytes,
-                    mime_type='image/png',
-                ),
-                text_prompt
-            ],
-            config = types.GenerateContentConfig(
-                temperature=0.5,
-                thinking_config=types.ThinkingConfig(thinking_budget=0)
+        try:
+            image_response = self.client.models.generate_content(
+                model=self.model_id,
+                contents=[
+                    types.Part.from_bytes(
+                        data=image_bytes,
+                        mime_type='image/png',
+                    ),
+                    text_prompt
+                ],
+                config = types.GenerateContentConfig(
+                    temperature=0.5,
+                    thinking_config=types.ThinkingConfig(thinking_budget=0)
+                )
             )
-        )
+        except:
+            image_response = None # TODO: Understand what to do here
         return image_response
 
     def text_query(self, text_prompt : str):
