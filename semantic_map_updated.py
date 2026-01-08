@@ -134,7 +134,7 @@ class SemanticMap(Map):
         return self.geometric_map.get_map_2d()
     
     def get_points(self):
-        return self.get_points()
+        return self.geometric_map.get_points()
     
     def get_points_and_values(self, threshold=0.5):
         return self.geometric_map.get_points_and_values(threshold=threshold)
@@ -171,35 +171,6 @@ class SemanticMap(Map):
     
     def visualize_points(self, ax):
         raise NotImplementedError
-    
-    def get_save_dir(self, map_save_dir):
-        raise NotImplementedError
-    
-    # def visualize(self, ax, visualize_layers=False, visualize_flood_fills=False):
-    #     # TODO: Add logic to only show geometric map if ax is not a list of axes
-    #     self.map.visualize(ax[0])
-
-    #     if visualize_layers:
-    #         semantic_room_layer = self.semantic_layer[:, :, self.layer_name_to_idx['room']]
-    #         semantic_object_layer = self.semantic_layer[:, :, self.layer_name_to_idx['object']]
-
-    #         # ax[1].set_title("Room Layer Semantics")
-    #         ax[1].imshow(np.rot90(semantic_room_layer))
-
-    #         # ax[2].set_title("Object Layer Semantics")
-    #         ax[2].imshow(np.rot90(semantic_object_layer))
-
-    #     if visualize_layers and visualize_flood_fills:
-    #         # ax[3].set_title("Room Layer Semantics - Flood Fill")
-    #         ax[3].imshow(np.rot90(self.flood_filled_map[:, :, self.layer_name_to_idx['room']]))
-
-    #         # ax[4].set_title("Object Layer Semantics - Flood Fill")
-    #         ax[4].imshow(np.rot90(self.flood_filled_map[:, :, self.layer_name_to_idx['object']]))
-    
-    #     if not visualize_layers and visualize_flood_fills:
-    #         print("Cannot visualize only flood fills")
-    
-    # def save(self, map_save_dir) # Not Required? Handled by Polymorphism??
 
     def format_img_segmentation(self, img_segmentation, labels):
         """
