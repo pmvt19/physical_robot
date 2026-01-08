@@ -4,6 +4,7 @@ from icp import run_icp
 from scipy.signal import convolve2d
 from shapely import Point
 import pickle
+import os
 
 
 # map_size = (100, 100)
@@ -60,6 +61,8 @@ class Map():
         self.my = self.map.shape[1] // 2
 
         print(f"Origin: {(self.mx, self.my)}")
+
+        self.map_type_name = 'map'
 
         # if origin:
         #     self.mx = origin[0]
@@ -235,9 +238,10 @@ class Map():
         points = self.get_points()
         ax.scatter(points[:, 0], points[:, 1])
 
-    def save(self, map_save_dir):
-        pickle.dump(self, open(f"{map_save_dir}/map/map_object.pickle", "wb"))
-
+    def save(self, map_save_dir, file_name_ext="final"):
+        save_path = os.path.join(map_save_dir, self.map_type_name)
+        os.makedirs(save_path, exist_ok=True)
+        pickle.dump(self, open(f"{save_path}/{self.map_type_name}_object_{file_name_ext}.pickle", "wb"))
 
 if __name__ == '__main__':
     points = np.load('data/new_slam_data/scene_1.npy')
