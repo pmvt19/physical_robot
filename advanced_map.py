@@ -1,7 +1,6 @@
 import numpy as np
 from map import Map
 from utils import point_segment_distance, timer, line_seg_to_points_dist
-from utils_parallel import parallel_point_segment_distance
 from test_utils import generate_fake_scan
 import math
 import matplotlib.pyplot as plt
