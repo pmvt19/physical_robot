@@ -164,6 +164,10 @@ class SemanticMap(Map):
 
     def visualize_semantic_layer(self, ax, layer):
         ax.imshow(np.rot90(self.semantic_layer[:, :, self.layer_name_to_idx[layer]]))
+
+    def visualize_flood_fill_layer(self, ax, layer):
+        assert (self.flood_filled_map is not None), "Before Visualizing Flood Fill Layers, Run flood_fill"
+        ax.imshow(np.rot90(self.flood_filled_map[:, :, self.layer_name_to_idx[layer]]))
     
     def visualize_points(self, ax):
         raise NotImplementedError
