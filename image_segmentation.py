@@ -1,7 +1,7 @@
 import numpy as np
 from PIL import Image
 import torch
-
+import cv2
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -19,7 +19,7 @@ class ImageSegmenter():
 
     def _get_all_segment_labels(self, prediction):
         segmentation_labels = {
-            segment['label_id'] : self.model.config.id2label[segment['label_id']] for segment in prediction['segments_info']
+            segment['id'] : self.model.config.id2label[segment['label_id']].split('-')[0] for segment in prediction['segments_info']
         }
         return segmentation_labels
 
@@ -68,3 +68,21 @@ class ImageSegmenter():
         for prompt in prompts:
             mask = np.logical_or(mask, self.get_instance_segment_mask(segmentation, segments_info, prompt))
         return mask
+    
+if __name__ == '__main__':
+    import time
+    # Test on Webcam
+    capture = cv2.VideoCapture(1)
+    time.sleep(1)
+
+    image_segmenter = ImageSegmenter()
+
+    while True:
+        ret, frame = capture.read()
+
+        prediction, labels = image_segmenter.segment_image(frame)
+        print(labels)
+        fig, ax = plt.subplots(1, 2)
+        ax[0].imshow(frame[:, :, ::-1])
+        ax[1].imshow(prediction['segmentation'])
+        plt.show()
