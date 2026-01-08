@@ -136,7 +136,8 @@ def semantic_slam(monitoring_mode=False):
         # pickle.dump(semantic_map.map.map, open(f"{map_save_dir}/geometric_map/map_map.pickle", "wb"))
         # pickle.dump(semantic_map.map.get_points(), open(f"{map_save_dir}/geometric_map/map_points.pickle", "wb"))
 
-        pickle.dump(semantic_map, open(f"{map_save_dir}/semantic_map/semantic_map_object.pickle", "wb"))
+        # pickle.dump(semantic_map, open(f"{map_save_dir}/semantic_map/semantic_map_object.pickle", "wb"))
+        semantic_map.save(map_save_dir)
         # pickle.dump(semantic_map.semantic_layer, open(f"{map_save_dir}/semantic_map/semantic_layer.pickle", "wb"))
         # pickle.dump(semantic_map.object_to_id, open(f"{map_save_dir}/semantic_map/semantic_info.pickle", "wb"))
         print("Done Saving Maps")
