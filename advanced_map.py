@@ -17,6 +17,7 @@ class AdvancedMap(Map):
 
         N, M, *_ = self.map.shape
         self.map = np.zeros((N, M, 2))
+        self.map_type_name = 'advanced_map'
 
     def init_map(self, initial_scan):
         initial_state = np.array([0.0, 0.0, 0.0])
