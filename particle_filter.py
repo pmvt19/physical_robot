@@ -47,7 +47,7 @@ class ParticleFilter():
         return low, high
 
     def _compute_dist_map(self):
-        inverse_map = 1 - self.map.map
+        inverse_map = 1 - self.map.map # TODO: FIX WITH ADVANCED MAP 1 - (self.map.get_map_2d() > 0.5).astype(np.int32) ??? This is to always ensure the correct map?
         self.dist_map = ndimage.distance_transform_edt(inverse_map)
     
     def generate_initial_particles(self, num_particles, low=None, high=None):
