@@ -74,7 +74,7 @@ class SemanticMap(Map):
 
     def __init__(self, map_obj: Map):
         self.geometric_map: Map = map_obj
-        self.semantic_layer = np.zeros((self.map.map.shape[0], self.map.map.shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
+        self.semantic_layer = np.zeros((self.get_map_2d().shape[0], self.get_map_2d().shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
         self.flood_filled_map = None
         self.map_type_name = 'semantic_map'
         self.invalid_objects = set(['wall', 'floor', 'ceiling', 'door'])
@@ -92,14 +92,14 @@ class SemanticMap(Map):
             'none-reserved' : 0
         }
     
-    def init_map(self, scan):
-        self.geometric_map.init_map(scan)
+    def init_map(self, initial_scan):
+        self.geometric_map.init_map(initial_scan)
     
     def world_to_grid_coords(self, coords):
         return self.geometric_map.world_to_grid_coords(coords)
 
     def batch_world_to_grid_coords(self, coords):
-        return self.batch_grid_to_approx_world_coords(coords)
+        return self.geometric_map.batch_world_to_grid_coords(coords)
     
     def get_room_id(self, room):
         if room in self.room_to_id:
@@ -122,7 +122,7 @@ class SemanticMap(Map):
         return self.geometric_map.grid_to_approx_world_coords(coords)
     
     def batch_grid_to_approx_world_coords(self, coords):
-        self.batch_grid_to_approx_world_coords(coords)
+        return self.geometric_map.batch_grid_to_approx_world_coords(coords)
 
     def update(self, scan, predicted_state):
        return self.geometric_map.update(scan, predicted_state)
