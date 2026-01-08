@@ -8,15 +8,14 @@ from sklearn.neighbors import KDTree
 from icp import run_icp
 from skimage.segmentation import expand_labels
 
-ROOM_LAYER = 0
-OBJECT_LAYER = 1
-
 class SemanticMap(Map):
-    def __init__(self, map_obj):
-        self.map : Map = map_obj
-        self.semantic_layer = np.zeros((self.map.map.shape[0], self.map.map.shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
+
+    def __init__(self, map_obj: Map):
+        self.geometric_map: Map = map_obj
+        self.semantic_layer = np.zeros((self.get_map_2d().shape[0], self.get_map_2d().shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
         self.flood_filled_map = None
         self.map_type_name = 'semantic_map'
+        self.invalid_objects = set(['wall', 'floor', 'ceiling', 'door', 'window', 'person'])
 
         self.layer_name_to_idx = {
             'room' : 0,
@@ -30,6 +29,15 @@ class SemanticMap(Map):
         self.object_to_id = {
             'none-reserved' : 0
         }
+    
+    def init_map(self, initial_scan):
+        self.geometric_map.init_map(initial_scan)
+    
+    def world_to_grid_coords(self, coords):
+        return self.geometric_map.world_to_grid_coords(coords)
+
+    def batch_world_to_grid_coords(self, coords):
+        return self.geometric_map.batch_world_to_grid_coords(coords)
     
     def get_room_id(self, room):
         if room in self.room_to_id:
@@ -48,14 +56,117 @@ class SemanticMap(Map):
             self.object_to_id[object] = next_id
             return self.object_to_id[object]
 
-    def update(self, lidar_coords, pc_flattened_coords_and_labels, predicted_state, option=False):
-        T = run_icp(lidar_coords, self.map.get_points(), predicted_state, visualize=False)
+    def grid_to_approx_world_coords(self, coords):
+        return self.geometric_map.grid_to_approx_world_coords(coords)
+    
+    def batch_grid_to_approx_world_coords(self, coords):
+        return self.geometric_map.batch_grid_to_approx_world_coords(coords)
+
+    def update(self, scan, predicted_state):
+       return self.geometric_map.update(scan, predicted_state)
+
+    def update_map(self, aligned_scan, updated_state=None):
+        self.geometric_map.update_map(aligned_scan, updated_state)
+
+    def get_map_2d(self):
+        return self.geometric_map.get_map_2d()
+    
+    def get_points(self):
+        return self.geometric_map.get_points()
+    
+    def get_points_and_values(self, threshold=0.5):
+        return self.geometric_map.get_points_and_values(threshold=threshold)
+    
+    def inflate_obstacles(self, kernel_size=3):
+        self.geometric_map.inflate_obstacles(kernel_size=kernel_size)
+
+    def validate_map_boundaries(self, grid_coords):
+        return self.geometric_map.validate_map_boundaries(grid_coords)
+
+    def _compute_new_map_size(self, grid_coords):
+        raise NotImplementedError
+        self.geometric_map._compute_new_map_size(grid_coords)
+    
+    def expand_map(self, req_grid_coords):
+        print("Semantic Map does not support expansions yet")
+        raise NotImplementedError
+        self.geometric_map.expand_map(req_grid_coords)
+    
+    def draw_state(self, ax, state):
+        raise NotImplementedError
+    
+    # Design How to Visualize Later???
+    def visualize(self, ax):
+        # raise NotImplementedError
+        self.geometric_map.visualize(ax)
+
+    def visualize_semantic_layer(self, ax, layer):
+        ax.imshow(np.rot90(self.semantic_layer[:, :, self.layer_name_to_idx[layer]]))
+
+    def visualize_flood_fill_layer(self, ax, layer):
+        assert (self.flood_filled_map is not None), "Before Visualizing Flood Fill Layers, Run flood_fill"
+        ax.imshow(np.rot90(self.flood_filled_map[:, :, self.layer_name_to_idx[layer]]))
+    
+    def visualize_points(self, ax):
+        raise NotImplementedError
+
+    def format_img_segmentation(self, img_segmentation, labels):
+        """
+        img_segmentation: (M, N) np.ndarray img with object labels 
+        labels: list[tuple] tuple -> (segmenter_object_id, label)
+        """
+        formatted_segmented_img = np.zeros_like(img_segmentation)
+
+        for segmenter_object_id, object_label in labels:
+            if object_label.lower() not in self.invalid_objects:
+                semantic_map_object_id = self.get_object_id(object_label)
+                formatted_segmented_img[img_segmentation == segmenter_object_id] = semantic_map_object_id
+        return formatted_segmented_img
+
+    def label_and_filter_point_cloud(self, pc, formated_segmented_img, room_label):
+        """
+        Docstring for label_and_format_point_cloud
+        :param pc: (N, 3) np.ndarray a 3D Point Cloud
+        :param segmented_img: (M, N) np.ndarry with object labels from semantic map
+
+        return: (N, 4) 0: X axis coord, 1: Y axis coord, 2: room id, 3: object id
+        """
+        formatted_segmented_img_mask = formated_segmented_img != 0
+        pc_mask = formatted_segmented_img_mask.flatten()
+
+        object_ids = formated_segmented_img[formatted_segmented_img_mask] # (Q,)
+        room_ids = np.ones_like(object_ids) * self.get_room_id(room_label) # (Q,)
+
+        filtered_pc = pc[pc_mask] # (Q, 3)
+
+        # Remove dim 1
+        filtered_pc = np.stack((filtered_pc[:, 0], filtered_pc[:, 2]), axis=1) # (Q, 2)
+
+        # TODO: BAD HACK REMOVE THIS SOON
+        def align_point_cloud(pc_flattened_coords):
+            theta = -np.pi / 2  # 90 degrees in radians
+            rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
+                                            [np.sin(theta), np.cos(theta)]])
+            pc_flattened_coords = pc_flattened_coords.dot(rotation_matrix.T)
+            return pc_flattened_coords
+
+        # TODO HACK: USED TO ROTATE POINT CLOUD TO BE IN CORRECT ORIENTATION FOR WHEN READING (GETS REORIENTED BASED ON STATE LATER)
+        filtered_pc = align_point_cloud(filtered_pc) # TODO: TO REMOVE THIS SOON
+
+        pc_and_labels = np.concatenate((filtered_pc, room_ids.reshape(-1, 1), object_ids.reshape(-1, 1)), axis=1)
+        return pc_and_labels
+
+    # Rename to semantic_update?
+    def update_geometry_and_semantics(self, lidar_coords, pc_flattened_coords_and_labels, predicted_state, option=False):
+        T = run_icp(lidar_coords, self.geometric_map.get_points(), predicted_state, visualize=False)
         updated_theta = np.arctan2(T[1,0],T[0,0]) % (2*np.pi)
         updated_x = T[0, 2]
         updated_y = T[1, 2]
         updated_state = np.array([updated_x, updated_y, updated_theta])
 
         aligned_lidar_coords = (T@lidar_coords.T).T
+
+        # Remove Labels for Transformation
         pc_flattened_coords = pc_flattened_coords_and_labels[:, :2]
 
         # Make Homogeneous Coordinates
@@ -66,15 +177,22 @@ class SemanticMap(Map):
 
         aligned_pc_flattened_coords_and_labels = np.concatenate((aligned_pc_flattened_coords, pc_flattened_coords_and_labels[:, 2:]), axis=1)
 
-        self.update_map(aligned_lidar_coords, aligned_pc_flattened_coords_and_labels, updated_state)
+        self.update_geometry_and_semantics_map(aligned_lidar_coords, aligned_pc_flattened_coords_and_labels, updated_state)
         return updated_state
+    
+    def update_geometry_and_semantics_map(self, aligned_scan, semantics, updated_state):
+        # Update the geometric map
+        self.update_map(aligned_scan, updated_state)
+
+        # Update the semantic map
+        self.update_semantic_map(semantics)
 
     def update_semantic_map(self, semantics):
         """
         semantics: (N, 4) matrix where axis {0,1} is the point in 2d world coords and axis {2, 3} are labels??
         """
-        semantic_grid_coords = self.map.batch_world_to_grid_coords(semantics[:, :2])
-        N, M, *_ = self.map.map.shape
+        semantic_grid_coords = self.batch_world_to_grid_coords(semantics[:, :2])
+        N, M = self.get_map_2d().shape
         valid_mask = np.logical_and.reduce((
             semantic_grid_coords[:, 0] >= 0,
             semantic_grid_coords[:, 0] < N,
@@ -86,12 +204,13 @@ class SemanticMap(Map):
         semantic_info = semantics[:, 2:][valid_mask]
         self.semantic_layer[semantic_grid_coords[:, 0], semantic_grid_coords[:, 1], :] = semantic_info
     
+    # Not used currently
     def update_semantic_map_single_layer(self, semantics, layer):
         """
-        semantics: (N, 4) matrix where axis {0,1} is the point in 2d world coords and axis {2, 3} are labels??
+        semantics: (N, 3) matrix where axis {0,1} is the point in 2d world coords and axis {2} is labels
         """
-        semantic_grid_coords = self.map.batch_world_to_grid_coords(semantics[:, :2])
-        N, M = self.map.map.shape
+        semantic_grid_coords = self.batch_world_to_grid_coords(semantics[:, :2])
+        N, M = self.get_map_2d().shape
         valid_mask = np.logical_and.reduce((
             semantic_grid_coords[:, 0] >= 0,
             semantic_grid_coords[:, 0] < N,
@@ -102,28 +221,13 @@ class SemanticMap(Map):
         semantic_grid_coords = semantic_grid_coords[valid_mask]
         semantic_info = semantics[:, 2][valid_mask]
         self.semantic_layer[semantic_grid_coords[:, 0], semantic_grid_coords[:, 1], self.layer_name_to_idx[layer]] = semantic_info
-
-    def update_map(self, aligned_scan, semantics, updated_state=None):
-        # Update the geometric map
-        self.map.update_map(aligned_scan, updated_state)
-
-        # Update the semantic map
-        self.update_semantic_map(semantics)
-    
-    def map_update(self, scan, predicted_state): # Previously update
-        return self.map.update(scan, predicted_state)
     
     def inflate_semantics(self, distance=10):
         self.semantic_layer[:, :, 0] = expand_labels(self.semantic_layer[:, :, 0], distance=distance)
         self.semantic_layer[:, :, 1] = expand_labels(self.semantic_layer[:, :, 1], distance=distance)
-
-    def inflate_obstacles(self):
-        self.map.inflate_obstacles()
-
-    def expand_map(self):
-        print("Semantic Map does not support expansions yet")
-        raise NotImplementedError
     
+    ## -- FLOOD FILLING MAP FUNCTIONS -- ##
+
     @timer
     def flood_fill(self, limit_fill_extent=False, method='bfs'):
         if method == 'bfs':
@@ -193,33 +297,6 @@ class SemanticMap(Map):
         _, idxes = kd_tree.query(grid_coords, k=1)
         self.flood_filled_map = np.copy(self.semantic_layer)
         self.flood_filled_map[grid_coords[:, 0], grid_coords[:, 1]] = semantic_labels[idxes[:, 0]]
-    
-    def visualize(self, ax, visualize_layers=False, visualize_flood_fills=False):
-        # TODO: Add logic to only show geometric map if ax is not a list of axes
-        self.map.visualize(ax[0])
-
-        if visualize_layers:
-            semantic_room_layer = self.semantic_layer[:, :, self.layer_name_to_idx['room']]
-            semantic_object_layer = self.semantic_layer[:, :, self.layer_name_to_idx['object']]
-
-            # ax[1].set_title("Room Layer Semantics")
-            ax[1].imshow(np.rot90(semantic_room_layer))
-
-            # ax[2].set_title("Object Layer Semantics")
-            ax[2].imshow(np.rot90(semantic_object_layer))
-
-        if visualize_layers and visualize_flood_fills:
-            # ax[3].set_title("Room Layer Semantics - Flood Fill")
-            ax[3].imshow(np.rot90(self.flood_filled_map[:, :, self.layer_name_to_idx['room']]))
-
-            # ax[4].set_title("Object Layer Semantics - Flood Fill")
-            ax[4].imshow(np.rot90(self.flood_filled_map[:, :, self.layer_name_to_idx['object']]))
-    
-        if not visualize_layers and visualize_flood_fills:
-            print("Cannot visualize only flood fills")
-    
-    def save(self, map_save_dir):
-        raise NotImplementedError
 
 
 def pseudolabel_map(semantic_map : SemanticMap):

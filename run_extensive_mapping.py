@@ -2,7 +2,7 @@ from robot import Robot
 from basic_map import BasicMap
 from map import Map
 from advanced_map import AdvancedMap
-from semantic_map_updated import SemanticMap
+from semantic_map import SemanticMap
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
