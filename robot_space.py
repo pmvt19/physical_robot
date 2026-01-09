@@ -18,6 +18,9 @@ class PhysicalRobotSpace(Robot, RobotSpace):
 
         self.angular_dims_start = 2
 
+        # Setting Edge Validity Delta to Acceptable Value (mm units)
+        robot.edge_validity_delta = 200.0
+
     def is_valid(self, state):
         raise NotImplementedError
         state = self.get_state_value(state)
