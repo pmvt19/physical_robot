@@ -13,6 +13,7 @@ class SemanticMap(Map):
 
     def __init__(self, map_obj: Map):
         self.geometric_map: Map = map_obj
+        self.resolution = self.geometric_map.resolution
         self.semantic_layer = np.zeros((self.get_map_2d().shape[0], self.get_map_2d().shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
         self.flood_filled_map = None
         self.map_type_name = 'semantic_map'
