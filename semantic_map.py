@@ -114,6 +114,15 @@ class SemanticMap(Map):
             next_id = len(self.object_to_id)
             self.object_to_id[object] = next_id
             return self.object_to_id[object]
+        
+    def print_item_ids(self):
+        print("\nRoom Layer Mappings:")
+        for id, room in self.room_to_id.items():
+            print(f"{id} -> {room}")
+        
+        print("\nObject Layer Mappings:")
+        for id, object_name in self.object_to_id.items():
+            print(f"{id} -> {object_name}")
     
     ## -- FORMATING IMG SEGMENTATION AND PC DATA FUNCTIONS -- ##
 
