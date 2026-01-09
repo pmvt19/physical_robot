@@ -6,6 +6,10 @@ from motion_planning.state import NumpyState
 from semantic_map import SemanticMap
 from test_utils import load_saved_map, load_saved_semantic_map
 
+from vlm_client import VLMClient
+from prompts import EXTRACT_SEMANTIC_TARGETS
+from vlm_output_schema import UserSemanticTarget
+
 from robot_space import PhysicalRobotSpace
 from motion_planning.prm import PRM
 from particle_filter import ParticleFilter
@@ -186,5 +190,21 @@ def run_semantic_motion_planning(map_save_dir):
     prm.draw(plt.gca(), path=path, show_task=True)
     plt.show()
     
+def get_semantic_target_from_user(vlm_client: VLMClient, semantic_map: SemanticMap):
+    while True:
+        user_input = input("Please provide where you want the robot to travel (object or room)\n")
+        vlm_response = vlm_client.text_query(EXTRACT_SEMANTIC_TARGETS.format(user_input))
+        user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response.text)
+
+        if user_semantic_target.valid:
+            break
+        else:
+            print("Unable to extract semantic information from input. Please Try Again!\n")
+    
+    return user_semantic_target.semantic_level, user_semantic_target.item_name
+
 if __name__ == '__main__':
-    run_semantic_motion_planning(map_save_dir='saves/scenes/extensive_apartment')
+    # run_semantic_motion_planning(map_save_dir='saves/scenes/extensive_apartment')
+
+    vlm_client = VLMClient()
+    print(get_semantic_target_from_user(vlm_client))
