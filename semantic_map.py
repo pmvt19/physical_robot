@@ -162,6 +162,20 @@ class SemanticMap(Map):
 
         pc_and_labels = np.concatenate((filtered_pc, room_ids.reshape(-1, 1), object_ids.reshape(-1, 1)), axis=1)
         return pc_and_labels
+
+    def get_semantic_value_at_grid_coords(self, grid_coords):
+        gx, gy = grid_coords
+        return self.semantic_layer[gx, gy]
+    
+    def batch_get_semantic_value_at_grid_coords(self, grid_coords):
+        return self.semantic_layer[grid_coords[:, 0], grid_coords[:, 1]]
+    
+    def get_semantic_flood_fill_value_at_grid_coords(self, grid_coords):
+        gx, gy = grid_coords
+        return self.flood_filled_map[gx, gy]
+    
+    def batch_get_semantic_flood_fill_value_at_grid_coords(self, grid_coords):
+        return self.flood_filled_map[grid_coords[:, 0], grid_coords[:, 1]]
     
     ## -- UPDATING SEMANTIC AND GEOMETRIC MAP FUNCTIONS -- ##
 
@@ -252,8 +266,8 @@ class SemanticMap(Map):
         # IDEA: Implement this function in C++ and use python bindings here?
         # raise NotImplementedError
 
-        map_points = self.map.get_points()
-        grid_coords = self.map.batch_world_to_grid_coords(map_points)
+        map_points = self.get_points()
+        grid_coords = self.batch_world_to_grid_coords(map_points)
         q = []
         for x, y in grid_coords:
             label = self.semantic_layer[x, y]
@@ -266,11 +280,13 @@ class SemanticMap(Map):
         visited = set()
 
         min_x, min_y = 0, 0
-        max_x, max_y = self.map.map.shape
+        max_x, max_y = self.get_map_2d().shape
 
         if limit_fill_extent:
             min_x, min_y = np.min(grid_coords, axis=0)
             max_x, max_y = np.max(grid_coords, axis=0)
+
+        map_2d = self.get_map_2d()
 
         while q:
             x, y, label = q.pop(0)
@@ -283,17 +299,18 @@ class SemanticMap(Map):
             for dx, dy in neighbors:
                 nx = x + dx
                 ny = y + dy
-                if nx >= min_x and nx < max_x and ny >= min_y and ny < max_y and self.map.map[nx, ny] == 0 and (nx, ny) not in visited: #TODO: Check why this improves speed
+                
+                if nx >= min_x and nx < max_x and ny >= min_y and ny < max_y and map_2d[nx, ny] < 0.5 and (nx, ny) not in visited: #TODO: Check why this improves speed
                     q.append((nx, ny, label))
     
     def _nearest_neighbor_flood_fill(self, limit_fill_extent=False):
-        map_points = self.map.get_points()
-        grid_coords = self.map.batch_world_to_grid_coords(map_points)
+        map_points = self.get_points()
+        grid_coords = self.batch_world_to_grid_coords(map_points)
         min_grid_coords = np.min(grid_coords, axis=0)
         max_grid_coords = np.max(grid_coords, axis=0)
         kd_tree = KDTree(grid_coords)
         semantic_labels = self.semantic_layer[grid_coords[:, 0], grid_coords[:, 1]]
-        grid_xs, grid_ys = np.where(self.map.get_map_2d() < 0.5)
+        grid_xs, grid_ys = np.where(self.get_map_2d() < 0.5)
         grid_coords = np.stack((grid_xs, grid_ys), axis=1)
         if limit_fill_extent:
             semantic_labeling_mask_xs = np.logical_and(grid_coords[:, 0] >= min_grid_coords[0], grid_coords[:, 0] <= max_grid_coords[0])
