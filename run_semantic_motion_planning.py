@@ -193,18 +193,24 @@ def run_semantic_motion_planning(map_save_dir):
 def get_semantic_target_from_user(vlm_client: VLMClient, semantic_map: SemanticMap):
     while True:
         user_input = input("Please provide where you want the robot to travel (object or room)\n")
-        vlm_response = vlm_client.text_query(EXTRACT_SEMANTIC_TARGETS.format(user_input))
+        vlm_response = vlm_client.text_query(EXTRACT_SEMANTIC_TARGETS.format(user_input, 
+                                                                             semantic_map.get_room_list(),
+                                                                             semantic_map.get_object_list(),
+                                                                             semantic_map.get_invalid_object_list()))
         user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response.text)
 
         if user_semantic_target.valid:
             break
         else:
-            print("Unable to extract semantic information from input. Please Try Again!\n")
-    
+            print(f"Unable to extract semantic information from input.\n \
+                  Reasoning:\n{user_semantic_target.reason} \nPlease Try Again!\n")
+    print(user_semantic_target.reason)
     return user_semantic_target.semantic_level, user_semantic_target.item_name
 
 if __name__ == '__main__':
     # run_semantic_motion_planning(map_save_dir='saves/scenes/extensive_apartment')
+    semantic_map: SemanticMap = load_saved_semantic_map(directory="saves/scenes/extensive_apartment")
+    semantic_map.resolution = 10 # TODO REMOVE
 
     vlm_client = VLMClient()
-    print(get_semantic_target_from_user(vlm_client))
+    print(get_semantic_target_from_user(vlm_client, semantic_map))
