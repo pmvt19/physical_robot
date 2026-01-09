@@ -105,6 +105,15 @@ class Map():
         world_coords[:, 1] -= self.my
         world_coords = world_coords * self.resolution
         return world_coords
+    
+    def get_value_at_grid_coords(self, coords):
+        gx, gy = coords
+        map_2d = self.get_map_2d()
+        return map_2d[gx, gy]
+    
+    def batch_get_value_at_grid_coords(self, coords):
+        map_2d = self.get_map_2d()
+        return map_2d[coords[:, 0], coords[:, 1]]
 
     def update(self, scan, predicted_state):
         T = run_icp(scan, self.get_points(), predicted_state, visualize=False)
@@ -233,10 +242,14 @@ class Map():
         save_path = os.path.join(map_save_dir, self.map_type_name)
         os.makedirs(save_path, exist_ok=True)
         return save_path
+    
+    def save_raw_map(self, map_save_dir, file_name_ext="final"):
+        pickle.dump(self.map, open(f"{self.get_save_dir(map_save_dir)}/{self.map_type_name}_raw_map_{file_name_ext}.pickle", "wb"))
+
+    def save_map_2d(self, map_save_dir, file_name_ext="final"):
+        pickle.dump(self.get_map_2d(), open(f"{self.get_save_dir(map_save_dir)}/{self.map_type_name}_map_2d_{file_name_ext}.pickle", "wb"))
 
     def save(self, map_save_dir, file_name_ext="final"):
-        # save_path = os.path.join(map_save_dir, self.map_type_name)
-        # os.makedirs(save_path, exist_ok=True)
         pickle.dump(self, open(f"{self.get_save_dir(map_save_dir)}/{self.map_type_name}_object_{file_name_ext}.pickle", "wb"))
 
 if __name__ == '__main__':
