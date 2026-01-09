@@ -19,7 +19,7 @@ class PhysicalRobotSpace(Robot, RobotSpace):
         self.angular_dims_start = 2
 
         # Setting Edge Validity Delta to Acceptable Value (mm units)
-        robot.edge_validity_delta = 200.0
+        self.edge_validity_delta = 200.0
 
     def is_valid(self, state):
         raise NotImplementedError
@@ -67,13 +67,12 @@ class PhysicalRobotSpace(Robot, RobotSpace):
         stacked_validities = []
         num_batches = math.ceil(B / self.batch_size)
         for i in range(num_batches):
-            print(f"Batch: {i}/{num_batches}")
+            print(f"Batch: {i}/{num_batches}", end='\r')
             idx_start = i * self.batch_size
             idx_end = min((i+1)*self.batch_size, B)
-            # print(map_circles.shape, batch_robot_circles[idx_start:idx_end].shape)
             validities = self.circles_to_validity(map_circles, batch_robot_circles[idx_start:idx_end])
             stacked_validities.append(validities)
-            # print("Here")
+
         stacked_validities = np.hstack(stacked_validities)
         return stacked_validities
 

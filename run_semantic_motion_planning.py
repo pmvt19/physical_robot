@@ -155,7 +155,6 @@ def run_semantic_motion_planning(map_save_dir):
 
     # Create RobotSpace
     robot = PhysicalRobotSpace(semantic_map)
-    robot.edge_validity_delta = 200.0 # TODO REMOVE
 
     # Initialize and Create PRM
     prm = PRM(env=robot, num_samples=20000, num_neighbors=10, validate_edges=True)
@@ -208,9 +207,11 @@ def get_semantic_target_from_user(vlm_client: VLMClient, semantic_map: SemanticM
     return user_semantic_target.semantic_level, user_semantic_target.item_name
 
 if __name__ == '__main__':
-    # run_semantic_motion_planning(map_save_dir='saves/scenes/extensive_apartment')
-    semantic_map: SemanticMap = load_saved_semantic_map(directory="saves/scenes/extensive_apartment")
-    semantic_map.resolution = 10 # TODO REMOVE
+    run_semantic_motion_planning(map_save_dir='saves/scenes/extensive_apartment')
 
-    vlm_client = VLMClient()
-    print(get_semantic_target_from_user(vlm_client, semantic_map))
+
+    # semantic_map: SemanticMap = load_saved_semantic_map(directory="saves/scenes/extensive_apartment")
+    # semantic_map.resolution = 10 # TODO REMOVE
+
+    # vlm_client = VLMClient()
+    # print(get_semantic_target_from_user(vlm_client, semantic_map))
