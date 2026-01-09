@@ -7,6 +7,7 @@ from utils import timer
 from sklearn.neighbors import KDTree
 from icp import run_icp
 from skimage.segmentation import expand_labels
+import pickle
 
 class SemanticMap(Map):
 
@@ -302,3 +303,10 @@ class SemanticMap(Map):
         _, idxes = kd_tree.query(grid_coords, k=1)
         self.flood_filled_map = np.copy(self.semantic_layer)
         self.flood_filled_map[grid_coords[:, 0], grid_coords[:, 1]] = semantic_labels[idxes[:, 0]]
+
+    ## -- SEMANTIC SAVE FUNCTIONS -- ##
+
+    def save_raw_semantics(self, map_save_dir, file_name_ext="final"):
+        pickle.dump(self.semantic_layer, open(f"{self.get_save_dir(map_save_dir)}/{self.map_type_name}_raw_semantics_{file_name_ext}.pickle", "wb"))
+        pickle.dump(self.room_to_id, open(f"{self.get_save_dir(map_save_dir)}/{self.map_type_name}_room_to_id_{file_name_ext}.pickle", "wb"))
+        pickle.dump(self.object_to_id, open(f"{self.get_save_dir(map_save_dir)}/{self.map_type_name}_object_to_id_{file_name_ext}.pickle", "wb"))
