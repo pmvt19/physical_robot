@@ -84,6 +84,22 @@ physical_robot/
         ├──test_processes/
             ├──test_particle_filter.py
             ├──test_slam.py??
+
+    ├──tests/
+        ├──sensors/
+            ├──test_lidar.py
+            ├──test_camera.py
+            ├──test_imu.py
+        ├──processes/
+            ├──test_particle_filter.py
+            ├──test_slam.py??
+        ├──visual/
+            ├──tbd.py??
+        ├──computational/
+            ├──test_robot_controller.py
+            ├──test_geometry_utils.py
+            ├──etc...
+
     
     ├──main.py??
 
