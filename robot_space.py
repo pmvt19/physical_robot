@@ -43,22 +43,9 @@ class PhysicalRobotSpace(Robot, RobotSpace):
         return validities
     
     def batch_is_valid(self, states):
-        # points = self.map.get_points()
-        # # map_circles = np.concatenate((points, np.ones((points.shape[0], 1), dtype=np.float32) * (self.map.resolution * 14)), axis=1) # Kinda works 
-        # map_circles = np.concatenate((points, np.ones((points.shape[0], 1), dtype=np.float32) * (self.map.resolution / 2 * np.sqrt(2))), axis=1)
-        
-        # batch_robot_circles = np.concatenate((states[:, :2], np.ones(len(states), dtype=np.float32).reshape(-1, 1) * self.radius*2), axis=1)
-
-        # dist_mat = np.sqrt(np.sum(batch_robot_circles[:, :2]**2, axis=1, keepdims=True) + np.sum(map_circles[:, :2]**2, axis=1, keepdims=True).T + (-2 * (batch_robot_circles[:, :2] @ map_circles[:, :2].T)))
-        # min_dists = batch_robot_circles[:, 2].reshape(-1, 1) + map_circles[:, 2].reshape(1, -1)
-        # validity_mask = dist_mat > min_dists
-        # validities = np.all(validity_mask, axis=1)
-
-        # return validities
         self.batch_size = 1000
         print(f"Num States: {len(states)}")
         
-
         points = self.map.get_points()
         map_circles = np.concatenate((points, np.ones((points.shape[0], 1), dtype=np.float32) * (self.map.resolution / 2 * np.sqrt(2))), axis=1)
         batch_robot_circles = np.concatenate((states[:, :2], np.ones(len(states), dtype=np.float32).reshape(-1, 1) * self.robot_radius), axis=1)
