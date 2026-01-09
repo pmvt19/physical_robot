@@ -41,7 +41,7 @@ def visualize_semantics(semantic_map: SemanticMap):
 if __name__ == "__main__":
 
     ## TODO: Will update directory structure soon
-    scene_name = 'tmp_v2'
+    scene_name = 'extensive_apartment'
     map_save_dir = f'saves/scenes/{scene_name}'
 
     # Initialization
@@ -123,11 +123,16 @@ if __name__ == "__main__":
         advanced_map_state = advanced_map_updated_state
         semantic_map_state = semantic_map_updated_state
 
-        
-
         i+=1
 
+        # Save All Geometric Maps and Semantic Layers in SemanticMap
         visualize_all_maps(map, advanced_map, semantic_map)
         visualize_semantics(semantic_map)
+
+        # Save All Maps
+        map.save(map_save_dir)
+        advanced_map.save(map_save_dir)
+        semantic_map.save(map_save_dir)
+
 
     
