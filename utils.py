@@ -120,6 +120,45 @@ def point_segment_distance(segments: np.ndarray, points: np.ndarray) -> np.ndarr
 
         return distances
 
+def line_seg_to_points_dist(p1: np.ndarray, p2: np.ndarray, points: np.ndarray) -> np.ndarray:
+    """
+    Compute the shortest distance between a line segment (p1, p2) and a set of points.
+
+    Parameters
+    ----------
+    p1 : np.ndarray
+        Starting point of the line segment, shape (d,)
+    p2 : np.ndarray
+        Ending point of the line segment, shape (d,)
+    points : np.ndarray
+        Array of points, shape (N, d)
+
+    Returns
+    -------
+    np.ndarray
+        Distances from each point to the line segment, shape (N,)
+    """
+    # Vector along the line segment
+    seg_vec = p2 - p1
+    seg_len_sq = np.dot(seg_vec, seg_vec)
+
+    # Vectors from p1 to the points
+    p1_to_points = points - p1
+
+    # Project each point onto the line, normalized by segment length
+    t = np.einsum('ij,j->i', p1_to_points, seg_vec) / seg_len_sq
+
+    # Clamp t to [0,1] to stay within the segment
+    t = np.clip(t, 0.0, 1.0)
+
+    # Closest point on the segment for each point
+    proj_points = p1 + np.outer(t, seg_vec)
+
+    # Distances to the closest points
+    dists = np.linalg.norm(points - proj_points, axis=1)
+
+    return dists
+
 def point_to_points_distance(point, points):
     return np.linalg.norm(points - point, axis=1).reshape(1, -1)
 
