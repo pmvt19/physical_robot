@@ -1,6 +1,10 @@
 import numpy as np
 from sklearn.neighbors import KDTree
 import matplotlib.pyplot as plt
+from utils import register_logger
+import logging
+
+logger = register_logger(__name__, 'icp', logging.INFO, std_err=False)
 
 def get_init_transformation_matrix(state):
     init_x, init_y, init_theta = state
@@ -38,8 +42,10 @@ def fit_rigid(src, tgt):
 def run_icp(source_pc, target_pc, predicted_state, filter_init_outliers=True, visualize=False):
 
     cur_T = get_init_transformation_matrix(predicted_state)
-    print("Original T")
-    print(cur_T)
+    # print("Original T")
+    # print(cur_T)
+    logger.debug("Original T")
+    logger.debug(cur_T)
     source_pc[:, 2] = 1
 
     transformed_source_pc = (cur_T @ source_pc.T).T
@@ -146,8 +152,10 @@ def run_icp(source_pc, target_pc, predicted_state, filter_init_outliers=True, vi
             plt.title(f"Iteration: {i} v2, Inlier Ratio: {inlier_ratio}")
             plt.pause(0.1)
             plt.cla()
-    print("Final T")
-    print(cur_T)
+    # print("Final T")
+    # print(cur_T)
+    logger.debug("Final T")
+    logger.debug(cur_T)
     return cur_T
 
 def run_single_icp(source_pc, target_pc, init_T, num_iter=15, inlier_dist_threshold=100, visualize=False):
