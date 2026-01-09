@@ -80,7 +80,7 @@ class PhysicalRobotSpace(Robot, RobotSpace):
         return AngularNumpyState(value=state, angular_dims_start=self.angular_dims_start)
 
     def sample_point(self):
-        width, height = self.map.map.shape
+        width, height = self.map.get_shape_2d()
         x = np.random.uniform(0, width)
         y = np.random.uniform(0, height)
         theta = np.random.uniform(0, 2 * np.pi)
