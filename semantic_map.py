@@ -48,6 +48,9 @@ class SemanticMap(Map):
     def batch_grid_to_approx_world_coords(self, coords):
         return self.geometric_map.batch_grid_to_approx_world_coords(coords)
 
+    def get_shape_2d(self):
+        return self.geometric_map.get_shape_2d()
+
     def update(self, scan, predicted_state):
        return self.geometric_map.update(scan, predicted_state)
 
@@ -114,6 +117,15 @@ class SemanticMap(Map):
             next_id = len(self.object_to_id)
             self.object_to_id[object] = next_id
             return self.object_to_id[object]
+        
+    def get_room_list(self):
+        return [room_name for room_name in self.room_to_id]
+
+    def get_object_list(self):
+        return [object_name for object_name in self.object_to_id]
+
+    def get_invalid_object_list(self):
+        return list(self.invalid_objects)
         
     def print_item_ids(self):
         print("\nRoom Layer Mappings:")

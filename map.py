@@ -114,6 +114,9 @@ class Map():
     def batch_get_value_at_grid_coords(self, coords):
         map_2d = self.get_map_2d()
         return map_2d[coords[:, 0], coords[:, 1]]
+    
+    def get_shape_2d(self):
+        return self.map.shape
 
     def update(self, scan, predicted_state):
         T = run_icp(scan, self.get_points(), predicted_state, visualize=False)

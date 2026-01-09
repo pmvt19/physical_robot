@@ -21,6 +21,10 @@ class AdvancedMap(Map):
     def init_map(self, initial_scan):
         initial_state = np.array([0.0, 0.0, 0.0])
         self.update_map(initial_scan, initial_state)
+    
+    def get_shape_2d(self):
+        N, M, *_ = self.map.shape
+        return (N, M)
 
     def update(self, scan, predicted_state):
         T = run_icp(scan, self.get_points(), predicted_state, visualize=False)
