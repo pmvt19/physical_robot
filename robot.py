@@ -19,6 +19,7 @@ from dxl_controller import DynamixelController, TORQUE_ENABLE, TORQUE_DISABLE
 from robot_interface import RobotInterface
 from simulate_lidar import SimulatedLidar
 from utils import create_rectangle_geometry, point_segment_distance, point_to_points_distance, register_logger
+from robot_controller import RobotController
 
 logger = register_logger(logger_name=__name__, log_filename='robot', level=logging.INFO, std_err=False)
 
@@ -77,6 +78,8 @@ class Robot():
             self.controller = DynamixelController(device_name=config['physical']['dxl_motor_port'], motor_ids=[1, 2])
             self.ri = RobotInterface(controller=self.controller)
             self.ri.set_profile_velocity()
+
+            self.motion_controller = RobotController()
 
             # Connect to Redis Server for Publishing Lidar Data
             # self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -714,42 +717,45 @@ class Robot():
         heading_line_ep = np.array([np.cos(theta), np.sin(theta)]) * heading_line_length + np.array([x, y])
         ax.plot([x, heading_line_ep[0]], [y, heading_line_ep[1]], color='red')
 
-    # TODO: Optimize this function
-    def state_pairs_to_motion_commands(self, state1, state2):
-        state_transition_motion_commands = []
+    # # TODO: Optimize this function
+    # def state_pairs_to_motion_commands(self, state1, state2):
+    #     state_transition_motion_commands = []
 
-        x1, y1, theta1 = state1
-        x2, y2, theta2 = state2
+    #     x1, y1, theta1 = state1
+    #     x2, y2, theta2 = state2
 
-        positional_difference_vector = np.arctan2(y2-y1, x2-x1)
+    #     positional_difference_vector = np.arctan2(y2-y1, x2-x1)
 
-        initial_turn = positional_difference_vector - theta1
-        linear_motion = np.sqrt((x2-x1)**2 + (y2-y1)**2)
-        final_turn = theta2 - positional_difference_vector
+    #     initial_turn = positional_difference_vector - theta1
+    #     linear_motion = np.sqrt((x2-x1)**2 + (y2-y1)**2)
+    #     final_turn = theta2 - positional_difference_vector
 
-        # Normalize Angles:
-        initial_turn = np.arctan2(np.sin(initial_turn), np.cos(initial_turn))
-        final_turn = np.arctan2(np.sin(final_turn), np.cos(final_turn))
+    #     # Normalize Angles:
+    #     initial_turn = np.arctan2(np.sin(initial_turn), np.cos(initial_turn))
+    #     final_turn = np.arctan2(np.sin(final_turn), np.cos(final_turn))
 
-        # Add the motion commands in order (Skip those that are 0 [unlikely to happen...])
-        if initial_turn != 0:
-            state_transition_motion_commands.append(["angular", initial_turn])
-        if linear_motion != 0:
-            state_transition_motion_commands.append(["linear", linear_motion])
-        if final_turn != 0:
-            state_transition_motion_commands.append(["angular", final_turn])
+    #     # Add the motion commands in order (Skip those that are 0 [unlikely to happen...])
+    #     if initial_turn != 0:
+    #         state_transition_motion_commands.append(["angular", initial_turn])
+    #     if linear_motion != 0:
+    #         state_transition_motion_commands.append(["linear", linear_motion])
+    #     if final_turn != 0:
+    #         state_transition_motion_commands.append(["angular", final_turn])
         
-        return state_transition_motion_commands
+    #     return state_transition_motion_commands
+
+    # def path_to_motion_commands(self, path):
+    #     motion_commands = []
+    #     for i in range(len(path)-1):
+    #         state1 = path[i]
+    #         state2 = path[i+1]
+
+    #         state_transition_motion_commands = self.state_pairs_to_motion_commands(state1, state2)
+    #         motion_commands.extend(state_transition_motion_commands)
+    #     return motion_commands
 
     def path_to_motion_commands(self, path):
-        motion_commands = []
-        for i in range(len(path)-1):
-            state1 = path[i]
-            state2 = path[i+1]
-
-            state_transition_motion_commands = self.state_pairs_to_motion_commands(state1, state2)
-            motion_commands.extend(state_transition_motion_commands)
-        return motion_commands
+        return self.motion_controller.compute_motion_commands(path)
     
     def terminate(self):
         pass
