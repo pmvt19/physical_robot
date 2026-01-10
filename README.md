@@ -65,6 +65,7 @@ physical_robot/
         ├──robot.py
         ├──robot_space.py
         ├──robot_server.py
+        ├──robot_controller.py
 
     ├──algorithms/
         ├──icp.py
