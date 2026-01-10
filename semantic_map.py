@@ -72,15 +72,44 @@ class SemanticMap(Map):
 
     def validate_map_boundaries(self, grid_coords):
         return self.geometric_map.validate_map_boundaries(grid_coords)
-
-    def _compute_new_map_size(self, grid_coords):
-        raise NotImplementedError
-        self.geometric_map._compute_new_map_size(grid_coords)
     
     def expand_map(self, req_grid_coords):
-        print("Semantic Map does not support expansions yet")
-        raise NotImplementedError
-        self.geometric_map.expand_map(req_grid_coords)
+        # Get World Coordinates and Values for each semantic map layer (Room and Object)
+        room_layer_coords_and_semantic_value, object_layer_coords_and_semantic_value = self.get_points_and_values_by_semantic_layer()
+
+        # Get New Map Size
+        map_size_discretized = self._compute_new_map_size(grid_coords=req_grid_coords)
+        map_size_discretized = map_size_discretized.astype(np.int32)
+        N, M = map_size_discretized
+        
+        # Expand Geometric Map
+        self.geometric_map.expand_map(req_grid_coords=req_grid_coords)
+        print(f"Expanding Semantic Map Descritized Size: {map_size_discretized}")
+
+        self.semantic_layer = np.zeros((N, M, 2))
+
+        new_grid_coords_room_layer = self.batch_world_to_grid_coords(room_layer_coords_and_semantic_value[:, :2])
+        new_grid_coords_object_layer = self.batch_world_to_grid_coords(object_layer_coords_and_semantic_value[:, :2])
+
+        self.semantic_layer[new_grid_coords_room_layer[:, 0], new_grid_coords_room_layer[:, 1], self.layer_name_to_idx['room']] = room_layer_coords_and_semantic_value[:, 2]
+        self.semantic_layer[new_grid_coords_object_layer[:, 0], new_grid_coords_object_layer[:, 1], self.layer_name_to_idx['object']] = object_layer_coords_and_semantic_value[:, 2]
+        
+        # Reset Flood Filled Map
+        self.flood_filled_map = None
+
+    def map_layer_to_coords_and_semantic_values(self, map_layer : np.ndarray):
+        idxes = np.where(map_layer > 0)
+        xs, ys = idxes
+        pc_idxes = np.stack((xs, ys), axis=1)
+        pc_coords = self.batch_grid_to_approx_world_coords(pc_idxes)
+        pc_semantic_values = map_layer[xs, ys].reshape(-1, 1)
+        pc_coords_and_semantic_values = np.hstack((pc_coords, pc_semantic_values))
+        return pc_coords_and_semantic_values
+
+    def get_points_and_values_by_semantic_layer(self):
+        room_layer_coords_and_semantic_value = self.map_layer_to_coords_and_semantic_values(self.semantic_layer[:, :, self.layer_name_to_idx['room']])
+        object_layer_coords_and_semantic_value = self.map_layer_to_coords_and_semantic_values(self.semantic_layer[:, :, self.layer_name_to_idx['object']])
+        return room_layer_coords_and_semantic_value, object_layer_coords_and_semantic_value
 
     ## -- VISUALIZATION FUNCTIONS -- ##
     
