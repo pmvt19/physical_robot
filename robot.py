@@ -52,6 +52,8 @@ class Robot():
         self.active_distance_threshold = 300
         self.local_planner_distance_threshold = 400
 
+        self.motion_controller = RobotController()
+
         # If Robot is not required to be tied to the physical robot, don't initialize the controllers
         if self.connection == 'simulated':
             self.const_reference_map_for_lidar = None
@@ -78,8 +80,6 @@ class Robot():
             self.controller = DynamixelController(device_name=config['physical']['dxl_motor_port'], motor_ids=[1, 2])
             self.ri = RobotInterface(controller=self.controller)
             self.ri.set_profile_velocity()
-
-            self.motion_controller = RobotController()
 
             # Connect to Redis Server for Publishing Lidar Data
             # self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
