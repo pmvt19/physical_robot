@@ -71,7 +71,7 @@ class AdvancedMap(Map):
         map_size_discretized = map_size_discretized.astype(np.int32)
         N, M = map_size_discretized
         print(f"Expanded Map Discritized Size: {map_size_discretized}")
-        self.map = np.zeros(N, M, 2)
+        self.map = np.zeros((N, M, 2))
         self.mx = self.map.shape[0] // 2
         self.my = self.map.shape[1] // 2
         ### --- Expand Map Here --- ###
@@ -80,7 +80,7 @@ class AdvancedMap(Map):
         new_grid_coords_occupied_layer = self.batch_world_to_grid_coords(occupied_layer_coords_and_values[:, :2])
 
         self.map[new_grid_coords_free_layer[:, 0], new_grid_coords_free_layer[:, 1], FREE] = free_layer_coords_and_values[:, 2]
-        self.map[new_grid_coords_occupied_layer[:, 0], new_grid_coords_occupied_layer[:, 1], OCCUPIED] = new_grid_coords_occupied_layer[:, 2]
+        self.map[new_grid_coords_occupied_layer[:, 0], new_grid_coords_occupied_layer[:, 1], OCCUPIED] = occupied_layer_coords_and_values[:, 2]
 
     def get_points(self, threshold=0.5):
         probability_map = self.map_to_probability_map()
@@ -94,11 +94,11 @@ class AdvancedMap(Map):
         return self.map_to_probability_map()
     
     def map_layer_to_coords_and_values(self, map_layer : np.ndarray):
-        idxes = np.where(map_layer> 0)
+        idxes = np.where(map_layer > 0)
         xs, ys = idxes
         pc_idxes = np.stack((xs, ys), axis=1)
         pc_coords = self.batch_grid_to_approx_world_coords(pc_idxes)
-        pc_values = map_layer.reshape(-1, 1)
+        pc_values = map_layer[xs, ys].reshape(-1, 1)
         pc_coords_and_values = np.hstack((pc_coords, pc_values))
         return pc_coords_and_values
 

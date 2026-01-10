@@ -195,7 +195,7 @@ class Map():
         min_diffs = 0 - mins
 
         # Maxs
-        max_diffs = maxs - np.array(self.map.shape)
+        max_diffs = maxs - np.array(self.get_shape_2d())
 
         all_diffs = np.concatenate((min_diffs, max_diffs), axis=0)
         all_diffs[all_diffs < 0] = 0 # Zero out non important diffs
