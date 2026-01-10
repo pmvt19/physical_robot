@@ -145,9 +145,28 @@ def get_target_from_semantics(robot: PhysicalRobotSpace, semantic_map: SemanticM
     target = robot.make_state(np.array([target_pos[0], target_pos[1], target_theta]))
 
     return target
+    
+def get_semantic_target_from_user(vlm_client: VLMClient, semantic_map: SemanticMap):
+    while True:
+        user_input = input("Please provide where you want the robot to travel (object or room)\n")
+        vlm_response = vlm_client.text_query(EXTRACT_SEMANTIC_TARGETS.format(user_input, 
+                                                                             semantic_map.get_room_list(),
+                                                                             semantic_map.get_object_list(),
+                                                                             semantic_map.get_invalid_object_list()))
+        user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response.text)
 
+        if user_semantic_target.valid:
+            break
+        else:
+            print(f"Unable to extract semantic information from input.\n \
+                  Reasoning:\n{user_semantic_target.reason} \nPlease Try Again!\n")
+    print(user_semantic_target.reason)
+    return user_semantic_target.semantic_level, user_semantic_target.item_name
 
 def run_semantic_motion_planning(map_save_dir):
+    # Initialize VLM Client
+    vlm_client = VLMClient()
+
     semantic_map: SemanticMap = load_saved_semantic_map(directory=map_save_dir)
     semantic_map.resolution = 10 # TODO REMOVE
     # Flood Fill Map
@@ -178,33 +197,27 @@ def run_semantic_motion_planning(map_save_dir):
         semantic_map.visualize_flood_fill_layer(ax[0], layer='room')
         semantic_map.visualize_flood_fill_layer(ax[1], layer='object')
         plt.show()
+    
+    semantic_layer, item = get_semantic_target_from_user(vlm_client, semantic_map)
 
     semantic_vertices, semantic_labels = get_semantic_labeled_prm_vertices(semantic_map, prm)
-    target = get_target_from_semantics(robot, semantic_map, semantic_vertices, semantic_labels, 'object', 'cardboard')
+    target = get_target_from_semantics(robot, semantic_map, semantic_vertices, semantic_labels, semantic_layer.lower(), item)
 
-    start = robot.make_state(np.array([0.0, 0.0, 0.0]))
+    # start = robot.make_state(np.array([0.0, 0.0, 0.0]))
+
+    pf = ParticleFilter(map_obj=semantic_map)
+    pf.initialize(num_particles=10000)
+
+    start = robot.make_state(localize_robot(robot, pf))
     path = prm.search(start, target)
 
     semantic_map.visualize_points(plt.gca())
     prm.draw(plt.gca(), path=path, show_task=True)
     plt.show()
-    
-def get_semantic_target_from_user(vlm_client: VLMClient, semantic_map: SemanticMap):
-    while True:
-        user_input = input("Please provide where you want the robot to travel (object or room)\n")
-        vlm_response = vlm_client.text_query(EXTRACT_SEMANTIC_TARGETS.format(user_input, 
-                                                                             semantic_map.get_room_list(),
-                                                                             semantic_map.get_object_list(),
-                                                                             semantic_map.get_invalid_object_list()))
-        user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response.text)
-
-        if user_semantic_target.valid:
-            break
-        else:
-            print(f"Unable to extract semantic information from input.\n \
-                  Reasoning:\n{user_semantic_target.reason} \nPlease Try Again!\n")
-    print(user_semantic_target.reason)
-    return user_semantic_target.semantic_level, user_semantic_target.item_name
+    path = [p.value for p in path]
+    motion_commands = robot.path_to_motion_commands(path)
+    for motion_command in motion_commands:
+        robot.command_motion_trial(motion_command)
 
 if __name__ == '__main__':
     run_semantic_motion_planning(map_save_dir='saves/scenes/extensive_apartment')
