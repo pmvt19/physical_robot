@@ -204,7 +204,7 @@ class Map():
         expansion_buffer = 0.3 # Increasing buffer size to prevent map expansion from being too small
         buffered_max_idx_diff = int((max_idx_diff * (1 + expansion_buffer)) + 0.5) # 0.5 is for Rounding
         
-        N, M, *_ = self.map.shape
+        N, M = self.get_shape_2d()
         new_map_size_discretized = np.array([N + 2*buffered_max_idx_diff, M + 2*buffered_max_idx_diff]) # In Idx Coords
         return new_map_size_discretized
 
