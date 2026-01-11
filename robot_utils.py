@@ -56,11 +56,11 @@ def localize_robot(robot: Robot,
     return updated_state, pf
 
 def mpc_plan_and_follow_trajectory(robot: Robot,
-                          pf: ParticleFilter,
-                          map: Map,
-                          prm: PRM,
-                          start: np.ndarray,
-                          target: np.ndarray):
+                                   pf: ParticleFilter,
+                                   map: Map,
+                                   prm: PRM,
+                                   start: np.ndarray,
+                                   target: np.ndarray):
     
     path = prm.search(start, target)
     
