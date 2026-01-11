@@ -9,6 +9,9 @@ from utils import transformation_mat_to_state
 
 from motion_planning.prm import PRM
 
+def is_close(state1, state2, threshold=100):
+    return np.linalg.norm(state1[:2] - state2[:2]) < threshold
+
 def localize_robot(robot: Robot, 
                    map: Map, 
                    num_particles: int = 10000, 
@@ -63,13 +66,15 @@ def mpc_plan_and_follow_trajectory(robot: Robot,
                                    target: np.ndarray):
     
     path = prm.search(start, target)
-    
+    path = [p.value for p in path]
+    current_state = start
+
     while True: # Fix this should stop eventually
         motion_commands = robot.path_to_motion_commands(path)
         
         for i, motion_command in enumerate(motion_commands):
             print(f"Executing Motion Command: {motion_command}")
-            m, predicted_state = robot.command_motion_and_predict_state(current_state, motion_command)
+            m, predicted_state = robot.command_motion_and_predict_state(current_state.value, motion_command)
             
             coords, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True, manual_verification=False)
 
@@ -81,7 +86,7 @@ def mpc_plan_and_follow_trajectory(robot: Robot,
             # raise ValueError("CHECK IF WORKS FIRST")
             print("Check if works first" * 100)
             T = run_icp(coords, map.get_points(), current_state, filter_init_outliers=False, visualize=True)
-            current_state = transformation_mat_to_state(T)
+            current_state = robot.make_state(transformation_mat_to_state(T))
             print(f"Current State After Refinement: {current_state}")
 
             # Break if we are on the 3rd Motion Command
@@ -89,5 +94,6 @@ def mpc_plan_and_follow_trajectory(robot: Robot,
                 break
         
         path = prm.search(current_state, target)
+        path = [p.value for p in path]
         motion_commands = robot.path_to_motion_commands(path)
             
