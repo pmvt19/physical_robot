@@ -60,14 +60,27 @@ def localize_robot(robot: Robot,
         plt.show()
     return updated_state, pf
 
+def visualize_prm(robot: PhysicalRobotSpace, prm: PRM, path=None):
+    # Draw Path
+    robot.map.visualize_points(plt.gca())
+    prm.draw(plt.gca(), path=path, show_task=True)
+    plt.show()
+
+    # Draw Individual States
+    # robot.map.visualize_points(plt.gca())
+    # for state in path:
+    #     robot.draw_state
+
 def mpc_plan_and_follow_trajectory(robot: PhysicalRobotSpace,
                                    pf: ParticleFilter,
                                    map: Map,
                                    prm: PRM,
                                    start: NumpyState,
-                                   target: NumpyState):
+                                   target: NumpyState,
+                                   visualize_path: bool = False):
     
     path = prm.search(start, target)
+    visualize_prm(robot, prm, path)
     path = [p.value for p in path]
     current_state = start
 
@@ -78,14 +91,14 @@ def mpc_plan_and_follow_trajectory(robot: PhysicalRobotSpace,
             print(f"Executing Motion Command: {motion_command}")
             m, predicted_state = robot.command_motion_and_predict_state(current_state.value, motion_command)
             
-            coords, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True, manual_verification=True)
+            coords, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True, manual_verification=False)
 
             # Particle Filter State Prediction Update
             current_state = pf.step(motion_delta=motion_command, scan=lidar_data)
             print(f"Current State After Particle Filter Update: {current_state}")
 
             # ICP State Refinement
-            T = run_icp(coords, map.get_points(), current_state, filter_init_outliers=False, visualize=True)
+            T = run_icp(coords, map.get_points(), current_state, filter_init_outliers=False, visualize=False)
             current_state = robot.make_state(transformation_mat_to_state(T))
             print(f"Current State After Refinement: {current_state}")
 
@@ -94,6 +107,7 @@ def mpc_plan_and_follow_trajectory(robot: PhysicalRobotSpace,
                 break
         
         path = prm.search(current_state, target)
+        # visualize_prm(robot, prm, path)
         path = [p.value for p in path]
         motion_commands = robot.path_to_motion_commands(path)
             
