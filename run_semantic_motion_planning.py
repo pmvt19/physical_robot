@@ -15,75 +15,7 @@ from motion_planning.prm import PRM
 from particle_filter import ParticleFilter
 from icp import run_icp
 from utils import transformation_mat_to_state
-
-def is_close(state1, state2, threshold=100):
-    return np.linalg.norm(state1[:2] - state2[:2]) < threshold
-
-def localize_robot(robot : PhysicalRobotSpace, pf : ParticleFilter):
-    motion_commands = [['angular', 1.57],
-                       ['angular', 1.57],
-                       ['angular', 1.57],
-                       ['angular', 1.57],]
-    # motion_commands = [['angular', 1.57],]
-    for motion_command in motion_commands:
-        m = robot.command_motion_trial(motion_command)
-        scan, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
-
-        updated_state = pf.step(motion_delta=motion_command, scan=lidar_data)
-
-    pf.visualize_particles(plt.gca())
-    pf.map.visualize_points(plt.gca())
-    plt.scatter(updated_state[0], updated_state[1], color='orange', zorder=2)
-    plt.show()
-    return updated_state
-
-def localize_mpc_planning(robot: PhysicalRobotSpace, prm: PRM, target: NumpyState):
-    pf = ParticleFilter(map_obj=robot.map)
-    pf.initialize(num_particles=1000)
-
-    # current_state = localize_robot(robot, pf)
-    current_state = np.array([0.0, 0.0, 0.0])
-    
-
-    while not is_close(current_state, target.value):
-        print("Replanning Path")
-        path = prm.search(robot.make_state(current_state), target)
-        robot.map.visualize_points(plt.gca())
-        robot.draw_state(plt.gca(), current_state)
-        robot.draw_state(plt.gca(), target.value)
-        prm.draw(plt.gca())
-        plt.show()
-        robot.map.visualize_points(plt.gca())
-        for p in path:
-            robot.draw_state(plt.gca(), p.value)
-        plt.show()
-        path_segment = path[:4]
-        path_segment = [p.value for p in path_segment]
-
-        motion_commands = robot.path_to_motion_commands(path_segment)
-        # motion_commands = robot.smooth_motion_commands(motion_commands)
-
-        coords, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
-        T = run_icp(coords, robot.map.get_points(), current_state, filter_init_outliers=False, visualize=True)
-        refined_state = transformation_mat_to_state(T)
-        current_state = refined_state
-        
-        # current_state = start_state_value
-        for motion_command in motion_commands:
-            print(f"Executing Motion Command: {motion_command}")
-            # m = robot.command_motion_trial(motion_command)
-            m, predicted_state = robot.command_motion_and_predict_state(current_state, motion_command)
-
-            coords, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True)
-
-            # updated_state = pf.step(motion_delta=motion_command, scan=lidar_data)
-            # current_state = updated_state
-
-            # Refine the State:
-            T = run_icp(coords, robot.map.get_points(), current_state, filter_init_outliers=False, visualize=False)
-            refined_state = transformation_mat_to_state(T)
-            current_state = refined_state
-            print(f"Current State: {current_state}")
+from robot_utils import localize_robot, mpc_plan_and_follow_trajectory
 
 FREE_THRESHOLD = 0.5
 def get_semantic_labeled_prm_vertices(semantic_map: SemanticMap, prm: PRM):
@@ -117,7 +49,13 @@ def get_semantic_labeled_prm_vertices(semantic_map: SemanticMap, prm: PRM):
 
     return unoccupied_vertices_with_labeled_semantics, unoccupied_vertices_labeled_semantics
 
-def get_target_from_semantics(robot: PhysicalRobotSpace, semantic_map: SemanticMap, vertices: np.ndarray, semantics: np.ndarray, layer: str, item: str, target_theta: float = 0.0):
+def get_target_from_semantics(robot: PhysicalRobotSpace, 
+                              semantic_map: SemanticMap, 
+                              vertices: np.ndarray, 
+                              semantics: np.ndarray, 
+                              layer: str, 
+                              item: str, 
+                              target_theta: float = 0.0):
 
     # Filter Semantics to only the layer of interest: room or object
     layer_semantics = semantics[:, semantic_map.layer_name_to_idx[layer]]
@@ -163,68 +101,43 @@ def get_semantic_target_from_user(vlm_client: VLMClient, semantic_map: SemanticM
     print(user_semantic_target.reason)
     return user_semantic_target.semantic_level, user_semantic_target.item_name
 
-def run_semantic_motion_planning(map_save_dir):
+def run_semantic_motion_planning(robot: PhysicalRobotSpace):
     # Initialize VLM Client
     vlm_client = VLMClient()
 
-    semantic_map: SemanticMap = load_saved_semantic_map(directory=map_save_dir)
-    semantic_map.resolution = 10 # TODO REMOVE
-    # Flood Fill Map
+    # Get Map from Robot
+    semantic_map: SemanticMap = robot.map
+    semantic_map.resolution = 10 # TODO: Hack for now remove this
+
+    # Flood Fill the Map
     semantic_map.flood_fill(limit_fill_extent=False, method='bfs')
 
-    # Create RobotSpace
-    robot = PhysicalRobotSpace(semantic_map)
-
-    # Initialize and Create PRM
-    prm = PRM(env=robot, num_samples=20000, num_neighbors=10, validate_edges=True)
-    prm.create_graph()
-
-    semantic_map.print_item_ids()
-
-    visualize = True
-    if visualize:
-        # Visualize Map Layers for Verification
-        semantic_map.visualize(plt.gca())
-        plt.show()
-
-        fig, ax = plt.subplots(1, 2)
-        semantic_map.visualize_semantic_layer(ax[0], layer='room')
-        semantic_map.visualize_semantic_layer(ax[1], layer='object')
-        plt.show()
-
-        # Visualize Flood Fill Map
-        fig, ax = plt.subplots(1, 2)
-        semantic_map.visualize_flood_fill_layer(ax[0], layer='room')
-        semantic_map.visualize_flood_fill_layer(ax[1], layer='object')
-        plt.show()
-    
+    # Get Semantic Target Layer and Item from User Natural Language Input
     semantic_layer, item = get_semantic_target_from_user(vlm_client, semantic_map)
 
+    # Create and Build PRM
+    prm = PRM(env=robot, num_samples=10000, num_neighbors=10, validate_edges=True)
+    prm.create_graph()
+
+    # Label Vertices in PRM with Semantic Information
     semantic_vertices, semantic_labels = get_semantic_labeled_prm_vertices(semantic_map, prm)
+
+    # Get Target State Based on User Semantic Input 
     target = get_target_from_semantics(robot, semantic_map, semantic_vertices, semantic_labels, semantic_layer.lower(), item)
 
-    # start = robot.make_state(np.array([0.0, 0.0, 0.0]))
+    # Localize Robot within Map
+    start, pf = localize_robot(robot, semantic_map)
 
-    pf = ParticleFilter(map_obj=semantic_map)
-    pf.initialize(num_particles=10000)
+    # Plan and Follow path with MPC
+    mpc_plan_and_follow_trajectory(robot, pf, robot.map, prm, robot.make_state(start), target)
 
-    start = robot.make_state(localize_robot(robot, pf))
-    path = prm.search(start, target)
-
-    semantic_map.visualize_points(plt.gca())
-    prm.draw(plt.gca(), path=path, show_task=True)
-    plt.show()
-    path = [p.value for p in path]
-    motion_commands = robot.path_to_motion_commands(path)
-    for motion_command in motion_commands:
-        robot.command_motion_trial(motion_command)
 
 if __name__ == '__main__':
-    run_semantic_motion_planning(map_save_dir='saves/scenes/extensive_apartment')
+    # Load Advanced Map
+    semantic_map = load_saved_semantic_map(directory='saves/scenes/extensive_apartment')
+    
+    # Initialize Robot Space
+    robot = PhysicalRobotSpace(semantic_map)
 
-
-    # semantic_map: SemanticMap = load_saved_semantic_map(directory="saves/scenes/extensive_apartment")
-    # semantic_map.resolution = 10 # TODO REMOVE
-
-    # vlm_client = VLMClient()
-    # print(get_semantic_target_from_user(vlm_client, semantic_map))
+    # Run Semantic Motion Planning Algorithm
+    run_semantic_motion_planning(robot)
