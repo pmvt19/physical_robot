@@ -81,7 +81,7 @@ def get_target_from_semantics(robot: PhysicalRobotSpace,
 
     # Create Robot State
     target = robot.make_state(np.array([target_pos[0], target_pos[1], target_theta]))
-
+    print(f"Assigned Target State: {np.round(target.value, 2)}")
     return target
     
 def get_semantic_target_from_user(vlm_client: VLMClient, semantic_map: SemanticMap):
