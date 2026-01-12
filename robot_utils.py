@@ -77,8 +77,8 @@ def mpc_plan_and_follow_trajectory(robot: PhysicalRobotSpace,
                                    prm: PRM,
                                    start: NumpyState,
                                    target: NumpyState,
-                                   visualize_path: bool = False):
-    
+                                   visualize_iterative_path: bool = False):
+
     path = prm.search(start, target)
     visualize_prm(robot, prm, path)
     path = [p.value for p in path]
@@ -95,19 +95,20 @@ def mpc_plan_and_follow_trajectory(robot: PhysicalRobotSpace,
 
             # Particle Filter State Prediction Update
             current_state = pf.step(motion_delta=motion_command, scan=lidar_data)
-            print(f"Current State After Particle Filter Update: {current_state}")
+            print(f"Current State After Particle Filter Update: {np.round(current_state, 2)}")
 
             # ICP State Refinement
             T = run_icp(coords, map.get_points(), current_state, filter_init_outliers=False, visualize=False)
             current_state = robot.make_state(transformation_mat_to_state(T))
-            print(f"Current State After Refinement: {current_state}")
+            print(f"Current State After ICP Refinement: {np.round(current_state.value, 2)}")
 
-            # Break if we are on the 3rd Motion Command
-            if i == 2:
+            # Break to replan if we are on the 4th Motion Command
+            if i == 3:
                 break
         
         path = prm.search(current_state, target)
-        # visualize_prm(robot, prm, path)
+        if visualize_iterative_path:
+            visualize_prm(robot, prm, path)
         path = [p.value for p in path]
         motion_commands = robot.path_to_motion_commands(path)
             
