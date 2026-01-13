@@ -2,7 +2,7 @@
 
 # --- Configuration ---
 SERVER_CMD="redis-server"
-CAMERA_CMD="python run_camera.py"
+CAMERA_CMD="python run_camera_elite.py"
 CRASHY_CMD="python run_lidar.py"
 
 # --- Function to handle script exit (e.g., when you hit Ctrl+C) ---
