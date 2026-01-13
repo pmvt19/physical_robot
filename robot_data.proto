@@ -59,12 +59,20 @@ message OakdLiteData {
     int64 timestamp = 4;
 }
 
-message RobotState {
+message RobotMotorPositions {
     int64 motor_position_left = 1;
     int64 motor_position_right = 2;
+}
+
+message RobotMotorVelocities {
     int64 motor_velocity_left = 3;
     int64 motor_velocity_right = 4;
-    repeated float robot_state = 5;
+}
+
+message RobotState {
+    RobotMotorPositions positions = 1;
+    RobotMotorVelocities velocities = 2;
+    NumpyArray robot_state = 3;
 }
 
 message MonitoringState {
@@ -85,4 +93,8 @@ service RobotServer {
     rpc GetLatestOakdLiteData(Acknowledge) returns (OakdLiteData);
 
     rpc SendMotionCommand(MotionCommand) returns (MotionDistance);
+
+    rpc GetMotorPositions(Acknowledge) returns (RobotMotorPositions);
+
+    rpc GetMotorVelocities(Acknowledge) returns (RobotMotorVelocities);
 }

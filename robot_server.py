@@ -185,6 +185,22 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         )
         return motion_distance
 
+    def GetMotorPositions(self, requests, context):
+        motor_id_1_pos, motor_id_2_pos = self.robot.ri.get_motor_positions()
+        motor_positions = pb2.RobotMotorPositions(
+            motor_position_left=motor_id_1_pos,
+            motor_position_right=motor_id_2_pos,
+        )
+        return motor_positions
+    
+    def GetMotorVelocities(self, requests, context):
+        motor_id_1_vel, motor_id_2_vel = self.robot.ri.get_motor_velocity()
+        motor_velocities = pb2.RobotMotorPositions(
+            motor_velocity_left=motor_id_1_vel,
+            motor_velocity_right=motor_id_2_vel,
+        )
+        return motor_velocities
+
 
 def serve():
     # Create a gRPC server
