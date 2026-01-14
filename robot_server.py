@@ -195,7 +195,7 @@ class RobotServerServicer(pb2_grpc.RobotServer):
     
     def GetMotorVelocities(self, requests, context):
         motor_id_1_vel, motor_id_2_vel = self.robot.ri.get_motor_velocity()
-        motor_velocities = pb2.RobotMotorPositions(
+        motor_velocities = pb2.RobotMotorVelocities(
             motor_velocity_left=motor_id_1_vel,
             motor_velocity_right=motor_id_2_vel,
         )
