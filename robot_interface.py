@@ -17,6 +17,18 @@ class MockLock():
     def release(self):
         pass
 
+class LoggedLock():
+    def __init__(self):
+        self.lock = Lock()
+
+    def acquire(self):
+        self.lock.acquire()
+        logger.info("Acquiring Lock")
+
+    def release(self):
+        self.lock.release()
+        logger.info("Releasing Lock")
+
 class RobotInterface():
     def __init__(self, controller):
         self.controller : DynamixelController = controller
