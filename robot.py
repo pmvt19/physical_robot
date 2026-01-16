@@ -526,8 +526,9 @@ class Robot():
         logger.info(f"Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
 
 
-        self.controller.set_position(id=1, position=desired_motor_pos_1)
-        self.controller.set_position(id=2, position=desired_motor_pos_2)
+        # self.controller.set_position(id=1, position=desired_motor_pos_1)
+        # self.controller.set_position(id=2, position=desired_motor_pos_2)
+        self.ri.set_motor_positions([desired_motor_pos_1, desired_motor_pos_2])
 
         if self.guard_active_motion:
             thread_stop = threading.Event() # Thread Shared Variable
@@ -547,8 +548,9 @@ class Robot():
 
                 self.ri.set_torque(TORQUE_ENABLE)
                 # print("Continuing Movement")
-                self.controller.set_position(id=1, position=desired_motor_pos_1)
-                self.controller.set_position(id=2, position=desired_motor_pos_2)
+                # self.controller.set_position(id=1, position=desired_motor_pos_1)
+                # self.controller.set_position(id=2, position=desired_motor_pos_2)
+                self.ri.set_motor_positions([desired_motor_pos_1, desired_motor_pos_2])
 
             # TODO: Try out this method of pausing the motors
             # while np.sum(self.ri.get_motor_velocity()) > 0:
@@ -596,11 +598,11 @@ class Robot():
 
         if desired_motor_pos_1 < 0:
             logger.info("Deflating final motor position 1")
-            final_motor_pos[0] -= self.controller.max_motor_position
+            final_motor_pos[0] -= self.ri.controller.max_motor_position
 
         if desired_motor_pos_2 < 0:
             logger.info("Deflating final motor position 2")
-            final_motor_pos[1] -= self.controller.max_motor_position
+            final_motor_pos[1] -= self.ri.controller.max_motor_position
 
         logger.info(f"Final Motor Positions: {final_motor_pos}")
         return self.compute_linear_motion(init_motor_pos, final_motor_pos)
@@ -626,8 +628,9 @@ class Robot():
         logger.info(f"Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
 
         # TODO: Is this bad design??
-        self.controller.set_position(id=1, position=desired_motor_pos_1)
-        self.controller.set_position(id=2, position=desired_motor_pos_2)
+        # self.controller.set_position(id=1, position=desired_motor_pos_1)
+        # self.controller.set_position(id=2, position=desired_motor_pos_2)
+        self.ri.set_motor_positions([desired_motor_pos_1, desired_motor_pos_2])
 
         while np.sum(self.ri.get_motor_velocity()) > 0:
             continue
@@ -635,11 +638,11 @@ class Robot():
         final_motor_pos = self.ri.get_motor_positions()
         if desired_motor_pos_1 < 0:
             logger.info("Deflating final motor position 1")
-            final_motor_pos[0] -= self.controller.max_motor_position
+            final_motor_pos[0] -= self.ri.controller.max_motor_position
             
         if desired_motor_pos_2 < 0:
             logger.info("Deflating final motor position 2")
-            final_motor_pos[1] -= self.controller.max_motor_position
+            final_motor_pos[1] -= self.ri.controller.max_motor_position
         
         logger.info(f"Final Motor Positions: {final_motor_pos}")
         return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
