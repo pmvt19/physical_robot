@@ -627,9 +627,6 @@ class Robot():
         desired_motor_pos_2 = init_motor_pos[1] + req_pulse
         logger.info(f"Desired Motor Positions: {[desired_motor_pos_1, desired_motor_pos_2]}")
 
-        # TODO: Is this bad design??
-        # self.controller.set_position(id=1, position=desired_motor_pos_1)
-        # self.controller.set_position(id=2, position=desired_motor_pos_2)
         self.ri.set_motor_positions([desired_motor_pos_1, desired_motor_pos_2])
 
         while np.sum(self.ri.get_motor_velocity()) > 0:
@@ -705,10 +702,8 @@ class Robot():
         elif self.connection == 'physical':
             # Consider moving this to RobotInterface in a function called "ExecuteMotion or CommandMotion or..."
             if motion_type == 'linear':
-                # m = self.ri.move_dist(dist) # TODO: Remove after successful rollout
                 m = self.move_linear(dist)
             elif motion_type == 'angular':
-                # m = self.ri.rotate_rad(dist) # TODO: Remove after successful rollout
                 m = self.move_angular(dist)
             else:
                 raise NotImplementedError
@@ -748,43 +743,6 @@ class Robot():
         heading_line_length = 500
         heading_line_ep = np.array([np.cos(theta), np.sin(theta)]) * heading_line_length + np.array([x, y])
         ax.plot([x, heading_line_ep[0]], [y, heading_line_ep[1]], color='red')
-
-    # # TODO: Optimize this function
-    # def state_pairs_to_motion_commands(self, state1, state2):
-    #     state_transition_motion_commands = []
-
-    #     x1, y1, theta1 = state1
-    #     x2, y2, theta2 = state2
-
-    #     positional_difference_vector = np.arctan2(y2-y1, x2-x1)
-
-    #     initial_turn = positional_difference_vector - theta1
-    #     linear_motion = np.sqrt((x2-x1)**2 + (y2-y1)**2)
-    #     final_turn = theta2 - positional_difference_vector
-
-    #     # Normalize Angles:
-    #     initial_turn = np.arctan2(np.sin(initial_turn), np.cos(initial_turn))
-    #     final_turn = np.arctan2(np.sin(final_turn), np.cos(final_turn))
-
-    #     # Add the motion commands in order (Skip those that are 0 [unlikely to happen...])
-    #     if initial_turn != 0:
-    #         state_transition_motion_commands.append(["angular", initial_turn])
-    #     if linear_motion != 0:
-    #         state_transition_motion_commands.append(["linear", linear_motion])
-    #     if final_turn != 0:
-    #         state_transition_motion_commands.append(["angular", final_turn])
-        
-    #     return state_transition_motion_commands
-
-    # def path_to_motion_commands(self, path):
-    #     motion_commands = []
-    #     for i in range(len(path)-1):
-    #         state1 = path[i]
-    #         state2 = path[i+1]
-
-    #         state_transition_motion_commands = self.state_pairs_to_motion_commands(state1, state2)
-    #         motion_commands.extend(state_transition_motion_commands)
-    #     return motion_commands
 
     def path_to_motion_commands(self, path):
         return self.motion_controller.compute_motion_commands(path)
