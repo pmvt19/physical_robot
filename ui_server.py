@@ -64,6 +64,10 @@ async def handler(websocket, path=None):
 
             accel_data, gyro_data = robot.read_imu()
 
+            # Get Motor Positions and Velocities
+            motor_position_left, motor_position_right = robot.read_motor_positions()
+            motor_velocity_left, motor_velocity_right = robot.read_motor_velocities()
+
             # --- 3. CONSTRUCT PAYLOAD ---
             data = {
                 "id": int(t * 10),
@@ -77,10 +81,10 @@ async def handler(websocket, path=None):
                     "ramUsage": 50.0,
                     "wifiSignal": -45,
                     "mode": "AUTONOMOUS",
-                    "leftMotorVelocity": 0.0,
-                    "rightMotorVelocity": 0.0,
-                    "leftMotorPosition": 0.0,
-                    "rightMotorPosition": 0.0
+                    "leftMotorVelocity": int(motor_velocity_left),
+                    "rightMotorVelocity": int(motor_velocity_right),
+                    "leftMotorPosition": int(motor_position_left),
+                    "rightMotorPosition": int(motor_position_right)
                 },
                 "imu": {
                     "accelerometer": {"x": accel_data[0], "y": accel_data[1], "z": accel_data[2]},

@@ -254,6 +254,35 @@ class Robot():
             
         elif self.connection == 'physical':
             raise NotImplementedError
+        
+    def read_motor_positions(self):
+        if self.connection == 'simulated':
+            raise NotImplementedError
+        elif self.connection == 'client':
+            request_ack = pb2.Acknowledge(
+                success=True,
+                message="Client is ready for data!"
+            )
+            robot_motor_positions = self.stub.GetMotorPositions(request_ack, timeout=2)
+            return np.array([robot_motor_positions.motor_position_left, robot_motor_positions.motor_position_right])
+            
+        elif self.connection == 'physical':
+            raise NotImplementedError
+    
+    def read_motor_velocities(self):
+        if self.connection == 'simulated':
+            raise NotImplementedError
+        elif self.connection == 'client':
+            request_ack = pb2.Acknowledge(
+                success=True,
+                message="Client is ready for data!"
+            )
+            robot_motor_velocites = self.stub.GetMotorVelocities(request_ack, timeout=2)
+            return np.array([robot_motor_velocites.motor_velocity_left, robot_motor_velocites.motor_velocity_right])
+            
+        elif self.connection == 'physical':
+            raise NotImplementedError
+        
     ### ------- Reading Sensors ------- ###
     
     def motion_command_to_pseudo_motor_diffs(self, motion_command):
