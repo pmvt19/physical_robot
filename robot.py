@@ -157,7 +157,7 @@ class Robot():
             coords = np.stack((x_coords, y_coords, z_coords), axis=1)
             return coords, lidar_data, init_time
 
-    def read_lidar_updated(self, manual_verification=False, wait_for_updated_reading=False):
+    def read_lidar_updated(self, manual_verification=False, wait_for_updated_reading=False, auto_retry_threshold=400):
         # coords, lidar_data = self._get_single_lidar_reading(wait_for_updated_reading)
         # if manual_verification:
         #     plt.scatter(coords[:, 0], coords[:, 1])
@@ -173,6 +173,12 @@ class Robot():
         user_input = 'yes'
         while user_input == 'yes':
             coords, lidar_data, _ = self._get_single_lidar_reading(wait_for_updated_reading)
+
+            # Auto-Retry Logic
+            if len(lidar_data) < auto_retry_threshold:
+                print("Auto Retry Triggered")
+                continue
+
             if manual_verification:
                 plt.scatter(coords[:, 0], coords[:, 1])
                 plt.show()
