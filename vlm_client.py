@@ -37,24 +37,49 @@ class VLMClient():
         # Get the bytes object
         image_bytes = byte_arr.getvalue()
 
-        # TODO: THIS IS BAD FIX THIS
-        try:
-            image_response = self.client.models.generate_content(
-                model=self.model_id,
-                contents=[
-                    types.Part.from_bytes(
-                        data=image_bytes,
-                        mime_type='image/png',
-                    ),
-                    text_prompt
-                ],
-                config = types.GenerateContentConfig(
-                    temperature=0.5,
-                    thinking_config=types.ThinkingConfig(thinking_budget=0)
+        # # TODO: THIS IS BAD FIX THIS
+        # try:
+        #     image_response = self.client.models.generate_content(
+        #         model=self.model_id,
+        #         contents=[
+        #             types.Part.from_bytes(
+        #                 data=image_bytes,
+        #                 mime_type='image/png',
+        #             ),
+        #             text_prompt
+        #         ],
+        #         config = types.GenerateContentConfig(
+        #             temperature=0.5,
+        #             thinking_config=types.ThinkingConfig(thinking_budget=0)
+        #         )
+        #     )
+        # except:
+        #     image_response = None # TODO: Understand what to do here
+        # return image_response
+        image_response = None
+        while True:
+            try:
+                image_response = self.client.models.generate_content(
+                    model=self.model_id,
+                    contents=[
+                        types.Part.from_bytes(
+                            data=image_bytes,
+                            mime_type='image/png',
+                        ),
+                        text_prompt
+                    ],
+                    config = types.GenerateContentConfig(
+                        temperature=0.5,
+                        thinking_config=types.ThinkingConfig(thinking_budget=0)
+                    )
                 )
-            )
-        except:
-            image_response = None # TODO: Understand what to do here
+            except:
+                user_input = input("Call to VLM Returned an Exception. Try Again?")
+                if user_input.lower() == 'yes':
+                    continue
+                else:
+                    print("Returning `None`")
+                    break
         return image_response
 
     def text_query(self, text_prompt : str):
