@@ -7,6 +7,21 @@ Identify what kind of room the inputed image depicts.
 Please answer with only the room (can be one or multiple words).
 """
 
+ASSIGN_ROOM_LABEL = \
+"""
+You are an image analysis expert.
+
+Identify what kind of room the inputed image depicts.
+
+Here are a list of already existing rooms in the map: {}. 
+Please reuse any existing room names if they fit the provided image.
+
+These are a list of invalid room names: {}
+Do not assign any of these room labels to the image.
+
+Please answer with only the room (can be one or multiple words). Input this answer in the room_label field.
+"""
+
 EXTRACT_SEMANTIC_TARGETS = \
 """
 The user provides a sentence providing a command for where the robot should travel to.
