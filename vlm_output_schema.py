@@ -6,5 +6,5 @@ class UserSemanticTarget(BaseModel):
     item_name: str
     reason: str
 
-class RoomType(BaseModel):
-    room_type: str
+class RoomLabel(BaseModel):
+    room_label: str
