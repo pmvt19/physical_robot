@@ -10,7 +10,8 @@ import time
 import os
 from vlm_client import VLMClient
 from image_segmentation import ImageSegmenter
-from prompts import ASSIGN_ROOM_LABEL_ONLY_PROMPT
+from prompts import ASSIGN_ROOM_LABEL_ONLY_PROMPT, ASSIGN_ROOM_LABEL
+from vlm_output_schema import RoomLabel
 
 # from config import scene_name
 
@@ -103,8 +104,12 @@ if __name__ == "__main__":
         # # Semantic Update
 
         # Get Room Label
-        room_label_response = vlm_client.image_text_query(rgb_img, ASSIGN_ROOM_LABEL_ONLY_PROMPT)
-        room_label = room_label_response.text
+        room_label_response = vlm_client.image_text_query(rgb_img,
+                                                          ASSIGN_ROOM_LABEL.format(
+                                                              semantic_map.get_room_list(), 
+                                                              semantic_map.get_invalid_room_list()),
+                                                          RoomLabel.model_json_schema())
+        room_label = RoomLabel.model_validate_json(room_label_response.text)
 
         # Get Image Segmentation
         prediction, labels = image_segmenter.segment_image(rgb_img)
@@ -113,7 +118,7 @@ if __name__ == "__main__":
         formatted_segmented_img = semantic_map.format_img_segmentation(prediction['segmentation'], labels.items())
 
         # Format PC to What Semantic Map Wants
-        pc_and_labels = semantic_map.label_and_filter_point_cloud(pc, formatted_segmented_img, room_label)
+        pc_and_labels = semantic_map.label_and_filter_point_cloud(pc, formatted_segmented_img, room_label.room_label)
 
         # Update Semantic Map with Geometry and Semantics
         semantic_map_updated_state = semantic_map.update_geometry_and_semantics(scan, pc_and_labels, semantic_map_predicted_state)
