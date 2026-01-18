@@ -170,7 +170,7 @@ class SemanticMap(Map):
         print("\nObject Layer Mappings:")
         for id, object_name in self.object_to_id.items():
             print(f"{id} -> {object_name}")
-    
+
     ## -- FORMATING IMG SEGMENTATION AND PC DATA FUNCTIONS -- ##
 
     def format_img_segmentation(self, img_segmentation, labels):
