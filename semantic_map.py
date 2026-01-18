@@ -17,7 +17,9 @@ class SemanticMap(Map):
         self.semantic_layer = np.zeros((self.get_map_2d().shape[0], self.get_map_2d().shape[1], 2)) # axis 2: 0 -> Room Level Information, 1 -> Object Level Information
         self.flood_filled_map = None
         self.map_type_name = 'semantic_map'
-        self.invalid_objects = set(['wall', 'floor', 'ceiling', 'door', 'window', 'person'])
+
+        self.invalid_rooms = set(['wall', 'room'])
+        self.invalid_objects = set(['wall', 'floor', 'ceiling', 'door', 'window', 'person', 'sky'])
 
         self.layer_name_to_idx = {
             'room' : 0,
@@ -153,6 +155,9 @@ class SemanticMap(Map):
 
     def get_object_list(self):
         return [object_name for object_name in self.object_to_id]
+
+    def get_invalid_room_list(self):
+        return list(self.invalid_rooms)
 
     def get_invalid_object_list(self):
         return list(self.invalid_objects)
