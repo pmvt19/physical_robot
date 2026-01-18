@@ -111,24 +111,13 @@ class AdvancedMap(Map):
     def map_to_probability_map(self):
         return (self.map[:, :, OCCUPIED] + 1) / (np.sum(self.map, axis=2) + 2)
 
-    def get_frontiers(self):
+    def get_frontier_candidates(self):
         probablity_map = self.get_map_2d()
 
         raw_map = self.map.copy()
-        # raw_map[:, :, FREE] = gaussian_filter(raw_map[:, :, FREE], sigma=2.0)
-
-        fig, ax = plt.subplots(1,2)
-        ax[0].imshow(np.rot90(raw_map[:, :, FREE]))
-        ax[1].imshow(np.rot90(raw_map[:, :, OCCUPIED]))
-        plt.show()
 
         raw_map[:, :, FREE] = gaussian_filter(raw_map[:, :, FREE], sigma=1.0)
         raw_map[:, :, OCCUPIED] = gaussian_filter(raw_map[:, :, OCCUPIED], sigma=1.0)
-
-        fig, ax = plt.subplots(1,2)
-        ax[0].imshow(np.rot90(raw_map[:, :, FREE]))
-        ax[1].imshow(np.rot90(raw_map[:, :, OCCUPIED]))
-        plt.show()
 
         probablity_map = (raw_map[:, :, OCCUPIED] + 1) / (np.sum(raw_map, axis=2) + 2)
 
@@ -139,11 +128,13 @@ class AdvancedMap(Map):
 
         frontier_cells = np.logical_and(dilated_unknown_cells, free_cells)
 
-        fig, ax = plt.subplots(1, 2)
+        return frontier_cells
 
-        self.visualize(ax[0])
-        ax[1].imshow(np.rot90(frontier_cells))
-        plt.show()
+    def get_frontiers(self):
+        frontier_cells = self.get_frontier_candidates()
+        # Cluster Cells
+
+        # Compute Cluster Centroids
     
     def visualize(self, ax):
         probability_map = self.map_to_probability_map()
