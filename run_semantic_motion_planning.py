@@ -90,7 +90,8 @@ def get_semantic_target_from_user(vlm_client: VLMClient, semantic_map: SemanticM
         vlm_response = vlm_client.text_query(EXTRACT_SEMANTIC_TARGETS.format(user_input, 
                                                                              semantic_map.get_room_list(),
                                                                              semantic_map.get_object_list(),
-                                                                             semantic_map.get_invalid_object_list()))
+                                                                             semantic_map.get_invalid_object_list()), 
+                                                                             UserSemanticTarget.model_json_schema())
         user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response.text)
 
         if user_semantic_target.valid:
