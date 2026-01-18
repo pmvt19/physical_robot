@@ -6,6 +6,7 @@ import math
 import matplotlib.pyplot as plt
 from skimage.draw import line
 from icp import run_icp
+from scipy.ndimage import binary_dilation, gaussian_filter
 
 FREE = 0
 OCCUPIED = 1
@@ -109,10 +110,48 @@ class AdvancedMap(Map):
     
     def map_to_probability_map(self):
         return (self.map[:, :, OCCUPIED] + 1) / (np.sum(self.map, axis=2) + 2)
+
+    def get_frontiers(self):
+        probablity_map = self.get_map_2d()
+
+        raw_map = self.map.copy()
+        # raw_map[:, :, FREE] = gaussian_filter(raw_map[:, :, FREE], sigma=2.0)
+
+        fig, ax = plt.subplots(1,2)
+        ax[0].imshow(np.rot90(raw_map[:, :, FREE]))
+        ax[1].imshow(np.rot90(raw_map[:, :, OCCUPIED]))
+        plt.show()
+
+        raw_map[:, :, FREE] = gaussian_filter(raw_map[:, :, FREE], sigma=1.0)
+        raw_map[:, :, OCCUPIED] = gaussian_filter(raw_map[:, :, OCCUPIED], sigma=1.0)
+
+        fig, ax = plt.subplots(1,2)
+        ax[0].imshow(np.rot90(raw_map[:, :, FREE]))
+        ax[1].imshow(np.rot90(raw_map[:, :, OCCUPIED]))
+        plt.show()
+
+        probablity_map = (raw_map[:, :, OCCUPIED] + 1) / (np.sum(raw_map, axis=2) + 2)
+
+        unknown_cells = probablity_map == 0.5
+        free_cells = probablity_map < 0.5
+
+        dilated_unknown_cells = binary_dilation(unknown_cells)
+
+        frontier_cells = np.logical_and(dilated_unknown_cells, free_cells)
+
+        fig, ax = plt.subplots(1, 2)
+
+        self.visualize(ax[0])
+        ax[1].imshow(np.rot90(frontier_cells))
+        plt.show()
     
     def visualize(self, ax):
         probability_map = self.map_to_probability_map()
         ax.imshow((np.rot90(probability_map)))
+    
+    def visualize_layers(self, ax):
+        ax[0].imshow(np.rot90(self.map[:, :, FREE]))
+        ax[1].imshow(np.rot90(self.map[:, :, OCCUPIED]))
         
 if __name__ == '__main__':
     advanced_map = AdvancedMap()
