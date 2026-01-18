@@ -44,6 +44,7 @@ physical_robot/
     ├──sensors/
         ├──physical/
             ├──run_camera.py
+            ├──run_camera_elite.py
             ├──run_lidar.py
         ├──simulated/
             ├──simualte_lidar.py
@@ -94,6 +95,7 @@ physical_robot/
         ├──processes/
             ├──test_particle_filter.py
             ├──test_slam.py??
+            ├──test_vlm_client.py
         ├──visual/
             ├──tbd.py??
         ├──computational/
