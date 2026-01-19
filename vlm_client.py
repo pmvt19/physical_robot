@@ -18,7 +18,7 @@ class VLMClient():
         load_dotenv()
         GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-        self.model_options = ["gemini-robotics-er-1.5-preview", "gemini-2.5-flash"]
+        self.model_options = ["gemini-robotics-er-1.5-preview", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
         self.current_model_options_idx = 0
         self.model_id = model_id
         self.client = genai.Client(api_key=GEMINI_API_KEY)
