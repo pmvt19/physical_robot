@@ -140,3 +140,11 @@ Files to Rename:
 ├── package.json
 └── README.md
 ```
+
+## Installation
+
+```sh
+conda create --name <name> python=3.10.18
+
+sh env_setup.sh
+```
