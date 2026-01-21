@@ -5,7 +5,6 @@ charset-normalizer==3.4.4
 contourpy==1.3.2
 cycler==0.12.1
 depthai==3.2.1
-dynamixel_sdk @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_dynamixel-sdk_1756982208/work/python
 filelock==3.20.0
 fonttools==4.61.0
 fsspec==2025.12.0
@@ -23,14 +22,12 @@ MarkupSafe==3.0.3
 matplotlib==3.10.7
 mpmath==1.3.0
 networkx==3.4.2
-numpy==1.26.0
 opencv-python==4.12.0.88
 packaging==25.0
 pillow==12.0.0
 protobuf==6.33.2
 pyarrow==22.0.0
 pyparsing==3.2.5
-pyserial @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_b13k7dm09j/croot/pyserial_1736540562370/work
 python-dateutil==2.9.0.post0
 PyYAML==6.0.3
 redis==7.1.0
