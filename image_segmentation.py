@@ -13,9 +13,15 @@ from transformers import AutoImageProcessor, Mask2FormerForUniversalSegmentation
 # TODO: Look into using CUDA for faster inference if available
 
 class ImageSegmenter():
-    def __init__(self, model="facebook/mask2former-swin-base-coco-panoptic"):
+    def __init__(self, model="facebook/mask2former-swin-base-coco-panoptic", use_gpu=False):
         self.processor = AutoImageProcessor.from_pretrained(model)
         self.model = Mask2FormerForUniversalSegmentation.from_pretrained(model)
+        self.device = "cpu"
+
+        if use_gpu:
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"Using Device: {self.device}")
+        self.model = self.model.to(self.device)
 
     def _get_all_segment_labels(self, prediction):
         segmentation_labels = {
@@ -27,10 +33,13 @@ class ImageSegmenter():
         image = Image.fromarray(image)
         inputs = self.processor(image, return_tensors="pt")
 
+        inputs = inputs.to(self.device)
+
         with torch.no_grad():
             outputs = self.model(**inputs)
 
         prediction = self.processor.post_process_panoptic_segmentation(outputs, target_sizes=[image.size[::-1]])[0]
+        prediction['segmentation'] = prediction['segmentation'].cpu()
         return prediction, self._get_all_segment_labels(prediction)
 
     def draw_panoptic_segmentation(self, ax, segmentation, segments_info):
@@ -68,6 +77,7 @@ class ImageSegmenter():
         for prompt in prompts:
             mask = np.logical_or(mask, self.get_instance_segment_mask(segmentation, segments_info, prompt))
         return mask
+
     
 if __name__ == '__main__':
     import time
