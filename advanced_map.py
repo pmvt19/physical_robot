@@ -136,6 +136,19 @@ class AdvancedMap(Map):
 
         # Compute Cluster Centroids
     
+    def adjust_resolution(self, resolution=100):
+        new_map = AdvancedMap(resolution=resolution)
+        free_layer_coords_and_values, occupied_layer_coords_and_values = self.get_points_and_values_by_layer()
+
+        # Populate New Map
+        new_free_layer_coords = new_map.batch_world_to_grid_coords(free_layer_coords_and_values[:, :2])
+        new_occupied_layer_coords = new_map.batch_world_to_grid_coords(occupied_layer_coords_and_values[:, :2])
+
+        new_map.map[new_free_layer_coords[:, 0], new_free_layer_coords[:, 1], FREE] = free_layer_coords_and_values[:, 2]
+        new_map.map[new_occupied_layer_coords[:, 0], new_occupied_layer_coords[:, 1], OCCUPIED] = occupied_layer_coords_and_values[:, 2] * 100
+
+        return new_map
+    
     def visualize(self, ax):
         probability_map = self.map_to_probability_map()
         ax.imshow((np.rot90(probability_map)))
@@ -145,9 +158,18 @@ class AdvancedMap(Map):
         ax[1].imshow(np.rot90(self.map[:, :, OCCUPIED]))
         
 if __name__ == '__main__':
-    advanced_map = AdvancedMap()
-    advanced_map.init_map(initial_scan=generate_fake_scan())
+    from test_utils import load_saved_advanced_map
+    advanced_map: AdvancedMap = load_saved_advanced_map(directory="saves/scenes/extensive_apartment")
     advanced_map.visualize(plt.gca())
+    plt.show()
+
+    frontier_candidates = advanced_map.get_frontier_candidates()
+    plt.imshow(np.rot90(frontier_candidates))
+    plt.show()
+
+    fig, ax = plt.subplots(1, 2)
+    advanced_map.visualize(ax[0])
+    ax[1].imshow(np.rot90(frontier_candidates))
     plt.show()
 
 
