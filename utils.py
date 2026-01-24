@@ -165,3 +165,23 @@ def point_to_points_distance(point, points):
 def batch_points_to_batch_points_distance(batch_points1, batch_points2):
     dists = np.sqrt(np.sum(batch_points1**2, axis=1, keepdims=True) + np.sum(batch_points2**2, axis=1, keepdims=True).T + (-2 * (batch_points1 @ batch_points2.T)))
     return dists
+
+### Image Utils ###
+def create_circular_kernel(n, radius=None):
+    # Default radius to n/2 if not specified
+    if radius is None:
+        radius = n / 2
+    
+    # 1. Create a coordinate grid (0 to n-1)
+    y, x = np.ogrid[:n, :n]
+    
+    # 2. Find the center coordinates
+    center = (n - 1) / 2
+    
+    # 3. Calculate squared distance from center
+    dist_from_center = (x - center)**2 + (y - center)**2
+    
+    # 4. Create binary mask (True where distance <= radius^2)
+    kernel = dist_from_center <= radius**2
+    
+    return kernel.astype(np.uint8)
