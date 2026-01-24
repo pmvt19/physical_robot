@@ -164,10 +164,7 @@ class Map():
     def inflate_obstacles(self, inflation_value=1):
         kernel_size = int(210 // self.resolution) # Hard Coded to the radius of the robot
 
-        kernel = np.ones((kernel_size, kernel_size))
-        kernel[kernel_size//2, kernel_size//2] = 0
-
-        kernel = create_circular_kernel(21, 10.5)
+        kernel = create_circular_kernel(kernel_size, kernel_size/2)
 
         # Convolve: counts neighbors of "1"s
         neighbor_mask = convolve2d((self.map == 1).astype(int), kernel, mode="same", boundary="fill", fillvalue=0)
