@@ -5,6 +5,7 @@ from scipy.signal import convolve2d
 from shapely import Point
 import pickle
 import os
+from utils import create_circular_kernel
 
 
 # map_size = (100, 100)
@@ -160,15 +161,20 @@ class Map():
         pc_coords_and_values = np.hstack((pc_coords, pc_values))
         return pc_coords_and_values
     
-    def inflate_obstacles(self, kernel_size=3):
+    def inflate_obstacles(self, inflation_value=1):
+        kernel_size = int(210 // self.resolution) # Hard Coded to the radius of the robot
+
         kernel = np.ones((kernel_size, kernel_size))
         kernel[kernel_size//2, kernel_size//2] = 0
+
+        kernel = create_circular_kernel(21, 10.5)
 
         # Convolve: counts neighbors of "1"s
         neighbor_mask = convolve2d((self.map == 1).astype(int), kernel, mode="same", boundary="fill", fillvalue=0)
 
         # Where neighbor_mask > 0 (adjacent to a 1) and current value != 1
-        self.map[(neighbor_mask > 0) & (self.map != 1)] = 0.7
+        self.map[(neighbor_mask > 0) & (self.map != 1)] = inflation_value
+
 
     def validate_map_boundaries(self, grid_coords):
         min_x = np.min(grid_coords[:, 0])
@@ -256,13 +262,9 @@ class Map():
         pickle.dump(self, open(f"{self.get_save_dir(map_save_dir)}/{self.map_type_name}_object_{file_name_ext}.pickle", "wb"))
 
 if __name__ == '__main__':
-    points = np.load('data/new_slam_data/scene_1.npy')
-    mymap = Map(initial_scan=points)
+    from test_utils import load_saved_map
 
-    # print(mymap.world_to_grid_coords((-511, -500)))
-    # print(mymap.grid_to_approx_world_coords(mymap.world_to_grid_coords((-500, -500))))
-
-    mymap.update_map(points)
+    mymap = load_saved_map(directory="saves/scenes/extensive_apartment")
     mymap.inflate_obstacles()
     mymap.visualize(ax=plt.gca())
     mymap.draw_state(plt.gca(), [40.0, 0.0, 0.0])
