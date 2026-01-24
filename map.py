@@ -230,6 +230,18 @@ class Map():
         new_grid_coords = self.batch_world_to_grid_coords(approx_world_coords)
         self.map[new_grid_coords[:, 0], new_grid_coords[:, 1]] = values # TODO: Linked with previous todo in this function^
 
+    def adjust_resolution(self, resolution=100.0):
+        new_map = Map(resolution=resolution)
+        points_and_values = self.get_points_and_values()
+        points = points_and_values[:, :2]
+        values = points_and_values[:, 2]
+
+        # Populate New Map
+        new_grid_coords = new_map.batch_world_to_grid_coords(points)
+        new_map.map[new_grid_coords[:, 0], new_grid_coords[:, 1]] = values
+
+        return new_map
+
     def draw_state(self, ax, state):
         x, y, theta = state
         x, y = x / self.resolution + self.mx, y / self.resolution + self.my
@@ -266,4 +278,3 @@ if __name__ == '__main__':
     mymap.visualize(ax=plt.gca())
     mymap.draw_state(plt.gca(), [40.0, 0.0, 0.0])
     plt.show()
-    
