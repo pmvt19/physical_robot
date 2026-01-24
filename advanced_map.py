@@ -6,7 +6,7 @@ import math
 import matplotlib.pyplot as plt
 from skimage.draw import line
 from icp import run_icp
-from scipy.ndimage import binary_dilation, gaussian_filter
+from scipy.ndimage import binary_dilation, gaussian_filter, median_filter
 
 FREE = 0
 OCCUPIED = 1
@@ -130,11 +130,100 @@ class AdvancedMap(Map):
 
         return frontier_cells
 
+    def is_valid_frontier_cluster(self, cluster_id, cluster_sizes):
+        # TODO: Make this a function that defines valid frontiers
+        # For example, 5 is hard coded to cell sizes right now
+        # What if we want it to find the area of extent of the frontier?
+        # We can get the axis aligned rectangle by taking the boundary points
+        # and computing the area and this area should be above a certain threshold
+
+
+        # If you want to enfoce a fixed area size
+        metric_size_threshold_mm_sq = 100
+        #...
+
+
+        # TODO: Also, if you want to enforce a fixed length, it should be in metric
+        # units, not in cell units as the resolution can change
+
+        # If you want to enforce a fixed cumulative size
+        metric_size_threshold_mm = 100
+        cell_size_threshold = metric_size_threshold_mm / self.resolution
+        return cluster_sizes[cluster_id] > cell_size_threshold
+    
+        
+
     def get_frontiers(self):
         frontier_cells = self.get_frontier_candidates()
-        # Cluster Cells
+        # frontier_cells = median_filter(frontier_cells, size=3)
 
-        # Compute Cluster Centroids
+        # Get Frontier Cells Coords
+        xs, ys = np.where(frontier_cells > 0)
+        
+        cluster_labels = np.zeros(self.get_shape_2d())
+
+        N, M = cluster_labels.shape
+        neighbors = [(0,1), (0,-1), (1,0), (-1,0), (1,1), (1,-1), (-1,1), (-1,-1)]
+        label_id = 1
+        # for i in range(N):
+        #     for j in range(M):
+        cluster_sizes = {}
+        for i, j in zip(xs, ys):
+            if frontier_cells[i, j] == 1:
+                q = [(i, j)]
+                cluster_sizes[label_id] = 1
+                while q:
+                    x, y = q.pop(0)
+
+                    if cluster_labels[x, y] > 0:
+                        continue
+                    cluster_labels[x, y] = label_id
+                    cluster_sizes[label_id] += 1
+
+                    for ox, oy in neighbors:
+                        nx = x + ox
+                        ny = y + oy
+
+                        if nx >= 0 and nx < N and ny >= 0 and ny < M and frontier_cells[nx, ny] == 1:
+                            q.append((nx, ny))
+                label_id += 1
+        # print(cluster_sizes)
+        
+        valid_cluster_ids = []
+        for cluster_id in cluster_sizes:
+            if self.is_valid_frontier_cluster(cluster_id, cluster_sizes):
+                valid_cluster_ids.append(cluster_id)
+        
+        # plt.imshow(np.rot90(cluster_labels))
+        # plt.show()
+
+        # mask = np.zeros_like(cluster_labels)
+
+        # for i, valid_id in enumerate(valid_cluster_ids):
+        #     id_mask = cluster_labels == valid_id
+        #     mask[id_mask] = i
+        
+        # plt.imshow(np.rot90(mask))
+        # plt.show()
+
+        # Compute Cluster Centers
+        cluster_centers = []
+        for i, valid_id in enumerate(valid_cluster_ids):
+            xs, ys = np.where(cluster_labels == valid_id)
+            x_center = np.mean(xs).astype(int)
+            y_center = np.mean(ys).astype(int)
+            cluster_centers.append((x_center, y_center, valid_id))
+        cluster_centers = np.array(cluster_centers)
+
+        self.visualize_points(plt.gca())
+        world_coords = self.batch_grid_to_approx_world_coords(cluster_centers[:, :2])
+        plt.scatter(world_coords[:, 0], world_coords[:, 1])
+        plt.show()
+
+        
+        # TODO:  Filter Frontiers By How Far They Are From Obstacle Points
+
+        return world_coords
     
     def adjust_resolution(self, resolution=100):
         new_map = AdvancedMap(resolution=resolution)
@@ -171,6 +260,13 @@ if __name__ == '__main__':
     advanced_map.visualize(ax[0])
     ax[1].imshow(np.rot90(frontier_candidates))
     plt.show()
+
+    import time
+    st = time.time()
+    advanced_map.get_frontiers()
+    et = time.time()
+
+    print(f"Time to get frontiers: {et-st}")
 
 
     
