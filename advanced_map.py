@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from skimage.draw import line
 from icp import run_icp
 from scipy.ndimage import binary_dilation, gaussian_filter, median_filter
+from sklearn.neighbors import KDTree
 
 FREE = 0
 OCCUPIED = 1
@@ -206,7 +207,7 @@ class AdvancedMap(Map):
         # plt.imshow(np.rot90(mask))
         # plt.show()
 
-        # Compute Cluster Centers
+        # Compute Cluster Centers 
         cluster_centers = []
         for i, valid_id in enumerate(valid_cluster_ids):
             xs, ys = np.where(cluster_labels == valid_id)
@@ -216,14 +217,29 @@ class AdvancedMap(Map):
         cluster_centers = np.array(cluster_centers)
 
         self.visualize_points(plt.gca())
-        world_coords = self.batch_grid_to_approx_world_coords(cluster_centers[:, :2])
-        plt.scatter(world_coords[:, 0], world_coords[:, 1])
+        frontier_points_world_coords = self.batch_grid_to_approx_world_coords(cluster_centers[:, :2])
+        plt.scatter(frontier_points_world_coords[:, 0], frontier_points_world_coords[:, 1])
         plt.show()
 
         
-        # TODO:  Filter Frontiers By How Far They Are From Obstacle Points
+        # Filter Frontiers By How Far They Are From Obstacle Points
+        obstacle_points = self.get_points()
+        kd_tree = KDTree(data=obstacle_points)
 
-        return world_coords
+        # Find the Single Nearest Neighbor
+        dists, idxs = kd_tree.query(frontier_points_world_coords, k=1)
+        
+
+        min_dist_threshold = 400 #mm
+        valid_frontier_mask = dists.flatten() > min_dist_threshold
+
+        frontier_points_world_coords = frontier_points_world_coords[valid_frontier_mask]
+
+        self.visualize_points(plt.gca())
+        plt.scatter(frontier_points_world_coords[:, 0], frontier_points_world_coords[:, 1])
+        plt.show()
+
+        return frontier_points_world_coords
     
     def adjust_resolution(self, resolution=100):
         new_map = AdvancedMap(resolution=resolution)
