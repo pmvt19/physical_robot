@@ -8,7 +8,8 @@ from skimage.draw import line
 from icp import run_icp
 from scipy.ndimage import binary_dilation, gaussian_filter, median_filter
 from sklearn.neighbors import KDTree
-
+from utils import create_circular_kernel
+from scipy.ndimage import grey_dilation
 FREE = 0
 OCCUPIED = 1
 
@@ -111,6 +112,16 @@ class AdvancedMap(Map):
     
     def map_to_probability_map(self):
         return (self.map[:, :, OCCUPIED] + 1) / (np.sum(self.map, axis=2) + 2)
+
+    def inflate_obstacles(self, inflation_value=None):
+
+        self.inflated_map = self.map.copy()
+        kernel_size = int(210 // self.resolution) # Hard Coded to the radius of the robot
+
+        kernel = create_circular_kernel(kernel_size, kernel_size/2)
+
+        self.inflated_map[:, :, OCCUPIED] = grey_dilation(self.inflated_map[:, :, OCCUPIED], footprint=kernel)
+        self.inflated_map[self.inflated_map[:, :, OCCUPIED] > 0, FREE] = 0
 
     def get_frontier_candidates(self):
         probablity_map = self.get_map_2d()
