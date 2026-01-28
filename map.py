@@ -161,8 +161,9 @@ class Map():
         pc_coords_and_values = np.hstack((pc_coords, pc_values))
         return pc_coords_and_values
     
-    def inflate_obstacles(self, inflation_value=1):
-        kernel_size = int(210 // self.resolution) # Hard Coded to the radius of the robot
+    def inflate_obstacles(self, inflation_radius=210):
+        self.inflated_map = self.map.copy()
+        kernel_size = int(inflation_radius // self.resolution) # Hard Coded to the radius of the robot
 
         kernel = create_circular_kernel(kernel_size, kernel_size/2)
 
@@ -170,7 +171,7 @@ class Map():
         neighbor_mask = convolve2d((self.map == 1).astype(int), kernel, mode="same", boundary="fill", fillvalue=0)
 
         # Where neighbor_mask > 0 (adjacent to a 1) and current value != 1
-        self.map[(neighbor_mask > 0) & (self.map != 1)] = inflation_value
+        self.inflated_map[(neighbor_mask > 0) & (self.map != 1)] = 1
 
 
     def validate_map_boundaries(self, grid_coords):
