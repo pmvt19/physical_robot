@@ -113,10 +113,10 @@ class AdvancedMap(Map):
     def map_to_probability_map(self):
         return (self.map[:, :, OCCUPIED] + 1) / (np.sum(self.map, axis=2) + 2)
 
-    def inflate_obstacles(self, inflation_value=None):
+    def inflate_obstacles(self, inflation_radius=210):
 
         self.inflated_map = self.map.copy()
-        kernel_size = int(210 // self.resolution) # Hard Coded to the radius of the robot
+        kernel_size = int(inflation_radius // self.resolution) # Hard Coded to the radius of the robot
 
         kernel = create_circular_kernel(kernel_size, kernel_size/2)
 
