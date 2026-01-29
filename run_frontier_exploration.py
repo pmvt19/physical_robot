@@ -21,6 +21,20 @@ def get_frontier_target(frontiers, advanced_map_state):
     optimal_frontier = frontiers[idx[0]]
     return optimal_frontier
 
+def order_frontier_targets(frontiers, robot_state_2d):
+    # frontiers: (N, 2)
+    # robot_state_2d: (2,)
+
+    assert frontiers.shape[1] == 2
+    assert robot_state_2d.shape[0] == 2
+
+    dists = np.linalg.norm(frontiers - robot_state_2d.reshape(-1, 2), axis=1)
+
+    dist_sorted_frontiers = frontiers[np.argsort(dists)]
+    return dist_sorted_frontiers
+
+
+
 def bfs(start, target, grid):
     N, M = grid.shape
 
@@ -91,19 +105,22 @@ def dijkstra(start, target, grid):
             nx = x + ox
             ny = y + oy
 
-            if nx >= 0 and nx < N and ny >= 0 and ny < M and grid[nx, ny] <= 0.65:
+            if nx >= 0 and nx < N and ny >= 0 and ny < M and grid[nx, ny] <= 0.5:
                 heappush(q, ((cost + grid[nx, ny], (x, y), (nx, ny))))
-                
+    print(f"Length of Visited: {len(visited)}")
 
     target_tuple = (target[0], target[1])
 
-    current = target_tuple
-    path = []
-    while current:
-        path.append(current)
-        current = child_to_parent[current]
-    
-    return path[::-1]
+    if target_tuple in child_to_parent:
+        current = target_tuple
+        path = []
+        while current:
+            path.append(current)
+            current = child_to_parent[current]
+        
+        return path[::-1]
+    else:
+        return None
         
 
 
@@ -122,6 +139,42 @@ def get_path_to_frontier(map: AdvancedMap, robot_state: np.ndarray, frontier_tar
     path = np.array(path)
     return path
 
+def get_path_to_frontier_robust(map: AdvancedMap, robot_state: np.ndarray):
+    assert robot_state.shape[0] == 2
+
+    map_2d = map.get_inflated_map_2d()
+
+    print("Showing Inflated Map")
+    plt.imshow(np.rot90(map_2d))
+    plt.show()
+
+    grid_robot_state = map.world_to_grid_coords(robot_state[:2])
+    map_2d[grid_robot_state[0], grid_robot_state[1]] = 20
+    print("Showing Inflated Map")
+    plt.imshow(np.rot90(map_2d))
+    plt.show()
+
+    # TODO: Clear start radius -- START
+    # TODO: Clear start radius -- END
+
+
+
+    frontiers = map.get_frontiers()
+    ordered_frontiers = order_frontier_targets(frontiers, robot_state[:2])
+
+
+    for i in range(len(ordered_frontiers)):
+        selected_frontier = ordered_frontiers[i]
+        grid_frontier_target = map.world_to_grid_coords(selected_frontier)
+        path = dijkstra(grid_robot_state, grid_frontier_target, map_2d)
+    
+    if path is not None:
+        path = np.array(path)
+        # print(path)
+        return path
+    else:
+        return None
+
 def viz_map(map: AdvancedMap):
     fig, ax = plt.subplots(1, 2)
     map.visualize(ax[0])
@@ -132,7 +185,7 @@ def viz_map(map: AdvancedMap):
 if __name__ == "__main__":
 
     ## TODO: Will update directory structure soon
-    scene_name = 'frontier_exploration_test'
+    scene_name = 'frontier_exploration_test_more_frontiers'
     map_save_dir = f'saves/scenes/{scene_name}'
 
     # Initialization
@@ -159,7 +212,7 @@ if __name__ == "__main__":
         frontiers = advanced_map.get_frontiers()
         optimal_frontier = get_frontier_target(frontiers, advanced_map_state)
         print(f"Optimal Frontier: {optimal_frontier}")
-
+        print(f"Getting path to frontier with these args: {advanced_map_state[:2], optimal_frontier[0]}")
         path = get_path_to_frontier(advanced_map, advanced_map_state[:2], optimal_frontier[0])
     
         advanced_map.visualize_points(plt.gca())
@@ -177,6 +230,7 @@ if __name__ == "__main__":
         input("continue??") # TODO: Remove Later
         for motion_command in motion_commands[:2]:
             motion_type, motion_dist = motion_command
+            print(f"Running Motion Command: {motion_command}")
             if abs(motion_dist) < 0.09:
                 print("Skipping Motion")
                 continue
