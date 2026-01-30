@@ -185,3 +185,28 @@ def create_circular_kernel(n, radius=None):
     kernel = dist_from_center <= radius**2
     
     return kernel.astype(np.uint8)
+
+def create_local_mask(map_shape, target_coords, radius):
+    """
+    map_shape: (height, width) of your occupancy map
+    target_coords: (y, x) center of the circle
+    radius: radius of the dilation
+    """
+    mask = np.zeros(map_shape, dtype=bool)
+    h, w = map_shape
+    cy, cx = target_coords
+
+    # 1. Define the bounding box of the circle to save processing time
+    y_min, y_max = max(0, int(cy - radius)), min(h, int(cy + radius + 1))
+    x_min, x_max = max(0, int(cx - radius)), min(w, int(cx + radius + 1))
+
+    # 2. Create a coordinate grid for just that bounding box
+    y, x = np.ogrid[y_min:y_max, x_min:x_max]
+    
+    # 3. Calculate distance from the specific target coordinate
+    dist_sq = (x - cx)**2 + (y - cy)**2
+    
+    # 4. Apply the circle logic to the specific slice of the mask
+    mask[y_min:y_max, x_min:x_max] = dist_sq <= radius**2
+    
+    return mask
