@@ -123,6 +123,9 @@ class AdvancedMap(Map):
         self.inflated_map[:, :, OCCUPIED] = grey_dilation(self.inflated_map[:, :, OCCUPIED], footprint=kernel)
         self.inflated_map[self.inflated_map[:, :, OCCUPIED] > 0, FREE] = 0
 
+    def get_inflated_map_2d(self):
+        return (self.inflated_map[:, :, OCCUPIED] + 1) / (np.sum(self.inflated_map, axis=2) + 2)
+
     def get_frontier_candidates(self):
         probablity_map = self.get_map_2d()
 
