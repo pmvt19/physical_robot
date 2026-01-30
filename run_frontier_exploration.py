@@ -14,6 +14,7 @@ from prompts import ASSIGN_ROOM_LABEL_ONLY_PROMPT, ASSIGN_ROOM_LABEL
 from vlm_output_schema import RoomLabel
 from sklearn.neighbors import KDTree
 from heapq import *
+from utils import create_local_mask
 
 def get_frontier_target(frontiers, advanced_map_state):
     kd_tree = KDTree(data=frontiers)
@@ -122,7 +123,52 @@ def dijkstra(start, target, grid):
     else:
         return None
         
+def batch_dijkstra(start, targets, grid):
+    N, M = grid.shape
 
+    sx, sy = start
+    q = []
+    heappush(q, ((0.0, None, (sx, sy))))
+
+    visited = set()
+
+    neighbors = [(0,1), (1,0), (0,-1), (-1,0)]
+
+    child_to_parent = {(sx, sy) : None}
+
+    frontier_target = None
+
+    while q:
+        cost, parent, (x, y) = heappop(q)
+
+        if (x, y) in visited:
+            continue
+        visited.add((x,y))
+        child_to_parent[(x,y)] = parent
+
+        if (x, y) in targets:
+            print("found_target")
+            frontier_target = (x, y)
+            break
+
+        for ox, oy in neighbors:
+            nx = x + ox
+            ny = y + oy
+
+            if nx >= 0 and nx < N and ny >= 0 and ny < M and grid[nx, ny] <= 0.5:
+                heappush(q, ((cost + grid[nx, ny], (x, y), (nx, ny))))
+    print(f"Length of Visited: {len(visited)}")
+
+    if frontier_target is not None and frontier_target in child_to_parent:
+        current = frontier_target
+        path = []
+        while current:
+            path.append(current)
+            current = child_to_parent[current]
+        
+        return path[::-1]
+    else:
+        return None
 
         
 # TODO: Use dijkstra's instead with cell prob as cost
@@ -141,39 +187,65 @@ def get_path_to_frontier(map: AdvancedMap, robot_state: np.ndarray, frontier_tar
 
 def get_path_to_frontier_robust(map: AdvancedMap, robot_state: np.ndarray):
     assert robot_state.shape[0] == 2
+    print(f"Getting path to frontier with these args: {robot_state}")
 
     map_2d = map.get_inflated_map_2d()
 
-    print("Showing Inflated Map")
-    plt.imshow(np.rot90(map_2d))
-    plt.show()
+    # print("Showing Inflated Map")
+    # plt.imshow(np.rot90(map_2d))
+    # plt.show()
 
+    
     grid_robot_state = map.world_to_grid_coords(robot_state[:2])
-    map_2d[grid_robot_state[0], grid_robot_state[1]] = 20
-    print("Showing Inflated Map")
-    plt.imshow(np.rot90(map_2d))
-    plt.show()
+    # # To visualize robot
+    # map_2d_copy = map_2d.copy()
+    # map_2d_copy[grid_robot_state[0], grid_robot_state[1]] = 20
+    # print("Showing Inflated Map")
+    # plt.imshow(np.rot90(map_2d_copy))
+    # plt.show()
 
     # TODO: Clear start radius -- START
+    # Radius
+    metric_radius = 100
+    grid_radius = metric_radius / map.resolution
+    local_circle_mask = create_local_mask(map_2d.shape, grid_robot_state, grid_radius)
+
+
+    # map_2d_copy = map_2d.copy()
+    map_2d[local_circle_mask] = 0
+    # map_2d[grid_robot_state[0], grid_robot_state[1]] = 20
+    # print("Showing Inflated Map")
+    # plt.imshow(np.rot90(map_2d))
+    # plt.show()
+
+
     # TODO: Clear start radius -- END
 
 
 
     frontiers = map.get_frontiers()
-    ordered_frontiers = order_frontier_targets(frontiers, robot_state[:2])
-
-
-    for i in range(len(ordered_frontiers)):
-        selected_frontier = ordered_frontiers[i]
-        grid_frontier_target = map.world_to_grid_coords(selected_frontier)
-        path = dijkstra(grid_robot_state, grid_frontier_target, map_2d)
+    # ordered_frontiers = order_frontier_targets(frontiers, robot_state[:2])
+    
+    grid_frontier_targets = map.batch_world_to_grid_coords(frontiers)
+    set_of_grid_frontier_targets = set([(i,j) for i,j in grid_frontier_targets])
+    path = batch_dijkstra(grid_robot_state, set_of_grid_frontier_targets, map_2d)
+    # for i in range(len(ordered_frontiers)):
+    #     selected_frontier = ordered_frontiers[i]
+    #     grid_frontier_target = map.world_to_grid_coords(selected_frontier)
+    #     # path = dijkstra(grid_robot_state, grid_frontier_target, map_2d)
+    #     path = batch_dijkstra(grid_robot_state, set_of_grid_frontier_targets, map_2d)
+    
+    #     if path is not None:
+    #         path = np.array(path)
+    #         print(f"Path Returned: {path}")
+    #         return path
     
     if path is not None:
         path = np.array(path)
-        # print(path)
-        return path
+        print(f"Path Returned: {path}")
+        return path, frontiers
     else:
-        return None
+        return None, frontiers
 
 def viz_map(map: AdvancedMap):
     fig, ax = plt.subplots(1, 2)
@@ -185,7 +257,7 @@ def viz_map(map: AdvancedMap):
 if __name__ == "__main__":
 
     ## TODO: Will update directory structure soon
-    scene_name = 'frontier_exploration_test_more_frontiers'
+    scene_name = 'frontier_exploration_test_more_frontiers_v4'
     map_save_dir = f'saves/scenes/{scene_name}'
 
     # Initialization
@@ -209,11 +281,12 @@ if __name__ == "__main__":
 
     while True:
         advanced_map.inflate_obstacles()
-        frontiers = advanced_map.get_frontiers()
-        optimal_frontier = get_frontier_target(frontiers, advanced_map_state)
-        print(f"Optimal Frontier: {optimal_frontier}")
-        print(f"Getting path to frontier with these args: {advanced_map_state[:2], optimal_frontier[0]}")
-        path = get_path_to_frontier(advanced_map, advanced_map_state[:2], optimal_frontier[0])
+        # frontiers = advanced_map.get_frontiers()
+        # optimal_frontier = get_frontier_target(frontiers, advanced_map_state)
+        # print(f"Optimal Frontier: {optimal_frontier}")
+        # print(f"Getting path to frontier with these args: {advanced_map_state[:2], optimal_frontier[0]}")
+        # path = get_path_to_frontier(advanced_map, advanced_map_state[:2], optimal_frontier[0])
+        path, frontiers = get_path_to_frontier_robust(advanced_map, advanced_map_state[:2])
     
         advanced_map.visualize_points(plt.gca())
         plt.scatter(frontiers[:, 0], frontiers[:, 1])
