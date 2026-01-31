@@ -190,55 +190,20 @@ def get_path_to_frontier_robust(map: AdvancedMap, robot_state: np.ndarray):
     print(f"Getting path to frontier with these args: {robot_state}")
 
     map_2d = map.get_inflated_map_2d()
-
-    # print("Showing Inflated Map")
-    # plt.imshow(np.rot90(map_2d))
-    # plt.show()
-
     
     grid_robot_state = map.world_to_grid_coords(robot_state[:2])
-    # # To visualize robot
-    # map_2d_copy = map_2d.copy()
-    # map_2d_copy[grid_robot_state[0], grid_robot_state[1]] = 20
-    # print("Showing Inflated Map")
-    # plt.imshow(np.rot90(map_2d_copy))
-    # plt.show()
 
-    # TODO: Clear start radius -- START
-    # Radius
+    # Clear start radius
     metric_radius = 100
     grid_radius = metric_radius / map.resolution
     local_circle_mask = create_local_mask(map_2d.shape, grid_robot_state, grid_radius)
-
-
-    # map_2d_copy = map_2d.copy()
-    map_2d[local_circle_mask] = 0
-    # map_2d[grid_robot_state[0], grid_robot_state[1]] = 20
-    # print("Showing Inflated Map")
-    # plt.imshow(np.rot90(map_2d))
-    # plt.show()
-
-
-    # TODO: Clear start radius -- END
-
+    map_2d[local_circle_mask] = 0 # TODO: Make a copy??
 
 
     frontiers = map.get_frontiers()
-    # ordered_frontiers = order_frontier_targets(frontiers, robot_state[:2])
-    
     grid_frontier_targets = map.batch_world_to_grid_coords(frontiers)
     set_of_grid_frontier_targets = set([(i,j) for i,j in grid_frontier_targets])
     path = batch_dijkstra(grid_robot_state, set_of_grid_frontier_targets, map_2d)
-    # for i in range(len(ordered_frontiers)):
-    #     selected_frontier = ordered_frontiers[i]
-    #     grid_frontier_target = map.world_to_grid_coords(selected_frontier)
-    #     # path = dijkstra(grid_robot_state, grid_frontier_target, map_2d)
-    #     path = batch_dijkstra(grid_robot_state, set_of_grid_frontier_targets, map_2d)
-    
-    #     if path is not None:
-    #         path = np.array(path)
-    #         print(f"Path Returned: {path}")
-    #         return path
     
     if path is not None:
         path = np.array(path)
