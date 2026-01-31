@@ -126,13 +126,14 @@ class AdvancedMap(Map):
     def get_inflated_map_2d(self):
         return (self.inflated_map[:, :, OCCUPIED] + 1) / (np.sum(self.inflated_map, axis=2) + 2)
 
-    def get_frontier_candidates(self):
+    def get_frontier_candidates(self, do_smoothing=False):
         probablity_map = self.get_map_2d()
 
         raw_map = self.map.copy()
 
-        raw_map[:, :, FREE] = gaussian_filter(raw_map[:, :, FREE], sigma=1.0)
-        raw_map[:, :, OCCUPIED] = gaussian_filter(raw_map[:, :, OCCUPIED], sigma=1.0)
+        if do_smoothing:
+            raw_map[:, :, FREE] = gaussian_filter(raw_map[:, :, FREE], sigma=1.0)
+            raw_map[:, :, OCCUPIED] = gaussian_filter(raw_map[:, :, OCCUPIED], sigma=1.0)
 
         probablity_map = (raw_map[:, :, OCCUPIED] + 1) / (np.sum(raw_map, axis=2) + 2)
 
