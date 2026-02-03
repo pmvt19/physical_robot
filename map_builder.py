@@ -67,6 +67,7 @@ class SemanticMapBuilder(MapBuilder):
         # Read Point Cloud
         pc, _ = self.robot.read_point_cloud()
 
+        # Query the VLM for the Room Label
         room_label_response = self.vlm_client.image_text_query(rgb_img,
                                                           ASSIGN_ROOM_LABEL.format(
                                                               self.map.get_room_list(), 
