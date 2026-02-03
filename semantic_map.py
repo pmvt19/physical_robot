@@ -74,6 +74,12 @@ class SemanticMap(Map):
 
     def validate_map_boundaries(self, grid_coords):
         return self.geometric_map.validate_map_boundaries(grid_coords)
+
+    def inflate_obstacles(self, inflation_radius=210):
+        self.geometric_map.inflate_obstacles(inflation_radius=inflation_radius)
+
+    def get_frontiers(self):
+        return self.geometric_map.get_frontiers()
     
     def expand_map(self, req_grid_coords):
         # Get World Coordinates and Values for each semantic map layer (Room and Object)

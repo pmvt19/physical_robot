@@ -173,6 +173,8 @@ class Map():
         # Where neighbor_mask > 0 (adjacent to a 1) and current value != 1
         self.inflated_map[(neighbor_mask > 0) & (self.map != 1)] = 1
 
+    def get_frontiers(self):
+        raise NotImplementedError
 
     def validate_map_boundaries(self, grid_coords):
         min_x = np.min(grid_coords[:, 0])
