@@ -37,16 +37,16 @@ class MapBuilder():
         plt.show()
 
 class AdvancedMapBuilder(MapBuilder):
-    def __init__(self, manual_lidar_verification=False):
-        super().__init__(manual_lidar_verification)
+    def __init__(self, robot, manual_lidar_verification=False):
+        super().__init__(robot, manual_lidar_verification)
 
         self.map: AdvancedMap = AdvancedMap()
 
 class SemanticMapBuilder(MapBuilder):
-    def __init__(self, manual_lidar_verification=False):
-        super().__init__(manual_lidar_verification)
+    def __init__(self, robot, manual_lidar_verification=False):
+        super().__init__(robot, manual_lidar_verification)
 
-        self.map: SemanticMap = SemanticMap()
+        self.map: SemanticMap = SemanticMap(map_obj=AdvancedMap())
 
         # Initialize ML Clients
         self.image_segmenter = ImageSegmenter()
@@ -89,4 +89,6 @@ class SemanticMapBuilder(MapBuilder):
         self.map.visualize(ax[0])
         self.map.visualize_semantic_layer(ax[1], layer='room')
         self.map.visualize_semantic_layer(ax[2], layer='object')
+        print(self.map.room_to_id)
+        print(self.map.object_to_id)
         plt.show()
