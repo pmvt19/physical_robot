@@ -35,6 +35,12 @@ class MapBuilder():
         # Update Map with New Geometry
         self.robot_state = self.map.update(world_coords, self.robot_state)
 
+    def get_map(self):
+        return self.map
+    
+    def get_robot_state(self):
+        return self.robot_state
+    
     def show(self):
         self.map.visualize(plt.gca())
         plt.show()
