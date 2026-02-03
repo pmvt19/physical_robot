@@ -268,13 +268,20 @@ class ParticleFilter():
     #     refined_state_estimate = transformation_mat_to_state(T)
     #     return refined_state_estimate
 
-    def step(self, motion_delta, scan, estimate_method='MLE'):
+    def step(self, motion_delta, scan, estimate_method='MLE', icp_refinement_coords=False):
         self.particles = self.get_updated_particles(motion_delta)
         self.update_particle_weights(scan)
         state_estimate = self.get_state_estimate(method=estimate_method)
         confidence_estimate = self.get_confidence_estimate(state_estimate)
         print(f"Confidence Estimate: {confidence_estimate}")
         self.resample()
+
+        # ICP State Refinement
+        if icp_refinement_coords is not None:
+            # TODO: Scan is not right, it should be the lidar coordinates, but scan is the raw_lidar_data
+            T = run_icp(icp_refinement_coords, self.map.get_points(), state_estimate, filter_init_outliers=False, visualize=False)
+            state_estimate = transformation_mat_to_state(T)
+        
         return state_estimate
     
     ### --- Visualization Functions --- ###
