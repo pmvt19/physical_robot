@@ -260,14 +260,6 @@ class ParticleFilter():
         _, _, batch_normalized_weights = self.batch_get_measurement_update(self.particles[:, :3], scan)
         self.particles[:, 3] = batch_normalized_weights
 
-    # TODO: UNUSED; Figure out how to get coords here
-    # def refine_state_estimate(self, scan, state_estimate):
-    #     # coords = raw_scan_to_coords(scan)[:, :2]
-    #     T = run_icp(self.map.get_points(), coords, state_estimate)
-        
-    #     refined_state_estimate = transformation_mat_to_state(T)
-    #     return refined_state_estimate
-
     def step(self, motion_delta, scan, estimate_method='MLE', icp_refinement_coords=False):
         self.particles = self.get_updated_particles(motion_delta)
         self.update_particle_weights(scan)
