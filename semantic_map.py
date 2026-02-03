@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from heapq import *
 from map import Map
 from utils import timer
 from sklearn.neighbors import KDTree
