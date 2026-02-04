@@ -15,12 +15,12 @@ from vlm_output_schema import RoomLabel
 
 
 class MapBuilder():
-    def __init__(self, robot, manual_lidar_verification=False):
+    def __init__(self, robot, map_resolution=10.0, manual_lidar_verification=False):
         self.robot: Robot = robot
         self.manual_lidar_verification = manual_lidar_verification
         self.robot_state = np.array([0.0, 0.0, 0.0])
 
-        self.map: Map = Map()
+        self.map: Map = Map(resolution=map_resolution)
 
     def init(self):
         world_coords, raw_lidar_data = self.robot.read_lidar_updated(manual_verification=self.manual_lidar_verification, wait_for_updated_reading=True)
@@ -46,16 +46,16 @@ class MapBuilder():
         plt.show()
 
 class AdvancedMapBuilder(MapBuilder):
-    def __init__(self, robot, manual_lidar_verification=False):
-        super().__init__(robot, manual_lidar_verification)
+    def __init__(self, robot, map_resolution=10.0, manual_lidar_verification=False):
+        super().__init__(robot, map_resolution, manual_lidar_verification)
 
-        self.map: AdvancedMap = AdvancedMap()
+        self.map: AdvancedMap = AdvancedMap(resolution=map_resolution)
 
 class SemanticMapBuilder(MapBuilder):
-    def __init__(self, robot, manual_lidar_verification=False):
-        super().__init__(robot, manual_lidar_verification)
+    def __init__(self, robot, map_resolution=10.0, manual_lidar_verification=False):
+        super().__init__(robot, map_resolution, manual_lidar_verification)
 
-        self.map: SemanticMap = SemanticMap(map_obj=AdvancedMap())
+        self.map: SemanticMap = SemanticMap(map_obj=AdvancedMap(resolution=map_resolution))
 
         # Initialize ML Clients
         self.image_segmenter = ImageSegmenter()
