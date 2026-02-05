@@ -25,6 +25,9 @@ saves/
             -incremental_imgs/
 """
 
+# TODO: Make robust visualization function here
+# You just pass it map_builders list and it automatically shows you all the geometry maps
+# and semantic maps if applicable
 def visualize_all_maps(map: Map, advanced_map: AdvancedMap, semantic_map: SemanticMap):
     fig, ax = plt.subplots(1, 3)
     map.visualize(ax=ax[0])
@@ -39,6 +42,29 @@ def visualize_semantics(semantic_map: SemanticMap):
     print(semantic_map.room_to_id)
     print(semantic_map.object_to_id)
     plt.show()
+
+def visualize_map_builders(map_builders: list[MapBuilder], viz_semantics=True):
+    num_map_builders = len(map_builders)
+
+    # Should never be practically more than 3 (Only 3 types of maps as of now)
+    fig, ax = plt.subplots(1, num_map_builders)
+
+    for i, map_builder in enumerate(map_builders):
+        map_builder.get_map().visualize(ax=ax[i])
+    plt.show()
+
+    if viz_semantics:
+        # Individualy display the semantics if enabled
+        for i, map_builder in enumerate(map_builders):
+            if isinstance(map_builder, SemanticMapBuilder):
+                semantic_map: SemanticMap = map_builder.get_map()
+
+                fig, ax = plt.subplots(1, 2)
+                semantic_map.visualize_semantic_layer(ax[0], layer='room')
+                semantic_map.visualize_semantic_layer(ax[1], layer='object')
+                print(semantic_map.room_to_id)
+                print(semantic_map.object_to_id)
+                plt.show()
 
 if __name__ == "__main__":
 
