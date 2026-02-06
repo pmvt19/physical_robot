@@ -9,6 +9,8 @@ class GemmaVLMClient():
     def __init__(self):
         self.model = 'gemma3:4b'
 
+        print("To use the GemmaVLMClient. Ensure there is a local Ollama server running with the Gemma3:4b model downloaded")
+
     def _get_image_bytes(self, image: np.ndarray):
         # Convert the NumPy array to a PIL Image object
         pil_image = Image.fromarray(image)
@@ -23,7 +25,6 @@ class GemmaVLMClient():
         image_bytes = byte_arr.getvalue()
 
         return image_bytes
-    
 
     def _image_text_query_schema(self, image_prompt: np.ndarray, text_prompt: str, schema: dict):
         response = chat(
