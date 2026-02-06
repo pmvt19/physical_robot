@@ -78,7 +78,7 @@ class VLMClient():
                 response_json_schema=schema
             )
         )
-        return image_response
+        return image_response.text
     
     def _image_text_query_no_schema(self, image_prompt: np.ndarray, text_prompt: str):
 
@@ -96,7 +96,7 @@ class VLMClient():
                 thinking_config=types.ThinkingConfig(thinking_budget=0),
             )
         )
-        return image_response
+        return image_response.text
     
     @protect_failed_api_calls
     def image_text_query(self, image_prompt: np.ndarray, text_prompt: str, schema: dict = None):
@@ -120,7 +120,7 @@ class VLMClient():
                 response_json_schema=schema
             )
         )
-        return text_response
+        return text_response.text
     
     def _text_query_no_schmea(self, text_prompt: str):
         text_response = self.client.models.generate_content(
@@ -133,7 +133,7 @@ class VLMClient():
                 thinking_config=types.ThinkingConfig(thinking_budget=0),
             )
         )
-        return text_response
+        return text_response.text
     
     @protect_failed_api_calls
     def text_query(self, text_prompt: str, schema: dict = None):
@@ -151,5 +151,5 @@ if __name__ == '__main__':
     img = Image.open('/Users/pravaltelagi/oakd_camera/saves/apartment/rgb_imgs/0004.png')
     img = np.asarray(img)
     response = vlm_client.image_text_query(img, ASSIGN_ROOM_LABEL_ONLY_PROMPT)
-    print(response.text)
+    print(response)
 
