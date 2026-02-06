@@ -114,7 +114,7 @@ def semantic_slam(monitoring_mode=False):
         print("Finished Filtering PC")
 
         room_label_response = vlm_client.image_text_query(rgb_img, ASSIGN_ROOM_LABEL_ONLY_PROMPT)
-        room_label = room_label_response.text
+        room_label = room_label_response
 
         # TODO: HACK Address this hack inside reading the sensor data itself?
         pc_flattened_coords = align_point_cloud(pc_flattened_coords)

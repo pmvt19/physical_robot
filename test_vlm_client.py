@@ -10,7 +10,7 @@ def test_text_prompt_no_schema():
     vlm_client = VLMClient()
 
     vlm_response = vlm_client.text_query("What is the room where you would want to cook your meals?")
-    assert 'kitchen' in vlm_response.text
+    assert 'kitchen' in vlm_response
 
 def test_text_prompt_schema():
     vlm_client = VLMClient()
@@ -25,7 +25,7 @@ def test_text_prompt_schema():
                                                                              invalid_object_list),
                                         UserSemanticTarget.model_json_schema())
 
-    user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response.text)
+    user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response)
     assert user_semantic_target.semantic_level == 'room'
     assert user_semantic_target.valid == True
     assert user_semantic_target.item_name == "kitchen"
@@ -36,7 +36,7 @@ def test_text_prompt_schema():
                                                                              invalid_object_list),
                                         UserSemanticTarget.model_json_schema())
 
-    user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response.text)
+    user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response)
     assert user_semantic_target.semantic_level == 'object'
     assert user_semantic_target.valid == True
     assert user_semantic_target.item_name == "desk"
@@ -47,7 +47,7 @@ def test_text_prompt_schema():
                                                                              invalid_object_list),
                                         UserSemanticTarget.model_json_schema())
 
-    user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response.text)
+    user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response)
     
     assert user_semantic_target.valid == False
     assert user_semantic_target.semantic_level == 'N/A'
@@ -60,7 +60,7 @@ def test_image_text_prompt_no_schema():
     img = np.asarray(img)
     vlm_response = vlm_client.image_text_query(img, "What is this an image of?")
 
-    assert 'kitchen' in vlm_response.text
+    assert 'kitchen' in vlm_response
 
 def test_image_text_prompt_schema():
     vlm_client = VLMClient()
@@ -78,7 +78,7 @@ def test_image_text_prompt_schema():
                                                 ), 
                                                 RoomLabel.model_json_schema())
 
-    room_label = RoomLabel.model_validate_json(vlm_response.text)
+    room_label = RoomLabel.model_validate_json(vlm_response)
 
     assert room_label.room_label == 'kitchen'
 

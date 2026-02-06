@@ -109,7 +109,7 @@ if __name__ == "__main__":
                                                               semantic_map.get_room_list(), 
                                                               semantic_map.get_invalid_room_list()),
                                                           RoomLabel.model_json_schema())
-        room_label = RoomLabel.model_validate_json(room_label_response.text)
+        room_label = RoomLabel.model_validate_json(room_label_response)
 
         # Get Image Segmentation
         prediction, labels = image_segmenter.segment_image(rgb_img)

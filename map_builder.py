@@ -79,8 +79,8 @@ class SemanticMapBuilder(MapBuilder):
                                                               self.map.get_room_list(), 
                                                               self.map.get_invalid_room_list()),
                                                           RoomLabel.model_json_schema())
-        # TODO: To make this interoperable with other VLMClient outputs, return the .text already?
-        room_label = RoomLabel.model_validate_json(room_label_response.text)
+
+        room_label = RoomLabel.model_validate_json(room_label_response)
 
         # Get Image Segmentation
         prediction, labels = self.image_segmenter.segment_image(rgb_img)
