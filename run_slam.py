@@ -68,35 +68,14 @@ def visualize_map_builders(map_builders: list[MapBuilder], viz_semantics=True):
 
 if __name__ == "__main__":
 
-    ## TODO: Will update directory structure soon
+    ## TODO: Make Flag?
     scene_name = 'slam_maps_map_builder'
     map_save_dir = f'saves/scenes/{scene_name}'
 
     # Initialization
     robot = Robot(connection='client')
     
-    # # Initialize Map Builder
-    # map_builder = SemanticMapBuilder(robot=robot)
-    # map_builder.init()
-
-    # while True:
-    #     # Get the Motion Command from the User
-    #     motion_command = robot.request_motion_command_from_user()
-    #     if motion_command[0] == '': # No Motion Command
-    #         break
-        
-    #     # Move the Robot
-    #     m = robot.command_motion_trial(motion_command)
-
-    #     # Step the Map Building        
-    #     map_builder.step(m)
-
-    #     # Display Map
-    #     map_builder.show()
-
-    #     # TODO: Convert to get map function
-    #     map_builder.map.save(map_save_dir=map_save_dir)
-
+    # TODO: Convert to flags??
     build_map = True
     build_advanced_map = True
     build_semantic_map = True
@@ -104,13 +83,13 @@ if __name__ == "__main__":
     map_builders: list[MapBuilder] = []
 
     if build_map:
-        map_builders.append(MapBuilder())
+        map_builders.append(MapBuilder(robot))
 
     if build_advanced_map:
-        map_builders.append(AdvancedMapBuilder())
+        map_builders.append(AdvancedMapBuilder(robot))
 
     if build_semantic_map:
-        map_builders.append(SemanticMapBuilder())
+        map_builders.append(SemanticMapBuilder(robot))
 
     # Init Maps
     [map_builder.init() for map_builder in map_builders]
