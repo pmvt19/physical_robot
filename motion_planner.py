@@ -40,6 +40,10 @@ class MotionPlanner():
         # Plan a path to the Target and Follow with MPC
         mpc_plan_and_follow_trajectory(self.robot_space, self.pf, self.map, self.prm, self.robot_space.make_state(self.start), target)
 
+class GridMotionPlanner(MotionPlanner):
+    def __init__(self):
+        pass
+
 FREE_THRESHOLD = 0.5
 class SemanticMotionPlanner(MotionPlanner):
     def __init__(self, robot: Robot, semantic_map: SemanticMap):
