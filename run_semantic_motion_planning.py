@@ -17,6 +17,8 @@ from icp import run_icp
 from utils import transformation_mat_to_state
 from robot_utils import localize_robot, mpc_plan_and_follow_trajectory
 
+# TODO: Deprecate this file and use run_motion_planner.py
+
 FREE_THRESHOLD = 0.5
 def get_semantic_labeled_prm_vertices(semantic_map: SemanticMap, prm: PRM):
     # Get only X,Y values from vertices
