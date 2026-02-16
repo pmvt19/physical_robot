@@ -15,6 +15,8 @@ from vlm_output_schema import RoomLabel
 from sklearn.neighbors import KDTree
 from heapq import *
 from utils import create_local_mask
+
+from map_builder import AdvancedMapBuilder
         
 def dijkstra(start, targets, grid):
     N, M = grid.shape
@@ -120,6 +122,9 @@ if __name__ == "__main__":
 
     i=0
 
+    map_builder = AdvancedMapBuilder(robot=robot)
+    map_builder.init()
+
     # Initialize Starting State
     advanced_map_state = np.array([0.0, 0.0, 0.0])
 
@@ -155,7 +160,11 @@ if __name__ == "__main__":
             scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
             advanced_map_updated_state = advanced_map.update(scan, advanced_map_predicted_state)
             advanced_map_state = advanced_map_updated_state
+
+            map_builder.step(m)
             viz_map(advanced_map)
+
+            
 
         i += 1
 
