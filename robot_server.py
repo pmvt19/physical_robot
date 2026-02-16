@@ -19,6 +19,11 @@ import numpy as np
 import redis
 from robot import Robot
 
+from utils import register_logger
+import logging
+
+logger = register_logger(logger_name=__name__, log_filename='robot_server', level=logging.DEBUG, std_err=False)
+
 class RobotServerServicer(pb2_grpc.RobotServer):
     """The server implementation of the RobotServer service."""
     def __init__(self):
@@ -178,7 +183,7 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         dist = command.distance
 
         m = self.robot.command_motion_trial([motion_type, dist])
-        
+        logger.debug(f"M: {m}")
         motion_distance = pb2.MotionDistance(
             left_wheel_dist  =   m[0],
             right_wheel_dist =   m[1]
@@ -187,6 +192,7 @@ class RobotServerServicer(pb2_grpc.RobotServer):
 
     def GetMotorPositions(self, requests, context):
         motor_id_1_pos, motor_id_2_pos = self.robot.ri.get_motor_positions()
+        logger.debug(f"GetMotorPositions: Motor 1: {motor_id_1_pos}, Motor 2: {motor_id_2_pos}")
         motor_positions = pb2.RobotMotorPositions(
             motor_position_left=motor_id_1_pos,
             motor_position_right=motor_id_2_pos,
@@ -195,6 +201,7 @@ class RobotServerServicer(pb2_grpc.RobotServer):
     
     def GetMotorVelocities(self, requests, context):
         motor_id_1_vel, motor_id_2_vel = self.robot.ri.get_motor_velocity()
+        logger.debug(f"GetMotorVelocities: Motor 1: {motor_id_1_vel}, Motor 2: {motor_id_2_vel}")
         motor_velocities = pb2.RobotMotorVelocities(
             motor_velocity_left=motor_id_1_vel,
             motor_velocity_right=motor_id_2_vel,
