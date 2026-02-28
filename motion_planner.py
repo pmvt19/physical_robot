@@ -44,6 +44,9 @@ class GridMotionPlanner(MotionPlanner):
     def __init__(self):
         pass
 
+    def run_motion_planning(self):
+        raise NotImplementedError
+
 FREE_THRESHOLD = 0.5
 class SemanticMotionPlanner(MotionPlanner):
     def __init__(self, robot: Robot, semantic_map: SemanticMap):
