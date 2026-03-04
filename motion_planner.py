@@ -45,7 +45,19 @@ class GridMotionPlanner(MotionPlanner):
         pass
 
     def run_motion_planning(self):
-        raise NotImplementedError
+        # Localize the Robot
+        self.localize_robot()
+
+        # Get Target From User
+        target = self.get_target_from_user()
+
+        # Convert Target to NumpyState
+        target = self.robot_space.make_state(target)
+
+        # Plan a path to the Target and Follow with MPC
+        # mpc_plan_and_follow_trajectory(self.robot_space, self.pf, self.map, self.prm, self.robot_space.make_state(self.start), target)
+
+        # Maybe make a step_motion_planning function?
 
 FREE_THRESHOLD = 0.5
 class SemanticMotionPlanner(MotionPlanner):
