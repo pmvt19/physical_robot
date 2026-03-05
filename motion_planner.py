@@ -44,6 +44,9 @@ class GridMotionPlanner(MotionPlanner):
     def __init__(self):
         pass
 
+    def step_motion_plannger(self):
+        pass
+
     def run_motion_planning(self):
         # Localize the Robot
         self.localize_robot()
