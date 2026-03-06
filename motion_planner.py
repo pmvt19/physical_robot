@@ -44,7 +44,7 @@ class GridMotionPlanner(MotionPlanner):
     def __init__(self):
         pass
 
-    def step_motion_plannger(self):
+    def step_motion_planner(self):
         pass
 
     def run_motion_planning(self):
