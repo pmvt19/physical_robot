@@ -9,6 +9,8 @@ from motion_planning.prm import PRM
 from vlm_client import VLMClient
 from icp import run_icp
 from utils import transformation_mat_to_state
+from vlm_output_schema import UserSemanticTarget
+from prompts import EXTRACT_SEMANTIC_TARGETS
 
 def visualize_prm(robot: PhysicalRobotSpace, prm: PRM, path=None):
     # Draw Path
@@ -61,40 +63,19 @@ def mpc_plan_and_follow_trajectory(robot: PhysicalRobotSpace,
         motion_commands = robot.path_to_motion_commands(path)
 
 class MotionPlanner():
-    def __init__(self, robot: Robot, map: Map, planning_method: str):
+    def __init__(self, robot: Robot, map: Map):
         self.robot: Robot = robot
         self.map: Map = map
-        self.planning_method = planning_method
 
         self.robot_space: PhysicalRobotSpace = PhysicalRobotSpace(map_obj=self.map)
+
+        self.path_lookahead_distance = 3
 
     def localize_robot(self):
         self.start, self.pf = localize_robot(self.robot, self.map)
 
-    def build_prm(self):
-        # Create and Build PRM
-        self.prm = PRM(env=self.robot_space, num_samples=10000, num_neighbors=10, validate_edges=True)
-        self.prm.create_graph()
-
-    def _grid_search(self):
-        current_state_grid_coords = self.map.world_to_grid_coords(current_state.value[:2])
-        target_grid_coords = self.map.world_to_grid_coords(target.value[:2])
-        grid_coords_path = self.map.dijkstra(current_state_grid_coords, target_grid_coords)
-        world_coord_path = self.map.batch_grid_to_approx_world_coords(grid_coords_path)
-        return world_coord_path
-
-    def _prm_search(self):
-        prm_path = self.prm.search(current_state.value, target.value)
-        prm_path = [p.value for p in prm_path]
-        return prm_path
-
     def search(self):
-        if self.planning_method == 'grid':
-            return self._grid_search(self)
-        elif self.planning_method == 'prm':
-            return self._prm_search(self)
-        else:
-            raise ValueError("Invalid Planning Method. Valid Options: [grid, prm]")
+        raise NotImplementedError
 
     def get_target_from_user(self):
         # TODO: Implement robust function for user to tell where the robot should go
@@ -116,13 +97,13 @@ class MotionPlanner():
     def move_to_target(self, target):
         while not is_close(current_state.value, target.value):
             motion_commands = self.robot.path_to_motion_commands(path)
-            self.step_motion_execution(motion_commands)
+            self.step_motion_execution(current_state, motion_commands)
 
         path = self.search(current_state.value, target.value)
         numpy_path = [p.value for p in path]
         motion_commands = self.robot.path_to_motion_commands(numpy_path)
 
-    def step_motion_execution(self, motion_commands):
+    def step_motion_execution(self, current_state, motion_commands):
         for i, motion_command in enumerate(motion_commands):
             print(f"Executing Motion Command: {motion_command}")
             m, predicted_state = self.robot.command_motion_and_predict_state(current_state.value, motion_command)
@@ -139,33 +120,47 @@ class MotionPlanner():
             print(f"Current State After ICP Refinement: {np.round(current_state.value, 2)}")
 
             # Break to replan if we are on the 4th Motion Command
-            if i == 3:
+            if i == self.path_lookahead_distance:
                 break
 
+        return current_state
+
+"""
+The original idea behind grid based motion planner was to allow for motion 
+planning within the map object itself. However, the grid motion planner is 
+mostly used for frontier exploration at the momement. In this case, it creates
+a path, looks ahead maybe only 40 steps, and drives straight to that point. This
+will continuously repeat. I'm not sure how to implement that in the same way here.
+This motion planner might not be usable while maps are being built.
+"""
 class GridMotionPlanner(MotionPlanner):
-    def __init__(self):
-        pass
+    def __init__(self, robot: Robot, map: Map):
+        super().__init__(robot=robot, map=map)
+    
+    def search(self, start, target):
+        current_state_grid_coords = self.map.world_to_grid_coords(start.value[:2])
+        target_grid_coords = self.map.world_to_grid_coords(target.value[:2])
+        grid_coords_path = self.map.dijkstra(current_state_grid_coords, target_grid_coords)
+        world_coord_path = self.map.batch_grid_to_approx_world_coords(grid_coords_path)
+        return world_coord_path
 
-    def step_motion_planner(self):
-        pass
+class PrmMotionPlanner(MotionPlanner):
+    def __init__(self, robot: Robot, map: Map):
+        super().__init__(robot=robot, map=map)
 
-    def run_motion_planning(self):
-        # Localize the Robot
-        self.localize_robot()
-
-        # Get Target From User
-        target = self.get_target_from_user()
-
-        # Convert Target to NumpyState
-        target = self.robot_space.make_state(target)
-
-        # Plan a path to the Target and Follow with MPC
-        # mpc_plan_and_follow_trajectory(self.robot_space, self.pf, self.map, self.prm, self.robot_space.make_state(self.start), target)
-
-        # Maybe make a step_motion_planning function?
+        self.path_lookahead_distance = 3
+    
+    def build_prm(self):
+        self.prm = PRM(env=self.robot_space, num_samples=10000, num_neighbors=10, validate_edges=True)
+        self.prm.create_graph()
+    
+    def search(self, start, target):
+        prm_path = self.prm.search(start.value, target.value)
+        prm_path = [p.value for p in prm_path]
+        return prm_path
 
 FREE_THRESHOLD = 0.5
-class SemanticMotionPlanner(MotionPlanner):
+class SemanticMotionPlanner(PrmMotionPlanner):
     def __init__(self, robot: Robot, semantic_map: SemanticMap):
         assert (isinstance(semantic_map, SemanticMap))
         self.robot: Robot = robot
@@ -206,7 +201,7 @@ class SemanticMotionPlanner(MotionPlanner):
 
         return unoccupied_vertices_with_labeled_semantics, unoccupied_vertices_labeled_semantics
     
-    def get_target_from_semantics(self,
+    def get_target_pose_from_semantics(self,
             robot: PhysicalRobotSpace, 
                               semantic_map: SemanticMap, 
                               vertices: np.ndarray, 
@@ -282,5 +277,13 @@ class SemanticMotionPlanner(MotionPlanner):
         # Plan and Follow path with MPC
         mpc_plan_and_follow_trajectory(self.robot_space, self.pf, self.map, self.prm, self.robot_space.make_state(self.start), target)
     
-    def move_to_semantic_target(self):
-        pass
+    def move_to_semantic_target(self, semantic_target: UserSemanticTarget):
+        assert (semantic_target.valid), "Semantic Target is Not Valid"
+        semantic_level, item_name = semantic_target.semantic_level, semantic_target.item_name
+
+        # Label Vertices in PRM with Semantic Information
+        semantic_vertices, semantic_labels = self.get_semantic_labeled_prm_vertices()
+        target = self.get_target_pose_from_semantics(semantic_vertices, semantic_labels, semantic_layer.lower(), item)
+
+        self.move_to_target(target)
+
