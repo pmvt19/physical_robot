@@ -269,7 +269,7 @@ class SemanticMotionPlanner(PrmMotionPlanner):
         semantic_vertices, semantic_labels = self.get_semantic_labeled_prm_vertices()
 
         # Get Target State Based on User Semantic Input 
-        target = self.get_target_from_semantics(semantic_vertices, semantic_labels, semantic_layer.lower(), item)
+        target = self.get_target_pose_from_semantics(semantic_vertices, semantic_labels, semantic_layer.lower(), item)
 
         # Localize Robot within Map
         self.localize_robot()
@@ -283,7 +283,7 @@ class SemanticMotionPlanner(PrmMotionPlanner):
 
         # Label Vertices in PRM with Semantic Information
         semantic_vertices, semantic_labels = self.get_semantic_labeled_prm_vertices()
-        target = self.get_target_pose_from_semantics(semantic_vertices, semantic_labels, semantic_layer.lower(), item)
+        target = self.get_target_pose_from_semantics(semantic_vertices, semantic_labels, semantic_level.lower(), item_name)
 
         self.move_to_target(target)
 
