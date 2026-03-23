@@ -7,11 +7,64 @@ from robot_utils import localize_robot, mpc_plan_and_follow_trajectory
 from robot_space import PhysicalRobotSpace
 from motion_planning.prm import PRM
 from vlm_client import VLMClient
+from icp import run_icp
+from utils import transformation_mat_to_state
+
+def visualize_prm(robot: PhysicalRobotSpace, prm: PRM, path=None):
+    # Draw Path
+    robot.map.visualize_points(plt.gca())
+    prm.draw(plt.gca(), path=path, show_task=True)
+    plt.show()
+
+def is_close(state1, state2, threshold=100):
+    return np.linalg.norm(state1[:2] - state2[:2]) < threshold
+
+def mpc_plan_and_follow_trajectory(robot: PhysicalRobotSpace,
+                                   pf: ParticleFilter,
+                                   map: Map,
+                                   prm: PRM,
+                                   start: NumpyState,
+                                   target: NumpyState,
+                                   visualize_iterative_path: bool = False):
+
+    path = prm.search(start, target)
+    visualize_prm(robot, prm, path)
+    path = [p.value for p in path]
+    current_state = start
+
+    while not is_close(current_state.value, target.value):
+        motion_commands = robot.path_to_motion_commands(path)
+        
+        for i, motion_command in enumerate(motion_commands):
+            print(f"Executing Motion Command: {motion_command}")
+            m, predicted_state = robot.command_motion_and_predict_state(current_state.value, motion_command)
+            
+            coords, lidar_data = robot.read_lidar_updated(wait_for_updated_reading=True, manual_verification=False)
+
+            # Particle Filter State Prediction Update
+            current_state = pf.step(motion_delta=motion_command, scan=lidar_data)
+            print(f"Current State After Particle Filter Update: {np.round(current_state, 2)}")
+
+            # ICP State Refinement
+            T = run_icp(coords, map.get_points(), current_state, filter_init_outliers=False, visualize=False)
+            current_state = robot.make_state(transformation_mat_to_state(T))
+            print(f"Current State After ICP Refinement: {np.round(current_state.value, 2)}")
+
+            # Break to replan if we are on the 4th Motion Command
+            if i == 3:
+                break
+        
+        path = prm.search(current_state, target)
+        if visualize_iterative_path:
+            visualize_prm(robot, prm, path)
+        path = [p.value for p in path]
+        motion_commands = robot.path_to_motion_commands(path)
 
 class MotionPlanner():
-    def __init__(self, robot: Robot, map: Map):
+    def __init__(self, robot: Robot, map: Map, planning_method: str):
         self.robot: Robot = robot
         self.map: Map = map
+        self.planning_method = planning_method
 
         self.robot_space: PhysicalRobotSpace = PhysicalRobotSpace(map_obj=self.map)
 
@@ -22,6 +75,26 @@ class MotionPlanner():
         # Create and Build PRM
         self.prm = PRM(env=self.robot_space, num_samples=10000, num_neighbors=10, validate_edges=True)
         self.prm.create_graph()
+
+    def _grid_search(self):
+        current_state_grid_coords = self.map.world_to_grid_coords(current_state.value[:2])
+        target_grid_coords = self.map.world_to_grid_coords(target.value[:2])
+        grid_coords_path = self.map.dijkstra(current_state_grid_coords, target_grid_coords)
+        world_coord_path = self.map.batch_grid_to_approx_world_coords(grid_coords_path)
+        return world_coord_path
+
+    def _prm_search(self):
+        prm_path = self.prm.search(current_state.value, target.value)
+        prm_path = [p.value for p in prm_path]
+        return prm_path
+
+    def search(self):
+        if self.planning_method == 'grid':
+            return self._grid_search(self)
+        elif self.planning_method == 'prm':
+            return self._prm_search(self)
+        else:
+            raise ValueError("Invalid Planning Method. Valid Options: [grid, prm]")
 
     def get_target_from_user(self):
         # TODO: Implement robust function for user to tell where the robot should go
@@ -39,6 +112,35 @@ class MotionPlanner():
 
         # Plan a path to the Target and Follow with MPC
         mpc_plan_and_follow_trajectory(self.robot_space, self.pf, self.map, self.prm, self.robot_space.make_state(self.start), target)
+
+    def move_to_target(self, target):
+        while not is_close(current_state.value, target.value):
+            motion_commands = self.robot.path_to_motion_commands(path)
+            self.step_motion_execution(motion_commands)
+
+        path = self.search(current_state.value, target.value)
+        numpy_path = [p.value for p in path]
+        motion_commands = self.robot.path_to_motion_commands(numpy_path)
+
+    def step_motion_execution(self, motion_commands):
+        for i, motion_command in enumerate(motion_commands):
+            print(f"Executing Motion Command: {motion_command}")
+            m, predicted_state = self.robot.command_motion_and_predict_state(current_state.value, motion_command)
+            
+            coords, lidar_data = self.robot.read_lidar_updated(wait_for_updated_reading=True, manual_verification=False)
+
+            # Particle Filter State Prediction Update
+            current_state = self.pf.step(motion_delta=motion_command, scan=lidar_data)
+            print(f"Current State After Particle Filter Update: {np.round(current_state, 2)}")
+
+            # ICP State Refinement
+            T = run_icp(coords, self.map.get_points(), current_state, filter_init_outliers=False, visualize=False)
+            current_state = self.robot_space.make_state(transformation_mat_to_state(T))
+            print(f"Current State After ICP Refinement: {np.round(current_state.value, 2)}")
+
+            # Break to replan if we are on the 4th Motion Command
+            if i == 3:
+                break
 
 class GridMotionPlanner(MotionPlanner):
     def __init__(self):
@@ -179,3 +281,6 @@ class SemanticMotionPlanner(MotionPlanner):
 
         # Plan and Follow path with MPC
         mpc_plan_and_follow_trajectory(self.robot_space, self.pf, self.map, self.prm, self.robot_space.make_state(self.start), target)
+    
+    def move_to_semantic_target(self):
+        pass
