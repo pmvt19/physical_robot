@@ -38,6 +38,7 @@ with dai.Pipeline() as pipeline:
             imuF = "{:.06f}"
             tsF  = "{:.03f}"
 
+            # TODO: Convert to Rerun Live Graph
             print(f"Accelerometer timestamp: {acceleroTs}")
             print(f"Latency [ms]: {dai.Clock.now() - acceleroValues.getTimestamp()}")
             print(f"Accelerometer [m/s^2]: x: {imuF.format(acceleroValues.x)} y: {imuF.format(acceleroValues.y)} z: {imuF.format(acceleroValues.z)}")
