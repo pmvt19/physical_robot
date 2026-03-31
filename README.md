@@ -103,6 +103,10 @@ physical_robot/
             ├──test_geometry_utils.py
             ├──etc...
 
+    # Potential Future Planning
+    ├──mcp/
+        ├──server.py
+
     
     ├──main.py??
 
