@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 
 from robot import Robot
 from map import Map
@@ -159,8 +160,12 @@ class PrmMotionPlanner(MotionPlanner):
         prm_path = [p.value for p in prm_path]
         return prm_path
 
-    def save_graph(self, prm_save_path):
+    def save_graph(self, prm_save_dir, file_name_ext="final"):
+        pickle.dump(self.prm, open(f"{self.map.get_save_dir(prm_save_dir)}/{self.map.map_type_name}_object_{file_name_ext}.pickle", "wb"))
+
+    def load_graph(self, prm_save_dir):
         raise NotImplementedError
+
 
 FREE_THRESHOLD = 0.5
 class SemanticMotionPlanner(PrmMotionPlanner):
