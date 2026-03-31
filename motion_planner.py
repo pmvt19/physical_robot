@@ -159,6 +159,9 @@ class PrmMotionPlanner(MotionPlanner):
         prm_path = [p.value for p in prm_path]
         return prm_path
 
+    def save_graph(self, prm_save_path):
+        raise NotImplementedError
+
 FREE_THRESHOLD = 0.5
 class SemanticMotionPlanner(PrmMotionPlanner):
     def __init__(self, robot: Robot, semantic_map: SemanticMap):
@@ -286,4 +289,29 @@ class SemanticMotionPlanner(PrmMotionPlanner):
         target = self.get_target_pose_from_semantics(semantic_vertices, semantic_labels, semantic_level.lower(), item_name)
 
         self.move_to_target(target)
+
+class ExploratoryMotionPlanner(MotionPlanner):
+    def __init__(self, map_builder):
+        self.min_motion_dist_threshold = 0.09
+        self.map_builder = map_builder
+
+    def get_short_horizon_target(self, path):
+        short_horizon_target = path[min(40, len(path)-1)]
+        return short_horizon_target
+
+    def search(self, start, target):
+        pass
+
+    def local_planner(self, start, target):
+        motion_commands = self.robot.path_to_motion_commands([start.value, np.array([target[0], target[1], 0.0])])
+        return motion_commands[:2]
+    
+    def step_motion_execution(self, motion_command):
+        motion_type, motion_dist = motion_command
+        if abs(motion_dist) < self.min_motion_dist_threshold:
+            print(f"Skipping Motion Command: {motion_command}")
+            return
+
+        m = self.robot.command_motion_trial(motion_command)
+        self.map_builder.step(m)
 
