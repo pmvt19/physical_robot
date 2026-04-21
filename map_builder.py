@@ -22,6 +22,8 @@ class MapBuilder():
 
         self.map: Map = Map(resolution=map_resolution)
 
+        self.robot_trajectory: list[np.ndarray] = []
+
     def init(self):
         world_coords, raw_lidar_data = self.robot.read_lidar_updated(manual_verification=self.manual_lidar_verification, wait_for_updated_reading=True)
         self.map.init_map(initial_scan=world_coords)
@@ -34,6 +36,7 @@ class MapBuilder():
 
         # Update Map with New Geometry
         self.robot_state = self.map.update(world_coords, self.robot_state)
+        self.robot_trajectory.append(self.robot_state)
 
     def get_map(self):
         return self.map
@@ -93,6 +96,9 @@ class SemanticMapBuilder(MapBuilder):
 
         # Update Semantic Map with Geometry and Semantics
         self.robot_state = self.map.update_geometry_and_semantics(world_coords, pc_and_labels, self.robot_state)
+
+        # Add Robot State to Trajectory
+        self.robot_trajectory.append(self.robot_state)
 
     def show(self):
         fig, ax = plt.subplots(1, 3)
