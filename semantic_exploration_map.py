@@ -16,6 +16,12 @@ class SemanticExplorationMap(SemanticMap):
     def update_map(self, aligned_scan, updated_state=None):
         raise NotImplementedError
     
+    def update_embedding_layer(self, embeddings):
+        pass
+
+    def update_all(self):
+        pass
+    
     def extend_map(self, req_grid_coords):
         raise NotImplementedError
     
