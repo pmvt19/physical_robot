@@ -43,6 +43,9 @@ class MapBuilder():
     
     def get_robot_state(self):
         return self.robot_state
+
+    def get_robot_trajectory(self):
+        return self.robot_trajectory
     
     def show(self):
         self.map.visualize(plt.gca())
