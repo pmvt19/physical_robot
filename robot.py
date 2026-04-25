@@ -759,8 +759,6 @@ class Robot():
 if __name__ == "__main__":
 
     robot = Robot(connection='simulated')
-    # robot.command_motion_trial(['linear', -400])
-    # robot.command_motion_trial(['angular', np.pi/2])
     robot.command_motion_trial(['linear', 400])
 
     # motions = [
