@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+import matplotlib.pyplot as plt
 
 from robot import Robot
 from map import Map
@@ -160,6 +161,12 @@ class PrmMotionPlanner(MotionPlanner):
         prm_path = [p.value for p in prm_path]
         return prm_path
 
+    def visualize_prm(self, path=None):
+        # Draw Path
+        self.map.visualize_points(plt.gca())
+        self.prm.draw(plt.gca(), path=path, show_task=True)
+        plt.show()
+
     def save_graph(self, prm_save_dir, file_name_ext="final"):
         pickle.dump(self.prm, open(f"{self.map.get_save_dir(prm_save_dir)}/{self.map.map_type_name}_object_{file_name_ext}.pickle", "wb"))
 
@@ -298,7 +305,7 @@ class SemanticMotionPlanner(PrmMotionPlanner):
 class ExploratoryMotionPlanner(MotionPlanner):
     def __init__(self, map_builder):
         self.min_motion_dist_threshold = 0.09
-        self.map_builder = map_builder
+        self.map_builder: MapBuilder = map_builder
 
     def get_short_horizon_target(self, path):
         short_horizon_target = path[min(40, len(path)-1)]
