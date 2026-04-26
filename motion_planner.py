@@ -306,9 +306,10 @@ class ExploratoryMotionPlanner(MotionPlanner):
     def __init__(self, map_builder):
         self.min_motion_dist_threshold = 0.09
         self.map_builder: MapBuilder = map_builder
+        self.max_horizon_distance = 40
 
     def get_short_horizon_target(self, path):
-        short_horizon_target = path[min(40, len(path)-1)]
+        short_horizon_target = path[min(self.max_horizon_distance, len(path)-1)]
         return short_horizon_target
 
     def search(self, start, target):
