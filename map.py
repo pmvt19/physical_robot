@@ -172,6 +172,9 @@ class Map():
 
         # Where neighbor_mask > 0 (adjacent to a 1) and current value != 1
         self.inflated_map[(neighbor_mask > 0) & (self.map != 1)] = 1
+    
+    def get_inflated_map_2d(self):
+        return self.inflated_map
 
     def get_frontiers(self):
         raise NotImplementedError
