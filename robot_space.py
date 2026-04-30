@@ -4,36 +4,122 @@ import matplotlib.pyplot as plt
 
 from robot import Robot
 from map import Map
+from advanced_map import AdvancedMap
 from test_utils import generate_fake_map, load_saved_map
 from motion_planning.space import RobotSpace
 from motion_planning.state import AngularNumpyState
 from motion_planning.utils import numpystate_distance, smooth_path
+
+# class PhysicalRobotSpace(Robot, RobotSpace):
+#     def __init__(self, map_obj):
+#         Robot.__init__(self, connection='client')
+#         RobotSpace.__init__(self)
+
+#         self.map: Map = map_obj
+
+#         self.angular_dims_start = 2
+
+#         # Setting Edge Validity Delta to Acceptable Value (mm units)
+#         self.edge_validity_delta = 200.0
+
+#     def is_valid(self, state):
+#         raise NotImplementedError
+#         state = self.get_state_value(state)
+#         # Implement collision checking or other validity checks here
+#         points = self.map.get_points()
+#         map_circles = np.concatenate((points, np.ones((points.shape[0], 1), dtype=np.float32) * (self.map.resolution * 14)), axis=1)
+
+#         robot_circle = np.array([state[0], state[1], self.radius*2])
+
+#         dists = np.sqrt((map_circles[:, 0] - robot_circle[0])**2 + (map_circles[:, 1] - robot_circle[1])**2)
+#         if np.any(dists < (map_circles[:, 2] + robot_circle[2])):
+#             return False
+#         return True
+    
+#     def circles_to_validity(self, obstacle_circles, robot_circles):
+#         dist_mat = np.sqrt(np.sum(robot_circles[:, :2]**2, axis=1, keepdims=True) + np.sum(obstacle_circles[:, :2]**2, axis=1, keepdims=True).T + (-2 * (robot_circles[:, :2] @ obstacle_circles[:, :2].T)))
+#         min_dists = robot_circles[:, 2].reshape(-1, 1) + obstacle_circles[:, 2].reshape(1, -1)
+#         validity_mask = dist_mat > min_dists
+#         validities = np.all(validity_mask, axis=1)
+#         return validities
+    
+#     def batch_is_valid(self, states):
+#         self.batch_size = 1000
+#         print(f"Num States: {len(states)}")
+        
+#         points = self.map.get_points()
+#         map_circles = np.concatenate((points, np.ones((points.shape[0], 1), dtype=np.float32) * (self.map.resolution / 2 * np.sqrt(2))), axis=1)
+#         batch_robot_circles = np.concatenate((states[:, :2], np.ones(len(states), dtype=np.float32).reshape(-1, 1) * self.robot_radius), axis=1)
+#         B = batch_robot_circles.shape[0]
+
+#         stacked_validities = []
+#         num_batches = math.ceil(B / self.batch_size)
+#         for i in range(num_batches):
+#             print(f"Batch: {i}/{num_batches}", end='\r')
+#             idx_start = i * self.batch_size
+#             idx_end = min((i+1)*self.batch_size, B)
+#             validities = self.circles_to_validity(map_circles, batch_robot_circles[idx_start:idx_end])
+#             stacked_validities.append(validities)
+
+#         stacked_validities = np.hstack(stacked_validities)
+#         return stacked_validities
+
+
+    
+#     def make_state(self, state : np.ndarray):
+#         return AngularNumpyState(value=state, angular_dims_start=self.angular_dims_start)
+
+#     def sample_point(self):
+#         width, height = self.map.get_shape_2d()
+#         x = np.random.uniform(0, width)
+#         y = np.random.uniform(0, height)
+#         theta = np.random.uniform(0, 2 * np.pi)
+#         world_coords = self.map.grid_to_approx_world_coords(np.array([x, y])) # TODO: Check if its okay to input floats to this function
+#         return self.make_state(np.array([*world_coords, theta]))
+
+#     def dist(self, state1, state2):
+#         return numpystate_distance(state1, state2)
+    
+#     def generate_robot_representation(self, state):
+#         raise NotImplementedError
+    
+#     def draw_environment(self, ax): # Kinda need this
+#         # raise NotImplementedError
+#         pass
+    
+#     def set_obstacles(self, obstacle_set):
+#         raise NotImplementedError # Permanent obstacles not implemented for physical robot
+    
+#     def batch_sample_point(self, num_points):
+#         raise NotImplementedError # Not Important for physical robot i think...
+    
+#     def batch_get_robot_representations(self, states):
+#         return NotImplementedError # Not Important for physical robot
+    
+#     def batch_sample_points_around_target(self, targets):
+#         return NotImplementedError # Not Important for physical robot
 
 class PhysicalRobotSpace(Robot, RobotSpace):
     def __init__(self, map_obj):
         Robot.__init__(self, connection='client')
         RobotSpace.__init__(self)
 
-        self.map : Map = map_obj
+        self.map: Map = map_obj
+
+        self.map.inflate_obstacles()
+        self.inflated_map = self.map.get_inflated_map_2d()
 
         self.angular_dims_start = 2
 
         # Setting Edge Validity Delta to Acceptable Value (mm units)
         self.edge_validity_delta = 200.0
 
+        # Set the collision checks to use the grid
+        self.collision_checking_method = 'grid'
+
     def is_valid(self, state):
-        raise NotImplementedError
         state = self.get_state_value(state)
-        # Implement collision checking or other validity checks here
-        points = self.map.get_points()
-        map_circles = np.concatenate((points, np.ones((points.shape[0], 1), dtype=np.float32) * (self.map.resolution * 14)), axis=1)
-
-        robot_circle = np.array([state[0], state[1], self.radius*2])
-
-        dists = np.sqrt((map_circles[:, 0] - robot_circle[0])**2 + (map_circles[:, 1] - robot_circle[1])**2)
-        if np.any(dists < (map_circles[:, 2] + robot_circle[2])):
-            return False
-        return True
+        return self.batch_is_valid(state.reshape(1, -1))[0]
     
     def circles_to_validity(self, obstacle_circles, robot_circles):
         dist_mat = np.sqrt(np.sum(robot_circles[:, :2]**2, axis=1, keepdims=True) + np.sum(obstacle_circles[:, :2]**2, axis=1, keepdims=True).T + (-2 * (robot_circles[:, :2] @ obstacle_circles[:, :2].T)))
@@ -42,7 +128,24 @@ class PhysicalRobotSpace(Robot, RobotSpace):
         validities = np.all(validity_mask, axis=1)
         return validities
     
-    def batch_is_valid(self, states):
+    def batch_is_valid(self, states: np.ndarray):
+        if self.collision_checking_method == 'grid':
+            return self._batch_is_valid_grid(states)
+        elif self.collision_checking_method == 'circles':
+            return self._batch_is_valid_circles(states)
+        else:
+            raise ValueError("Invalid Collision Checking Method")
+            
+    def _batch_is_valid_grid(self, states: np.ndarray):
+        # states # (N, 3) -> (x, y, theta)
+        positional_states_world_coords = states[:, :2]
+        positional_states_grid_coords = self.map.batch_world_to_grid_coords(positional_states_world_coords)
+        
+        raw_obstacle_probabilities = self.inflated_map[positional_states_grid_coords[:, 0], positional_states_grid_coords[:, 1]]
+        validities = raw_obstacle_probabilities < 0.5
+        return validities
+
+    def _batch_is_valid_circles(self, states: np.ndarray):
         self.batch_size = 1000
         print(f"Num States: {len(states)}")
         
@@ -62,8 +165,6 @@ class PhysicalRobotSpace(Robot, RobotSpace):
 
         stacked_validities = np.hstack(stacked_validities)
         return stacked_validities
-
-
     
     def make_state(self, state : np.ndarray):
         return AngularNumpyState(value=state, angular_dims_start=self.angular_dims_start)
@@ -75,6 +176,14 @@ class PhysicalRobotSpace(Robot, RobotSpace):
         theta = np.random.uniform(0, 2 * np.pi)
         world_coords = self.map.grid_to_approx_world_coords(np.array([x, y])) # TODO: Check if its okay to input floats to this function
         return self.make_state(np.array([*world_coords, theta]))
+    
+    # def sample_valid_point(self):
+    #     while True:
+    #         points = self.batch_sample_points(num_points=10)
+    #         validities = self.batch_is_valid(points)
+    #         valid_points = points[validities]
+    #         if len(valid_points) > 0:
+    #             return self.make_state(valid_points[0])
 
     def dist(self, state1, state2):
         return numpystate_distance(state1, state2)
@@ -83,20 +192,26 @@ class PhysicalRobotSpace(Robot, RobotSpace):
         raise NotImplementedError
     
     def draw_environment(self, ax): # Kinda need this
-        # raise NotImplementedError
-        pass
+        self.map.visualize_points(ax)
     
     def set_obstacles(self, obstacle_set):
         raise NotImplementedError # Permanent obstacles not implemented for physical robot
     
-    def batch_sample_point(self, num_points):
-        raise NotImplementedError # Not Important for physical robot i think...
+    def batch_sample_points(self, num_points):
+        width, height = self.map.get_shape_2d()
+        x = np.random.uniform(0, width, size=(num_points,1))
+        y = np.random.uniform(0, height, size=(num_points,1))
+        theta = np.random.uniform(0, 2 * np.pi, size=(num_points,1))
+        sample_states_grid_coords = np.concatenate((x, y, theta), axis=1)
+        sample_states_world_coords = self.map.batch_grid_to_approx_world_coords(sample_states_grid_coords)
+        return sample_states_world_coords
     
     def batch_get_robot_representations(self, states):
         return NotImplementedError # Not Important for physical robot
     
     def batch_sample_points_around_target(self, targets):
         return NotImplementedError # Not Important for physical robot
+
 
 if __name__ == "__main__":
     from motion_planning.rrt import RRT
