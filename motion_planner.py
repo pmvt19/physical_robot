@@ -7,7 +7,7 @@ from map import Map
 from semantic_map import SemanticMap
 from robot_utils import localize_robot, mpc_plan_and_follow_trajectory
 from robot_space import PhysicalRobotSpace
-from motion_planning.prm import PRM
+from motion_planning.search import RRT, PRM
 from vlm_client import VLMClient
 from icp import run_icp
 from utils import transformation_mat_to_state, register_logger
@@ -333,6 +333,77 @@ class ExploratoryMotionPlanner(MotionPlanner):
         m = self.robot.command_motion_trial(motion_command)
         self.map_builder.step(m)
 
+class TaskPlanner():
+    def __init__():
+        pass
+
+    def get_target_pose_from_user(self):
+        pass
+
+
+class SemanticTaskPlanner():
+    def __init__(self, robot: Robot, semantic_map: SemanticMap, prm: PRM):
+        assert (isinstance(semantic_map, SemanticMap))
+        self.robot: Robot = robot
+        self.map: SemanticMap = semantic_map
+
+        self.robot_space: PhysicalRobotSpace = PhysicalRobotSpace(map_obj=self.map)
+
+        self.vlm_client = VLMClient()
+    
+    def get_target_pose_from_semantics(self,
+                              robot: PhysicalRobotSpace, 
+                              semantic_map: SemanticMap, 
+                              layer: str,
+                              item: str,
+                              target_theta: float = 0.0):
+
+        # Filter Semantics to only the layer of interest: room or object
+        layer_semantics = semantic_map.flood_filled_map[:, semantic_map.layer_name_to_idx[layer]]
+
+        # Get Item Id of item
+        item_id = -1
+        if layer == 'room':
+            item_id = semantic_map.room_to_id[item]
+        elif layer == 'object':
+            item_id = semantic_map.object_to_id[item]
+        else:
+            raise NotImplementedError
+
+        # Create Vertices Mask for Vertices Corresponding to Specificed item
+        selected_item_mask = layer_semantics == item_id
+
+        # Get Vertices Corresponding to Specified Item
+        # selected_item_vertices = vertices[selected_item_mask]
+        selected_item_vertices_grid_coords = np.where(selected_item_mask == True)
+
+        # Randomly Choose a Vertex from the list of remaining options
+        target_pos_idx = np.random.choice(len(selected_item_vertices_grid_coords))
+        target_pos_grid_coords = selected_item_vertices_grid_coords[target_pos_idx]
+        target_pos = semantic_map.grid_to_approx_world_coords(target_pos_grid_coords)
+
+        # Create Robot State
+        target = robot.make_state(np.array([target_pos[0], target_pos[1], target_theta]))
+        print(f"Assigned Target State: {np.round(target.value, 2)}")
+        return target
+    
+    def get_semantic_target_from_user(self):
+        while True:
+            user_input = input("Please provide where you want the robot to travel (object or room)\n")
+            vlm_response = self.vlm_client.text_query(EXTRACT_SEMANTIC_TARGETS.format(user_input, 
+                                                                                self.map.get_room_list(),
+                                                                                self.map.get_object_list(),
+                                                                                self.map.get_invalid_object_list()), 
+                                                                                UserSemanticTarget.model_json_schema())
+            user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response)
+
+            if user_semantic_target.valid:
+                break
+            else:
+                print(f"Unable to extract semantic information from input.\n \
+                    Reasoning:\n{user_semantic_target.reason} \nPlease Try Again!\n")
+        print(user_semantic_target.reason)
+        return user_semantic_target.semantic_level, user_semantic_target.item_name
 
 class PathTracker():
     def __init__(self, robot_space: PhysicalRobotSpace, motion_planner: RRT | PRM = None):
@@ -380,9 +451,9 @@ class PathTracker():
                 raise ValueError("Need to pass in a motion planner to use the do_replan feature")
 
 
-    def step_single_motion_exection(self, current_state, motion_command, min_motion_threshold):
-        motion_type, motion_dist = motion_command
-        if abs(motion_dist) < 0.09:
+    def step_single_motion_exection(self, current_state, motion_command, min_motion_threshold=0.09):
+        _, motion_dist = motion_command
+        if abs(motion_dist) < min_motion_threshold:
             print(f"Skipping Motion: {motion_command}")
             return current_state
         
