@@ -46,3 +46,22 @@ Additionally, please provide a reason in the reason field for why a user input w
 Some examples might be if the user input was nonsensical, then the reason would be something like "nonsensical user input".
 If the user input was a room or object that does not exist in the list of valid objects, then the reason in the reasoning field could be stated as such.
 """
+
+EXTRACT_POSE_TARGET = \
+"""
+The user provides a sentence providing a command for where the robot should travel to.
+
+Extract the 2-dimensional location coordinates (x, y). Sometimes, the user would have provided a theta parameter as well.
+In the case theta is provided, extract that as well.
+
+User Input: {}
+
+If the user has provided a theta value. Please set the valid_theta field in the output schema as true. 
+If the user has not provided a valid theta value. Please set the valid_theta field in the output schema as false.
+
+Here is the valid x-range: {}-{}
+Here is the valid y-range: {}-{}
+
+If the user input is nonsensical or you cannot understand the location information from the user input, mark the output invalid in the valid field in the output schema. 
+Since in this case the location information is nonexistent, you can output 0s for all fields: x, y, and theta.
+"""
