@@ -23,3 +23,5 @@ config = {
     connection_type : parameters_dict[connection_type]
 }
 
+scene = 'tmp'
+
