@@ -106,6 +106,13 @@ class Map():
         world_coords[:, 1] -= self.my
         world_coords = world_coords * self.resolution
         return world_coords
+
+    def get_map_range(self):
+        low_range = self.grid_to_approx_world_coords([0.0, 0.0])
+        high_range = self.grid_to_approx_world_coords([*self.get_shape_2d()])
+        x_range = [low_range[0], high_range[0]]
+        y_range = [low_range[1], high_range[1]]
+        return x_range, y_range
     
     def get_value_at_grid_coords(self, coords):
         gx, gy = coords
