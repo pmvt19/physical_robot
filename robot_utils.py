@@ -8,8 +8,8 @@ from map import Map
 from icp import run_icp
 from utils import transformation_mat_to_state
 
-from motion_planning.prm import PRM
-from motion_planning.state import NumpyState
+from motion_planning.search import PRM
+from motion_planning.tools import NumpyState, Path
 
 def is_close(state1, state2, threshold=100):
     return np.linalg.norm(state1[:2] - state2[:2]) < threshold
@@ -112,3 +112,6 @@ def mpc_plan_and_follow_trajectory(robot: PhysicalRobotSpace,
         path = [p.value for p in path]
         motion_commands = robot.path_to_motion_commands(path)
             
+
+def path_obj_to_list_of_states(path: Path):
+    return [p.value for p in path]
