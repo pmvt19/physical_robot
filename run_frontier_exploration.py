@@ -155,13 +155,14 @@ if __name__ == "__main__":
             m = robot.command_motion_trial(motion_command)
             print(f"Returned m: {m}")
 
-            # TODO: Use MapBuilders Here
-            advanced_map_predicted_state = robot.predict_state(advanced_map_state, m)
-            scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
-            advanced_map_updated_state = advanced_map.update(scan, advanced_map_predicted_state)
-            advanced_map_state = advanced_map_updated_state
+            # # TODO: Use MapBuilders Here
+            # advanced_map_predicted_state = robot.predict_state(advanced_map_state, m)
+            # scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
+            # advanced_map_updated_state = advanced_map.update(scan, advanced_map_predicted_state)
+            # advanced_map_state = advanced_map_updated_state
 
             map_builder.step(m)
+            advanced_map_state = map_builder.get_robot_state()
             viz_map(advanced_map)
 
             
