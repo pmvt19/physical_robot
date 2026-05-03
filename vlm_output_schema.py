@@ -10,6 +10,7 @@ class UserPoseTarget(BaseModel):
     valid: bool
     x: float
     y: float
+    theta: float
 
 class RoomLabel(BaseModel):
     room_label: str
