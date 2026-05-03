@@ -9,11 +9,11 @@ from map import Map
 from utils import transformation_mat_to_state
 from test_utils import generate_fake_map, load_saved_map, load_saved_advanced_map
 from motion_planning.space import RobotSpace
-from motion_planning.state import NumpyState, AngularNumpyState
+from motion_planning.tools import NumpyState, AngularNumpyState
 from motion_planning.utils import numpystate_distance, smooth_path
 
-from motion_planning.rrt import RRT
-from motion_planning.prm import PRM
+from motion_planning.search import RRT, PRM
+
 
 from robot_space import PhysicalRobotSpace
 from particle_filter import ParticleFilter
