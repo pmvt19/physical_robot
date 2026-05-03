@@ -76,6 +76,9 @@ class SemanticMap(Map):
 
     def inflate_obstacles(self, inflation_radius=210):
         self.geometric_map.inflate_obstacles(inflation_radius=inflation_radius)
+    
+    def get_inflated_map_2d(self):
+        return self.geometric_map.get_inflated_map_2d()
 
     def get_frontiers(self):
         return self.geometric_map.get_frontiers()
