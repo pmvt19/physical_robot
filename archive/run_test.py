@@ -1,6 +1,7 @@
 from robot import Robot
 from basic_map import BasicMap
 from map import Map
+from advanced_map import AdvancedMap
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -33,7 +34,7 @@ def init_directories(top_level_dir):
 if __name__ == "__main__":
 
     ## TODO: Will update directory structure soon
-    scene_name = 'tmp_v2'
+    scene_name = 'tmp_v3'
     map_save_dir = f'saves/scenes/{scene_name}'
     # init_directories(map_save_dir)
     ## TODO: Will update directory structure soon
@@ -46,7 +47,8 @@ if __name__ == "__main__":
     
     scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
 
-    map = Map()
+    # map = Map(initial_scan=scan)
+    map = AdvancedMap()
     map.init_map(initial_scan=scan)
 
     map.visualize(ax=plt.gca())
@@ -75,6 +77,7 @@ if __name__ == "__main__":
         print(f"Updated State: {updated_state}")
         robot.state = updated_state
 
+        plt.clf()
         map.visualize(ax=plt.gca())
         plt.show()
         plt.cla()
@@ -83,11 +86,14 @@ if __name__ == "__main__":
         # plt.savefig(f'{map_save_dir}/map_imgs/map_{i}.png')
         i+=1
 
+        # pickle.dump(map, open(f"{map_save_dir}/map/map_object.pickle", "wb"))
+        # pickle.dump(map.map, open(f"{map_save_dir}/map/map_map.pickle", "wb"))
+        # pickle.dump(map.get_points(), open(f"{map_save_dir}/map/map_points.pickle", "wb"))
         map.save(map_save_dir)
-    
     print("Finished")
     plt.cla()
     map.visualize(ax=plt.gca())
-    plt.savefig("generated_map.png")
+    plt.show()
+    # plt.savefig("generated_map.png")
 
     
