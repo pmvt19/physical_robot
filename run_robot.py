@@ -10,16 +10,41 @@ from multiprocessing import Process, Manager
 from run_lidar import start_lidar
 import time
 
+import cv2
+
 
 if __name__ == "__main__":
 
-    robot = Robot(connection='physical')
+    robot = Robot(connection='client')
+    
+    # plt.imshow(img[:, :, ::-1])
+    # plt.show()
+
+    # while True:
+    #     img, depth_img = robot.read_rgb_camera()
+    #     cv2.imshow('frame', img)
+    #     depth_img = ((depth_img / np.max(depth_img)) * 255).astype(np.uint8)
+    #     depth_img = cv2.applyColorMap(depth_img, cv2.COLORMAP_HOT)
+    #     # depth_img[depth_img == 0] = 1
+    #     cv2.imshow('depth frame', depth_img)
+    #     print(np.min(depth_img), np.max(depth_img))
+        
+    #     if cv2.waitKey(1) == ord('q'):
+    #         break
+    # exit()
+
+    # robot = Robot(connection='physical')
+
+    # while True:
+    #     motion_command = robot.request_motion_command_from_user()
+    #     if motion_command[0] == '': # No Motion Command
+    #         break
+    #     m = robot.command_motion_trial(motion_command)
+    # exit()
 
     while True:
-        motion_command = robot.request_motion_command_from_user()
-        if motion_command[0] == '': # No Motion Command
-            break
-        m = robot.command_motion_trial(motion_command)
+        _, _ = robot.read_lidar_updated(wait_for_updated_reading=True, manual_verification=True)
+        
     exit()
 
 
