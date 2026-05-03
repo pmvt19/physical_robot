@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 from robot import Robot
 from map import Map
 from advanced_map import AdvancedMap
-from test_utils import generate_fake_map, load_saved_map
+from test_utils import generate_fake_map, load_saved_map, load_saved_semantic_map
 from motion_planning.space import RobotSpace
-from motion_planning.state import AngularNumpyState
+from motion_planning.tools import AngularNumpyState
 from motion_planning.utils import numpystate_distance, smooth_path
 
 # class PhysicalRobotSpace(Robot, RobotSpace):
@@ -214,8 +214,7 @@ class PhysicalRobotSpace(Robot, RobotSpace):
 
 
 if __name__ == "__main__":
-    from motion_planning.rrt import RRT
-    from motion_planning.prm import PRM
+    from motion_planning.search import RRT, PRM
     seed = np.random.randint(10000)
     print(f"Using Seed: {seed}")
     np.random.seed(seed)
@@ -225,8 +224,13 @@ if __name__ == "__main__":
     
     # mymap = Map(initial_scan=scan)
     # mymap = generate_fake_map()
-    mymap = load_saved_map(directory='dumps/run1')
+    # mymap = load_saved_map(directory='dumps/run1')
+    mymap = load_saved_semantic_map(directory="saves/scenes/extensive_apartment")
     # mymap.inflate_obstacles(kernel_size=3)
+    # mymap.visualize_points(plt.gca())
+    mymap.visualize(plt.gca())
+    plt.show()
+
     mymap.visualize_points(plt.gca())
     plt.show()
 
@@ -237,7 +241,7 @@ if __name__ == "__main__":
     # prm = PRM(env=robot, num_samples=10000, edge_dist_radius=500)
     prm.create_graph()
     # rrt.delta = 50.0
-    rrt.delta = 100.0
+    rrt.delta = 500.0
     # start = robot.make_state(np.array([200.0, 500.0, 0.0]))
     # target = robot.make_state(np.array([700.0, 700.0, 0.0]))
 
@@ -250,10 +254,16 @@ if __name__ == "__main__":
     # start = robot.make_state(np.array([-1156.0, -2415.0, 3*np.pi/2]))
     # target = robot.make_state(np.array([1278.0, -1272.0, np.pi/2]))
 
-    start = robot.make_state(np.array([1286.0, -1288.0, 0.0]))
+    # start = robot.make_state(np.array([1286.0, -1288.0, 0.0]))
+    # target = robot.make_state(np.array([746.0, 1573.0, 0.0]))
+
+
+    # start = robot.make_state(np.array([0.0, 0.0, 0.0]))
+    start = robot.make_state(np.array([-1231.0, -1930.0, 0.0]))
     target = robot.make_state(np.array([746.0, 1573.0, 0.0]))
-    # path = rrt.search(start=start, target=target, max_steps=10000)
-    path = prm.search(start=start, target=target)
+
+    path = rrt.search(start=start, target=target, max_steps=10000, animate_search_tree=True)
+    # path = prm.search(start=start, target=target)
 
 
     mymap.visualize_points(plt.gca())
