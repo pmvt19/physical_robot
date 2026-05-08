@@ -1,13 +1,13 @@
-from dxl_controller import DynamixelController
-from robot_interface import RobotInterface
-from robot import Robot
-from basic_map import BasicMap
-from map import Map
+# from dxl_controller import DynamixelController
+# from robot_interface import RobotInterface
+from physical_robot.robot import Robot
+# from basic_map import BasicMap
+# from map import Map
 import numpy as np
 import matplotlib.pyplot as plt
 
 from multiprocessing import Process, Manager
-from run_lidar import start_lidar
+# from run_lidar import start_lidar
 import time
 
 import cv2
@@ -33,19 +33,19 @@ if __name__ == "__main__":
     #         break
     # exit()
 
-    # robot = Robot(connection='physical')
-
-    # while True:
-    #     motion_command = robot.request_motion_command_from_user()
-    #     if motion_command[0] == '': # No Motion Command
-    #         break
-    #     m = robot.command_motion_trial(motion_command)
-    # exit()
+    robot = Robot(connection='client')
 
     while True:
-        _, _ = robot.read_lidar_updated(wait_for_updated_reading=True, manual_verification=True)
-        
+        motion_command = robot.request_motion_command_from_user()
+        if motion_command[0] == '': # No Motion Command
+            break
+        m = robot.command_motion_trial(motion_command)
     exit()
+
+    # while True:
+    #     _, _ = robot.read_lidar_updated(wait_for_updated_reading=True, manual_verification=True)
+        
+    # exit()
 
 
     start_time = time.time()

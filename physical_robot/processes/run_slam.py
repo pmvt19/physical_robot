@@ -1,19 +1,9 @@
-from robot import Robot
-from basic_map import BasicMap
-from map import Map
-from advanced_map import AdvancedMap
-from semantic_map import SemanticMap
+from physical_robot.robot import Robot
+from physical_robot.maps import Map, AdvancedMap, SemanticMap
 import numpy as np
 import matplotlib.pyplot as plt
-import pickle
-import time
-import os
-from vlm_client import VLMClient
-from image_segmentation import ImageSegmenter
-from prompts import ASSIGN_ROOM_LABEL_ONLY_PROMPT, ASSIGN_ROOM_LABEL
-from vlm_output_schema import RoomLabel
 
-from map_builder import MapBuilder, AdvancedMapBuilder, SemanticMapBuilder
+from physical_robot.map_builder.map_builder import MapBuilder, AdvancedMapBuilder, SemanticMapBuilder
 # from config import scene_name
 
 """
@@ -69,15 +59,15 @@ def visualize_map_builders(map_builders: list[MapBuilder], viz_semantics=True):
 if __name__ == "__main__":
 
     ## TODO: Make Flag?
-    scene_name = 'slam_maps_map_builder'
+    scene_name = 'refactor_test_map'
     map_save_dir = f'saves/scenes/{scene_name}'
 
     # Initialization
     robot = Robot(connection='client')
     
     # TODO: Convert to flags??
-    build_map = True
-    build_advanced_map = True
+    build_map = False
+    build_advanced_map = False
     build_semantic_map = True
 
     map_builders: list[MapBuilder] = []
