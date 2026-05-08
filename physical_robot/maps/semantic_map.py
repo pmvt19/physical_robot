@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from map import Map
-from utils import timer
+from physical_robot.maps import Map
+from physical_robot.utils import timer
 from sklearn.neighbors import KDTree
-from icp import run_icp
+from physical_robot.algorithms.icp import run_icp
 from skimage.segmentation import expand_labels
 import pickle
 

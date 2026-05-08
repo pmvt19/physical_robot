@@ -1,14 +1,14 @@
 import numpy as np
-from map import Map
-from utils import point_segment_distance, timer, line_seg_to_points_dist
-from test_utils import generate_fake_scan
+from physical_robot.maps import Map
+from physical_robot.utils import point_segment_distance, timer, line_seg_to_points_dist
+# from test_utils import generate_fake_scan
 import math
 import matplotlib.pyplot as plt
 from skimage.draw import line
-from icp import run_icp
+from physical_robot.algorithms.icp import run_icp
 from scipy.ndimage import binary_dilation, gaussian_filter, median_filter
 from sklearn.neighbors import KDTree
-from utils import create_circular_kernel
+from physical_robot.utils import create_circular_kernel
 from scipy.ndimage import grey_dilation
 FREE = 0
 OCCUPIED = 1

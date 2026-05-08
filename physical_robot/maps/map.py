@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from icp import run_icp
+from physical_robot.algorithms.icp import run_icp
 from scipy.signal import convolve2d
 from shapely import Point
 import pickle
 import os
-from utils import create_circular_kernel
+from physical_robot.utils import create_circular_kernel
 
 
 # map_size = (100, 100)
