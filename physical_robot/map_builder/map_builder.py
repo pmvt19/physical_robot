@@ -1,17 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from robot import Robot
+from physical_robot.robot import Robot
 
-from map import Map
-from advanced_map import AdvancedMap
-from semantic_map import SemanticMap
+from physical_robot.maps import Map, AdvancedMap, SemanticMap
 
-from vlm_client import VLMClient
-from image_segmentation import ImageSegmenter
+from physical_robot.models.vlm.vlm_client import VLMClient
+from physical_robot.models.segmentation.image_segmentation import ImageSegmenter
 
-from prompts import ASSIGN_ROOM_LABEL
-from vlm_output_schema import RoomLabel
+from physical_robot.models.vlm.prompts import ASSIGN_ROOM_LABEL
+from physical_robot.models.vlm.vlm_output_schema import RoomLabel
 
 
 class MapBuilder():
