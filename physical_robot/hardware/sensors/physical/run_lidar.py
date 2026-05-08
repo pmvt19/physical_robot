@@ -4,7 +4,7 @@ from rplidar import RPLidar
 
 import redis
 
-from config import config
+from physical_robot.config import config
 
 def start_lidar():
 
