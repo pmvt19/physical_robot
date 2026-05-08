@@ -2,10 +2,9 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-from robot import Robot
-from map import Map
-from advanced_map import AdvancedMap
-from test_utils import generate_fake_map, load_saved_map, load_saved_semantic_map
+from physical_robot.robot import Robot
+from physical_robot.maps import Map, AdvancedMap
+from physical_robot.utils.test_utils import generate_fake_map, load_saved_map, load_saved_semantic_map
 from motion_planning.space import RobotSpace
 from motion_planning.tools import AngularNumpyState
 from motion_planning.utils import numpystate_distance, smooth_path

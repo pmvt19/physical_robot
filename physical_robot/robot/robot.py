@@ -9,17 +9,17 @@ import logging
 import threading
 
 import grpc
-import generated.robot_data_pb2 as pb2
-import generated.robot_data_pb2_grpc as pb2_grpc
+import physical_robot.generated.robot_data_pb2 as pb2
+import physical_robot.generated.robot_data_pb2_grpc as pb2_grpc
 
 from shapely import Point, Polygon, affinity
 
-from config import config
-from dxl_controller import DynamixelController, TORQUE_ENABLE, TORQUE_DISABLE
-from robot_interface import RobotInterface
-from simulate_lidar import SimulatedLidar
-from utils import create_rectangle_geometry, point_segment_distance, point_to_points_distance, register_logger
-from robot_controller import RobotController
+from physical_robot.config import config
+from physical_robot.hardware.motors.dxl_controller import DynamixelController, TORQUE_ENABLE, TORQUE_DISABLE
+from physical_robot.hardware.motors.robot_motor_interface import RobotInterface
+from physical_robot.hardware.sensors.simulated.simulate_lidar import SimulatedLidar
+from physical_robot.utils import create_rectangle_geometry, point_segment_distance, point_to_points_distance, register_logger
+from .robot_controller import RobotController
 
 logger = register_logger(logger_name=__name__, log_filename='robot', level=logging.INFO, std_err=False)
 
