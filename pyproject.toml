@@ -7,6 +7,8 @@ requires-python = ">=3.12.9"
 dependencies = [
     "depthai>=3.6.1",
     "dotenv>=0.9.9",
+    "grpcio>=1.80.0",
+    "grpcio-tools>=1.80.0",
     "matplotlib>=3.10.9",
     "numpy>=2.4.4",
     "opencv-python>=4.13.0.92",
@@ -19,3 +21,7 @@ dependencies = [
     "shapely>=2.1.2",
     "websockets>=16.0",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]           # Look in the current directory
+include = ["physical_robot*"] # Only include the main package and its sub-packages
