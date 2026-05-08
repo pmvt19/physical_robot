@@ -19,10 +19,12 @@ dependencies = [
     "pydantic>=2.13.4",
     "redis>=7.4.0",
     "rerun-sdk==0.26.2",
+    "rplidar-roboticia>=0.9.5",
     "scikit-image>=0.26.0",
     "scikit-learn>=1.8.0",
     "scipy>=1.17.1",
     "shapely>=2.1.2",
+    "torchvision>=0.17.2",
     "transformers>=5.8.0",
     "websockets>=16.0",
 ]
