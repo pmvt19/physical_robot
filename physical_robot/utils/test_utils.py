@@ -1,6 +1,6 @@
 import numpy as np
-from map import Map
-from semantic_map import SemanticMap
+from physical_robot.maps import Map, SemanticMap
+# from semantic_map import SemanticMap
 
 import pickle
 
@@ -24,7 +24,8 @@ def generate_fake_map():
 
     init_points = np.vstack((s1, s2, s3, s4))
 
-    mymap = Map(initial_scan=init_points)
+    mymap = Map()
+    mymap.init_map(init_points)
     return mymap
 
 def generate_fake_scan():
