@@ -2,17 +2,13 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 
-from robot import Robot
-from map import Map
-from semantic_map import SemanticMap
-from robot_utils import localize_robot, mpc_plan_and_follow_trajectory
-from robot_space import PhysicalRobotSpace
+from physical_robot.robot import Robot, PhysicalRobotSpace
+from physical_robot.maps import Map, SemanticMap
+from physical_robot.robot.robot_utils import localize_robot, mpc_plan_and_follow_trajectory
 from motion_planning.search import RRT, PRM
-from vlm_client import VLMClient
-from icp import run_icp
-from utils import transformation_mat_to_state, register_logger
-from vlm_output_schema import UserSemanticTarget
-from prompts import EXTRACT_SEMANTIC_TARGETS
+from physical_robot.models.vlm.vlm_client import VLMClient
+from physical_robot.algorithms.icp import run_icp
+from physical_robot.utils import transformation_mat_to_state, register_logger
 
 # register_logger(__name__, 'path_tracker', )
 
