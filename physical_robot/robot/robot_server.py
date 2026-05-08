@@ -7,19 +7,17 @@
 # 1. Robot Will Use RobotInterface to move the robot according to the command
 # 2. Robot will send the distance of its wheel motion back to the laptop
 
-from dxl_controller import DynamixelController
-from robot_interface import RobotInterface
 from concurrent import futures
 
 import time
 import grpc
-import generated.robot_data_pb2 as pb2
-import generated.robot_data_pb2_grpc as pb2_grpc
+import physical_robot.generated.robot_data_pb2 as pb2
+import physical_robot.generated.robot_data_pb2_grpc as pb2_grpc
 import numpy as np
 import redis
-from robot import Robot
+from physical_robot.robot import Robot
 
-from utils import register_logger
+from physical_robot.utils import register_logger
 import logging
 
 logger = register_logger(logger_name=__name__, log_filename='robot_server', level=logging.DEBUG, std_err=False)
