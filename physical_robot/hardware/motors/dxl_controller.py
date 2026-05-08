@@ -2,7 +2,7 @@ from dynamixel_sdk import * # Uses DYNAMIXEL SDK library
 import time
 
 import logging
-from utils import register_logger
+from physical_robot.utils import register_logger
 
 # logger = logging.getLogger(__name__)
 # logger.setLevel(logging.INFO)

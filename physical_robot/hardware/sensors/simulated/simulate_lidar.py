@@ -3,8 +3,8 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from map import Map
-from test_utils import generate_fake_map
+from physical_robot.maps import Map
+from physical_robot.utils.test_utils import generate_fake_map
 
 class SimulatedLidar():
     def __init__(self, map_obj, angular_resolution, max_dist):

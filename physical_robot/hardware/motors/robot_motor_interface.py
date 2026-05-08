@@ -1,7 +1,7 @@
-from dxl_controller import *
+from .dxl_controller import *
 import numpy as np
 import time
-from utils import register_logger
+from physical_robot.utils import register_logger
 
 from threading import Lock
 
