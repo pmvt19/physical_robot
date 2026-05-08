@@ -2,16 +2,14 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 
-from robot import Robot
-from map import Map
-from advanced_map import AdvancedMap
-from semantic_map import SemanticMap
-from robot_space import PhysicalRobotSpace
-from vlm_client import VLMClient
-from vlm_output_schema import UserSemanticTarget, UserPoseTarget
-from prompts import EXTRACT_SEMANTIC_TARGETS, EXTRACT_POSE_TARGET
+from physical_robot.robot import Robot
+from physical_robot.maps import Map, AdvancedMap, SemanticMap
+from physical_robot.robot.robot_space import PhysicalRobotSpace
+from physical_robot.models.vlm.vlm_client import VLMClient
+from physical_robot.models.vlm.vlm_output_schema import UserSemanticTarget, UserPoseTarget
+from physical_robot.models.vlm.prompts import EXTRACT_SEMANTIC_TARGETS, EXTRACT_POSE_TARGET
 from heapq import *
-from utils import create_local_mask
+from physical_robot.utils import create_local_mask
 
 class TaskPlanner():
     def __init__(self, robot: Robot, map: Map):
