@@ -1,4 +1,4 @@
-from robot import Robot
+from physical_robot.robot import Robot
 
 import rerun as rr
 import numpy as np
