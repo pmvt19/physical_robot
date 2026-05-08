@@ -3,7 +3,6 @@ __pycache__/
 data/
 dumps/
 logs/
-generated/
 saves/
 maps_saved/
 notes.txt
