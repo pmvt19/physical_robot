@@ -4,13 +4,13 @@ from google.genai import types
 import os 
 from dotenv import load_dotenv
 
-from prompts import ASSIGN_ROOM_LABEL_ONLY_PROMPT
+from physical_robot.models.vlm.prompts import ASSIGN_ROOM_LABEL_ONLY_PROMPT
 
 import numpy as np
 from PIL import Image
 import io
 
-from vlm_output_schema import UserSemanticTarget
+from physical_robot.models.vlm.vlm_output_schema import UserSemanticTarget
 
 class AbstractVLMClient():
     def __init__(self):
@@ -60,12 +60,12 @@ class AbstractVLMClient():
             return self._text_query_no_schmea(text_prompt=text_prompt)
 
 class VLMClient():
-    def __init__(self, model_id="gemini-robotics-er-1.5-preview"):
+    def __init__(self, model_id="gemini-robotics-er-1.6-preview"):
         # Load API Key from .env
         load_dotenv()
         GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-        self.model_options = ["gemini-robotics-er-1.5-preview", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
+        self.model_options = ["gemini-robotics-er-1.6-preview", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
         self.current_model_options_idx = 0
         self.model_id = model_id
         self.client = genai.Client(api_key=GEMINI_API_KEY)
@@ -182,7 +182,7 @@ class VLMClient():
         )
         return text_response.text
     
-    @protect_failed_api_calls
+    # @protect_failed_api_calls
     def text_query(self, text_prompt: str, schema: dict = None):
         if schema is not None:
             # Query Using Schema
