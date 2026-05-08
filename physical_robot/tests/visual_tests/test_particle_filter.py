@@ -2,13 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from scipy import ndimage, stats
-from map import Map
-from particle_filter import ParticleFilter
-from simulate_lidar import SimulatedLidar
-from robot import Robot
 
-from utils import pairwise_dists
-from test_utils import generate_fake_map, load_saved_map
+
+from physical_robot.maps import Map
+from physical_robot.algorithms.particle_filter import ParticleFilter
+from physical_robot.hardware.sensors.simulated.simulate_lidar import SimulatedLidar
+from physical_robot.robot import Robot
+
+from physical_robot.utils.test_utils import generate_fake_map, load_saved_map
 
 np.set_printoptions(suppress=True)
 
@@ -17,9 +18,9 @@ if __name__ == '__main__':
     print(f"Using Seed: {seed}")
     seed = 5770 # Using this seed to figure out why expanding map doesn't succeed on the first try
     np.random.seed(seed)
-    mymap = load_saved_map()
+    # mymap = load_saved_map()
     # mymap = load_saved_map(f"saves/scenes/tmp/map/")
-    # mymap = generate_fake_map()
+    mymap = generate_fake_map()
     mymap.visualize(plt.gca())
     plt.show()
 
@@ -66,13 +67,14 @@ if __name__ == '__main__':
         print(f"State Difference: {np.round(robot.state - state_estimate, 2)}")
         # motor_diffs = robot.command_motion(motion_delta)
         # robot.state = robot.predict_state(robot.state, motor_diffs)
-        robot.state = robot.command_motion_and_predict_state(robot.state, motion_delta)
+        _, robot.state = robot.command_motion_and_predict_state(robot.state, motion_delta)
         
 
         pf.visualize_particles(plt.gca())
         pf.map.visualize_points(plt.gca())
         # plt.scatter(translated_rotated_points[:, 0], translated_rotated_points[:, 1], color='purple')
         plt.scatter(unrotated_points[:, 0], unrotated_points[:, 1])
+        print(robot.state[0], robot.state[1])
         plt.scatter(robot.state[0], robot.state[1], color='orange', zorder=2)
         robot.draw_state(plt.gca(), robot.state)
         # plt.xlim(-2000, 5000)
