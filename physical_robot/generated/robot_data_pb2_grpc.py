@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import generated.robot_data_pb2 as robot__data__pb2
+import physical_robot.generated.robot_data_pb2 as robot__data__pb2
 
 GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__
