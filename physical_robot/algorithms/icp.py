@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.neighbors import KDTree
 import matplotlib.pyplot as plt
-from utils import register_logger
+from physical_robot.utils import register_logger
 import logging
 
 logger = register_logger(__name__, 'icp', logging.INFO, std_err=False)

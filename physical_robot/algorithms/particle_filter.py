@@ -2,14 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from scipy import ndimage, stats
-from map import Map
+from physical_robot.maps import Map
 
-from robot import Robot
-from simulate_lidar import SimulatedLidar
+from physical_robot.robot import Robot
+from physical_robot.hardware.sensors.simulated.simulate_lidar import SimulatedLidar
 
-from utils import pairwise_dists, transformation_mat_to_state
-from test_utils import generate_fake_map, load_saved_map
-from icp import run_icp
+from physical_robot.utils import pairwise_dists, transformation_mat_to_state
+from physical_robot.utils.test_utils import generate_fake_map, load_saved_map
+from physical_robot.algorithms.icp import run_icp
 
 class ParticleFilter():
     def __init__(self, map_obj, scale_factor=50):
@@ -260,7 +260,7 @@ class ParticleFilter():
         _, _, batch_normalized_weights = self.batch_get_measurement_update(self.particles[:, :3], scan)
         self.particles[:, 3] = batch_normalized_weights
 
-    def step(self, motion_delta, scan, estimate_method='MLE', icp_refinement_coords=False):
+    def step(self, motion_delta, scan, estimate_method='MLE', icp_refinement_coords=None):
         self.particles = self.get_updated_particles(motion_delta)
         self.update_particle_weights(scan)
         state_estimate = self.get_state_estimate(method=estimate_method)
