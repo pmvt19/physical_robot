@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from particle_filter import ParticleFilter
-from robot import Robot
-from robot_space import PhysicalRobotSpace
-from map import Map
-from icp import run_icp
-from utils import transformation_mat_to_state
+from physical_robot.algorithms.particle_filter import ParticleFilter
+from physical_robot.robot import Robot
+from physical_robot.robot import PhysicalRobotSpace
+from physical_robot.maps import Map
+from physical_robot.algorithms.icp import run_icp
+from physical_robot.utils import transformation_mat_to_state
 
 from motion_planning.search import PRM
 from motion_planning.tools import NumpyState, Path
