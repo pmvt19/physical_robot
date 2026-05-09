@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 import threading
+import open3d as o3d
 
 import grpc
 import physical_robot.generated.robot_data_pb2 as pb2
@@ -18,7 +19,7 @@ from physical_robot.config import config
 from physical_robot.hardware.motors.dxl_controller import DynamixelController, TORQUE_ENABLE, TORQUE_DISABLE
 from physical_robot.hardware.motors.robot_motor_interface import RobotInterface
 from physical_robot.hardware.sensors.simulated.simulate_lidar import SimulatedLidar
-from physical_robot.utils import create_rectangle_geometry, point_segment_distance, point_to_points_distance, register_logger
+from physical_robot.utils import create_rectangle_geometry, point_segment_distance, point_to_points_distance, register_logger, pairwise_dists
 from .robot_controller import RobotController
 
 logger = register_logger(logger_name=__name__, log_filename='robot', level=logging.INFO, std_err=False)
@@ -221,7 +222,7 @@ class Robot():
         else:
             raise NotImplementedError
         
-    def read_point_cloud(self):
+    def read_point_cloud(self, filter=True):
         if self.connection == 'simulated':
             raise NotImplementedError
         elif self.connection == 'client':
@@ -237,6 +238,16 @@ class Robot():
 
             point_cloud_coords = np.frombuffer(point_cloud_data_proto.point_cloud_coords.img_bytes, dtype=point_cloud_data_proto.point_cloud_coords.type).reshape(*point_cloud_data_proto.point_cloud_coords.shape)
             point_cloud_colors = np.frombuffer(point_cloud_data_proto.point_cloud_colors.img_bytes, dtype=point_cloud_data_proto.point_cloud_colors.type).reshape(*point_cloud_data_proto.point_cloud_colors.shape)
+
+            ## -- Filtering -- ##
+            if filter:
+                pcd = o3d.geometry.PointCloud()
+                pcd.points = o3d.utility.Vector3dVector(point_cloud_coords)
+                pcd.colors = o3d.utility.Vector3dVector(point_cloud_colors[:, :3])
+
+                voxel_down_pcd = pcd.voxel_down_sample(voxel_size=0.2)
+                return np.asarray(voxel_down_pcd.points), np.asarray(voxel_down_pcd.colors)[:, ::-1]
+            ## -- Filtering -- ##
 
             return point_cloud_coords, point_cloud_colors
         else:
