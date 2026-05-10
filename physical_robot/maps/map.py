@@ -65,6 +65,8 @@ class Map():
 
         self.map_type_name = 'map'
 
+        self.needs_inflation_update = True
+
         # if origin:
         #     self.mx = origin[0]
         #     self.my = origin[1]
@@ -148,6 +150,7 @@ class Map():
             self.expand_map(idxes)
             idxes = self.batch_world_to_grid_coords(aligned_scan)
             self.map[idxes[:, 0], idxes[:, 1]] = 1
+        self.needs_inflation_update = True
             
     def get_map_2d(self):
         return self.map
@@ -179,6 +182,7 @@ class Map():
 
         # Where neighbor_mask > 0 (adjacent to a 1) and current value != 1
         self.inflated_map[(neighbor_mask > 0) & (self.map != 1)] = 1
+        self.needs_inflation_update = False
     
     def get_inflated_map_2d(self):
         return self.inflated_map
@@ -242,6 +246,7 @@ class Map():
         ### --- Expand Map Here --- ###
         new_grid_coords = self.batch_world_to_grid_coords(approx_world_coords)
         self.map[new_grid_coords[:, 0], new_grid_coords[:, 1]] = values # TODO: Linked with previous todo in this function^
+        self.needs_inflation_update = True
 
     def adjust_resolution(self, resolution=100.0):
         new_map = Map(resolution=resolution)
