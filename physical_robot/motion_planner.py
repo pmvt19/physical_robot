@@ -70,7 +70,7 @@ class PathTracker():
             return current_state
         
         print(f"Executing Motion Command: {motion_command}")
-        m, predicted_state = self.robot_space.command_motion_and_predict_state(current_state.value, motion_command)
+        m, predicted_state = self.robot_space.command_motion_and_predict_state(current_state, motion_command)
         coords, lidar_data = self.robot_space.read_lidar_updated(wait_for_updated_reading=True, manual_verification=False)
 
         # Particle Filter State Prediction Update
@@ -79,8 +79,8 @@ class PathTracker():
 
         # ICP State Refinement
         T = run_icp(coords, self.map.get_points(), current_state, filter_init_outliers=False, visualize=False)
-        current_state = self.robot_space.make_state(transformation_mat_to_state(T))
-        print(f"Current State After ICP Refinement: {np.round(current_state.value, 2)}")
+        current_state = transformation_mat_to_state(T)
+        print(f"Current State After ICP Refinement: {np.round(current_state, 2)}")
         return current_state
 
     def step_motion_executions(self, current_state, motion_commands, lookahead_dist=-1):
