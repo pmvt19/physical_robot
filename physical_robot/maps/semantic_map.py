@@ -106,6 +106,7 @@ class SemanticMap(Map):
         
         # Reset Flood Filled Map
         self.flood_filled_map = None
+        self.needs_inflation_update = True
 
     def map_layer_to_coords_and_semantic_values(self, map_layer : np.ndarray):
         idxes = np.where(map_layer > 0)
