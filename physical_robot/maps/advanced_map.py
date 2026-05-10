@@ -21,6 +21,8 @@ class AdvancedMap(Map):
         self.map = np.zeros((N, M, 2))
         self.map_type_name = 'advanced_map'
 
+        self.needs_inflation_update = True
+
     def init_map(self, initial_scan):
         initial_state = np.array([0.0, 0.0, 0.0])
         self.update_map(initial_scan, initial_state)
@@ -65,6 +67,8 @@ class AdvancedMap(Map):
             self.expand_map(idxes)
             idxes = self.batch_world_to_grid_coords(aligned_scan)
             self.map[idxes[:, 0], idxes[:, 1], OCCUPIED] += 1
+        
+        self.needs_inflation_update = True
 
     def expand_map(self, req_grid_coords):
         free_layer_coords_and_values, occupied_layer_coords_and_values = self.get_points_and_values_by_layer()
@@ -84,6 +88,7 @@ class AdvancedMap(Map):
 
         self.map[new_grid_coords_free_layer[:, 0], new_grid_coords_free_layer[:, 1], FREE] = free_layer_coords_and_values[:, 2]
         self.map[new_grid_coords_occupied_layer[:, 0], new_grid_coords_occupied_layer[:, 1], OCCUPIED] = occupied_layer_coords_and_values[:, 2]
+        self.needs_inflation_update = True
 
     def get_points(self, threshold=0.5):
         probability_map = self.map_to_probability_map()
@@ -122,6 +127,8 @@ class AdvancedMap(Map):
 
         self.inflated_map[:, :, OCCUPIED] = grey_dilation(self.inflated_map[:, :, OCCUPIED], footprint=kernel)
         self.inflated_map[self.inflated_map[:, :, OCCUPIED] > 0, FREE] = 0
+
+        self.needs_inflation_update = False
 
     def get_inflated_map_2d(self):
         return (self.inflated_map[:, :, OCCUPIED] + 1) / (np.sum(self.inflated_map, axis=2) + 2)
