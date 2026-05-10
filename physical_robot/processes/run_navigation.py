@@ -21,7 +21,6 @@ def run_navigation():
 
     # Get the Target Pose
     target = task_planner.get_target_pose()
-    target = robot_space.make_state(target)
     
     # Define Start
     path_tracker.localize_robot()
