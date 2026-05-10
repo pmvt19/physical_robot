@@ -49,12 +49,12 @@ class PathTracker():
 
             # 3. Check exit conditions
             # If we aren't replanning, or if we've reached the goal, we stop.
-            if not do_replan or self.is_close(current_state.value, target.value):
+            if not do_replan or self.is_close(current_state, target):
                 break
 
             # 4. Replan for the next iteration
             try:
-                new_path_objects = self.motion_planner.search(current_state.value, target.value)
+                new_path_objects = self.motion_planner.search(self.robot_space.make_state(current_state), self.robot_space.make_state(target))
                 path = [p.value for p in new_path_objects]
             except Exception as e: # TODO: Make sure this only catches the motion_planner.search being None exception
                 raise ValueError("Need to pass in a motion planner to use the do_replan feature")
