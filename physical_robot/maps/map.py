@@ -188,7 +188,8 @@ class Map():
         self.current_inflation_radius = inflation_radius
     
     def get_inflated_map_2d(self, inflation_radius=210):
-        if self.current_inflation_radius <= 0:
+        assert(inflation_radius > 0)
+        if self.current_inflation_radius != inflation_radius:
             self.inflate_obstacles(inflation_radius=inflation_radius)
         return self.inflated_map
 
