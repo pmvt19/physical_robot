@@ -65,7 +65,8 @@ class Map():
 
         self.map_type_name = 'map'
 
-        self.needs_inflation_update = True
+        self.needs_inflation_update = True # TODO: Deprecate this field
+        self.current_inflation_radius = 0
 
         # if origin:
         #     self.mx = origin[0]
@@ -151,6 +152,7 @@ class Map():
             idxes = self.batch_world_to_grid_coords(aligned_scan)
             self.map[idxes[:, 0], idxes[:, 1]] = 1
         self.needs_inflation_update = True
+        self.current_inflation_radius = 0
             
     def get_map_2d(self):
         return self.map
@@ -183,8 +185,11 @@ class Map():
         # Where neighbor_mask > 0 (adjacent to a 1) and current value != 1
         self.inflated_map[(neighbor_mask > 0) & (self.map != 1)] = 1
         self.needs_inflation_update = False
+        self.current_inflation_radius = inflation_radius
     
-    def get_inflated_map_2d(self):
+    def get_inflated_map_2d(self, inflation_radius=210):
+        if self.current_inflation_radius <= 0:
+            self.inflate_obstacles(inflation_radius=inflation_radius)
         return self.inflated_map
 
     def get_frontiers(self):
@@ -247,6 +252,7 @@ class Map():
         new_grid_coords = self.batch_world_to_grid_coords(approx_world_coords)
         self.map[new_grid_coords[:, 0], new_grid_coords[:, 1]] = values # TODO: Linked with previous todo in this function^
         self.needs_inflation_update = True
+        self.current_inflation_radius = 0
 
     def adjust_resolution(self, resolution=100.0):
         new_map = Map(resolution=resolution)
