@@ -297,8 +297,7 @@ class AdvancedMap(Map):
         ax[1].imshow(np.rot90(self.map[:, :, OCCUPIED]))
         
 if __name__ == '__main__':
-    from test_utils import load_saved_advanced_map
-    advanced_map: AdvancedMap = load_saved_advanced_map(directory="saves/scenes/extensive_apartment")
+    advanced_map: AdvancedMap = AdvancedMap.load_map(map_save_dir="saves/scenes/extensive_apartment")
     advanced_map.visualize(plt.gca())
     plt.show()
 
