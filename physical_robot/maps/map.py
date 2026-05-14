@@ -47,6 +47,8 @@ There should be a more advanced map that will compute the probability of free sp
 implemented later.
 """
 class Map():
+    map_type_name = "map"
+
     def __init__(self, resolution=10.0, origin=(45, 92)):
         self.resolution = resolution
 
@@ -63,7 +65,7 @@ class Map():
 
         print(f"Origin: {(self.mx, self.my)}")
 
-        self.map_type_name = 'map'
+        # self.map_type_name = 'map'
 
         self.needs_inflation_update = True # TODO: Deprecate this field
         self.current_inflation_radius = 0
@@ -282,8 +284,9 @@ class Map():
         ax.scatter(points[:, 0], points[:, 1])
     
     ### --- Saving Map Functions --- ###
-    def get_save_dir(self, map_save_dir):
-        save_path = os.path.join(map_save_dir, self.map_type_name)
+    @classmethod
+    def get_save_dir(cls, map_save_dir):
+        save_path = os.path.join(map_save_dir, cls.map_type_name)
         os.makedirs(save_path, exist_ok=True)
         return save_path
     
@@ -296,10 +299,14 @@ class Map():
     def save(self, map_save_dir, file_name_ext="final"):
         pickle.dump(self, open(f"{self.get_save_dir(map_save_dir)}/{self.map_type_name}_object_{file_name_ext}.pickle", "wb"))
 
-if __name__ == '__main__':
-    from test_utils import load_saved_map
+    ### --- Load Map Function --- ###
+    @classmethod
+    def load_map(cls, map_save_dir, file_name_ext="final"):
+        loaded_map = pickle.load(open(f"{cls.get_save_dir(map_save_dir)}/{cls.map_type_name}_object_{file_name_ext}.pickle", "rb"))
+        return loaded_map
 
-    mymap = load_saved_map(directory="saves/scenes/extensive_apartment")
+if __name__ == '__main__':
+    mymap = Map.load_map(map_save_dir="saves/scenes/extensive_apartment")
     mymap.inflate_obstacles()
     mymap.visualize(ax=plt.gca())
     mymap.draw_state(plt.gca(), [40.0, 0.0, 0.0])

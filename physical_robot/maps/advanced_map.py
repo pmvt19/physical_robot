@@ -14,12 +14,13 @@ FREE = 0
 OCCUPIED = 1
 
 class AdvancedMap(Map):
+    map_type_name = "advanced_map"
     def __init__(self, resolution=10.0, origin=None):
         super().__init__(resolution=resolution, origin=origin)
 
         N, M, *_ = self.map.shape
         self.map = np.zeros((N, M, 2))
-        self.map_type_name = 'advanced_map'
+        # self.map_type_name = 'advanced_map'
 
         self.needs_inflation_update = True # TODO: Deprecate this field
         self.current_inflation_radius = 0
