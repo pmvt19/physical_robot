@@ -281,6 +281,7 @@ class Map():
         points = self.get_points()
         ax.scatter(points[:, 0], points[:, 1])
     
+    ### --- Saving Map Functions --- ###
     def get_save_dir(self, map_save_dir):
         save_path = os.path.join(map_save_dir, self.map_type_name)
         os.makedirs(save_path, exist_ok=True)
