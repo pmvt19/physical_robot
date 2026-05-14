@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 import threading
-import open3d as o3d
+# import open3d as o3d
 
 import grpc
 import physical_robot.generated.robot_data_pb2 as pb2
@@ -240,13 +240,13 @@ class Robot():
             point_cloud_colors = np.frombuffer(point_cloud_data_proto.point_cloud_colors.img_bytes, dtype=point_cloud_data_proto.point_cloud_colors.type).reshape(*point_cloud_data_proto.point_cloud_colors.shape)
 
             ## -- Filtering -- ##
-            if filter:
-                pcd = o3d.geometry.PointCloud()
-                pcd.points = o3d.utility.Vector3dVector(point_cloud_coords)
-                pcd.colors = o3d.utility.Vector3dVector(point_cloud_colors[:, :3])
+            # if filter:
+            #     pcd = o3d.geometry.PointCloud()
+            #     pcd.points = o3d.utility.Vector3dVector(point_cloud_coords)
+            #     pcd.colors = o3d.utility.Vector3dVector(point_cloud_colors[:, :3])
 
-                voxel_down_pcd = pcd.voxel_down_sample(voxel_size=0.2)
-                return np.asarray(voxel_down_pcd.points), np.asarray(voxel_down_pcd.colors)[:, ::-1]
+            #     voxel_down_pcd = pcd.voxel_down_sample(voxel_size=0.2)
+            #     return np.asarray(voxel_down_pcd.points), np.asarray(voxel_down_pcd.colors)[:, ::-1]
             ## -- Filtering -- ##
 
             return point_cloud_coords, point_cloud_colors
