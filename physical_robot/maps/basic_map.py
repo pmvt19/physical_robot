@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from icp import run_icp
+from physical_robot.algorithms.icp import run_icp
 
 class BasicMap():
     def __init__(self, initial_scan):
