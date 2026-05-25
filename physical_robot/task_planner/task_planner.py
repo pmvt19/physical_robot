@@ -22,7 +22,7 @@ class TaskPlanner():
     def get_target_pose(self, target_theta: float = 0.0):
         x_range, y_range = self.map.get_map_range()
         while True:
-            user_input = print("Please provide the X and Y target coordinates")
+            user_input = input("Please provide the X and Y target coordinates")
             vlm_response = self.vlm_client.text_query(EXTRACT_POSE_TARGET.format(user_input,
                                                                                  x_range[0],
                                                                                  x_range[1],
