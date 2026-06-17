@@ -1,19 +1,28 @@
-# Suno Bot
+# SunoBot 
 
 <!-- ![SunoBotLogo](./assets/SunoBotLogo.png) -->
 
-<p align="Left">
-<img src="./assets/SunoBotLogo.png" alt="Parking Space Environment" width="25%">
+<p align="left">
+<img src="./assets/SunoBotLogo.png" alt="SunoBotLogo" width="25%">
 
-Suno Bot is an open-source autonomous robot platform built on python.
+SunoBot is an open-source autonomous mobile robot platform meant to explore computer vision, motion planning, and robotics.
+
+Capabilities:
+SLAM
+Motion Planning
+Semantic Navigation
+Semantic Slam
+
 
 ## Code Installation
+
+Requires Python >=3.12.9
 
 ```
 pip install suno-bot
 ```
 
-For systems with a Nvidia GPU, you can use the following command to ensure you install torch with cuda to accelerate inference on local models.
+For systems with an Nvidia GPU, you can use the following command to ensure you install torch with cuda to accelerate inference when running local models.
 
 ```
 pip install suno-bot[cuda]
@@ -35,13 +44,13 @@ pip install suno-bot[cuda]
 | **Assembly Hardware** |
 | Turtle Bot Wheel and Tire Kit | 2 | $9 | Robotis |
 | Turtle Bot Wheel Rollers | 2 | $9 | Robotis |
-| Standoffs | 1 | $25 | amazon |
 | Screw Pack | 1 | $25 | amazon |
 | Standoffs | 1 | $25 | amazon |
 | **Power & Accessories** |
 | Battery | 1 | $25 | amazon |
 | 8x AA Battery Holder | 1 | $25 | amazon |
 | 8x AA Batteries | 1 | $25 | amazon |
+| USB C to USB C Cable | 1 | $10 | amazon |
 
 
 # Chassis & Brackets - 3D Printed Parts
@@ -56,3 +65,8 @@ pip install suno-bot[cuda]
 | Lidar Mounting Bracket | 1 | Link |
 | Battery Holder | 1 | Link |
 | AA Battery Holder | 1 | Link |
+
+Any 3D printer large enough should work to print all of these parts. For reference, I printed these parts using a Prusa MK4S printer using PLA and got fairly decent results.
+
+# Assembly Instructions
+Please follow this tutorial for instructions on how to assemble the SunoBot.
