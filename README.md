@@ -21,8 +21,8 @@ SunoBot is an open-source autonomous mobile robot platform meant to explore comp
 
 <p float="center">
   <img src="assets/cropped-SLAM_Graphic.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="assets/cropped-motion_planning_graphic.svg" width="32%" style="border-radius: 15px;"/>
   <img src="assets/cropped-semantic_navigation.svg" width="32%" style="border-radius: 15px;"/>
+  <img src="assets/cropped-motion_planning_graphic.svg" width="32%" style="border-radius: 15px;"/>
 </p>
 
 
