@@ -20,9 +20,9 @@ SunoBot is an open-source autonomous mobile robot platform meant to explore comp
 
 
 <p float="center">
-  <img src="assets\cropped-SLAM_Graphic.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="assets\cropped-motion_planning_graphic.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="assets\cropped-semantic_navigation.svg" width="32%" style="border-radius: 15px;"/>
+  <img src="assets/cropped-SLAM_Graphic.svg" width="32%" style="border-radius: 15px;"/>
+  <img src="assets/cropped-motion_planning_graphic.svg" width="32%" style="border-radius: 15px;"/>
+  <img src="assets/cropped-semantic_navigation.svg" width="32%" style="border-radius: 15px;"/>
 </p>
 
 
@@ -123,6 +123,10 @@ Please follow this tutorial for instructions on how to assemble the SunoBot.
 <div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;">
 <img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/SCIPY_2.svg" style="width: 100%; border-radius: 15px;"/>
 <br><strong style="font-size: 16px;">SciPy</strong>
+</div>
+
+<div align="center">
+  <div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" style="width: 100%; border-radius: 15px;"/><br><strong style="font-size: 16px; font-family: sans-serif;">Python</strong></div><div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/numpy/numpy-original.svg" style="width: 100%; border-radius: 15px;"/><br><strong style="font-size: 16px; font-family: sans-serif;">NumPy</strong></div><div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/SCIPY_2.svg" style="width: 100%; border-radius: 15px;"/><br><strong style="font-size: 16px; font-family: sans-serif;">SciPy</strong></div>
 </div>
 
   <!-- </div> -->
