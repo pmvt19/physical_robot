@@ -7,6 +7,6 @@
 
 # TEST 1: ICP with only rotation
 
-# TEST 2: ICP with only rotation
+# TEST 2: ICP with only translation
 
 # TEST 3: ICP with rotation and translation
