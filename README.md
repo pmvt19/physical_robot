@@ -156,7 +156,7 @@ python physical_robot/robot/robot_server.py
 
 ### Using the Monitoring UI
 
-On the host computer:
+On the Client (External Laptop):
 ```sh
 # Start the Websocket
 python physical_robot/ui/ui_server.py
