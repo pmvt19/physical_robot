@@ -39,7 +39,7 @@ Example:
 ## 360 Degree Lidar - RPLidar C1
 
 <p align="center">
-<img src="./assets/rplidar_c1_cropped.jpg" alt="RPLidar C1" width="30%">
+<img src="./assets/rplidar_c1_cropped.jpg" alt="RPLidar C1" width="20%">
 
 <!-- Example Readings -->
 <!-- Maybe add gif of lidar readings? -->
@@ -52,7 +52,7 @@ Example:
 ## Stereo Depth Camera - Oak-D Lite
 
 <p align="center">
-<img src="./assets/oak-d_lite.jpg" alt="Oak-D Lite" width="40%">
+<img src="./assets/oak-d_lite.jpg" alt="Oak-D Lite" width="20%">
 
 ### Specifications
 - Photo Resolution: 13 MP (Auto-Focus Variant)
@@ -68,7 +68,7 @@ Example:
 
 # Motors - Dynamixel WL430-XL250-T
 <p align="center">
-<img src="./assets/dynamixel_motor.png" alt="Dynamixel Motors" width="40%">
+<img src="./assets/dynamixel_motor.png" alt="Dynamixel Motors" width="20%">
 
 
 # Code Installation
