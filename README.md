@@ -133,6 +133,34 @@ Please follow this tutorial for instructions on how to assemble the SunoBot.
 
 # Getting Started Guide
 
+## Setup the config
+
+## Running Locally
+*Not fully supported yet*
+
+## Running via RPC Server-Client
+
+### Running the sensor suite
+On the robot computer:
+```sh
+# Start running and publishing sensor data
+sh physical_robot/scripts/run_sensor_suite_elite.sh
+
+# Start the RPC Server on the robot
+python physical_robot/robot/robot_server.py
+```
+
+### Using the Monitoring UI
+
+On the host computer:
+```
+python physical_robot/ui/ui_server.py
+```
+
+```
+sh physical_robot/scripts/run_ui.sh
+```
+
 # Future Plans
 ROS Integration
 
