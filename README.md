@@ -2,22 +2,13 @@
 
 <!-- ![SunoBotLogo](./assets/SunoBotLogo.png) -->
 
-<p align="left">
-<img src="./assets/SunoBotLogo.png" alt="SunoBotLogo" width="25%">
+<p align="center">
+<img src="./assets/SunoBotLogo.png" alt="SunoBotLogo" width="50%">
 
-SunoBot is an open-source autonomous mobile robot platform meant to explore computer vision, motion planning, and robotics.
+<p align="center">
+SunoBot is an open-source autonomous mobile robot platform meant to explore computer vision, motion planning, and robot design.
 
 ## Capabilities:
-
-<!-- <p align="center">
-<img src="assets\cropped-SLAM_Graphic.svg" alt="SunoBotLogo" width="50%" style="border-radius: 15px;">
-
-<p align="center">
-<img src="assets\cropped-motion_planning_graphic.svg" alt="SunoBotLogo" width="50%" style="border-radius: 15px;">
-
-<p align="center">
-<img src="assets\cropped-semantic_navigation.svg" alt="SunoBotLogo" width="50%" style="border-radius: 15px;"> -->
-
 
 <p float="center">
   <img src="assets/cropped-slam_graphic_updated.svg" width="32%"/>
@@ -25,11 +16,31 @@ SunoBot is an open-source autonomous mobile robot platform meant to explore comp
   <img src="assets/cropped-semantic_navigation_graphic_updated.svg" width="32%"/>
 </p>
 
-SLAM
-Motion Planning
-Semantic Navigation
-Semantic Slam
+# Monitoring UI - RoboMonitor Pro
 
+The RoboMonitor Pro Monitoring UI allows users to monitor the current readings of all on-board sensors on the SunoBot.
+
+The list of natively monitored sensors:
+- Lidar
+- RGB Camera
+- Depth Camera
+- Accelerometer
+- Gyroscope
+
+The monitoring UI also includes additional information about the real-time motor positions and velocities.
+
+Example:
+<!-- Insert Example UI Image -->
+
+# Equipped Sensors
+
+## 360 Degree Lidar
+
+<!-- Maybe add gif of lidar readings? -->
+
+## Stereo Depth Camera
+
+<!-- Front on Vision, Depth Camera, 3D Point Cloud -->
 
 # Code Installation
 
@@ -90,6 +101,8 @@ Any 3D printer large enough should work to print all of these parts. For referen
 
 # Assembly Instructions
 Please follow this tutorial for instructions on how to assemble the SunoBot.
+
+# Getting Started Guide
 
 # Future Plans
 ROS Integration
