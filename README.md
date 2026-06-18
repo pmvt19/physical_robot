@@ -37,7 +37,7 @@ Example:
 ## 360 Degree Lidar - RPLidar C1
 
 <p align="center">
-<img src="./assets/rplidar_c1_cropped.jpg" alt="SunoBotLogo" width="40%">
+<img src="./assets/rplidar_c1_cropped.jpg" alt="SunoBotLogo" width="30%">
 
 <!-- Example Readings -->
 <!-- Maybe add gif of lidar readings? -->
@@ -50,7 +50,7 @@ Example:
 ## Stereo Depth Camera - Oak-D Lite
 
 <p align="center">
-<img src="./assets/oak-d_lite.jpg" alt="SunoBotLogo" width="50%">
+<img src="./assets/oak-d_lite.jpg" alt="SunoBotLogo" width="40%">
 
 ### Specifications
 - Photo Resolution: 13 MP (Auto-Focus Variant)
