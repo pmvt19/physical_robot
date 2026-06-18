@@ -32,7 +32,7 @@ Semantic Navigation
 Semantic Slam
 
 
-## Code Installation
+# Code Installation
 
 Requires Python >=3.12.9
 
@@ -75,15 +75,16 @@ pip install suno-bot[cuda]
 # Chassis & Brackets - 3D Printed Parts
 | Part | Quantity | CAD File |
 | --- | --- | --- |
-| Base Board | 2 | Link |
-| Sensor Mounting Bracket Riser | 1 | Link |
-| Jetson Mount | 1 | Link |
-| Jetson Securing Bracket | 1 | Link |
-| Camera Mounting Bracket | 1 | Link |
-| Camera Mounting Bracket Spacer | 1 | Link |
-| Lidar Mounting Bracket | 1 | Link |
-| Battery Holder | 1 | Link |
-| AA Battery Holder | 1 | Link |
+| Base Board | 2 | [Link](./CAD/Robot%20Base%20Plate.stl) |
+| Motor Mounts | 2 | [Link](./CAD/430T%20Motor%20Mounts.stl) |
+| Sensor Mounting Bracket Riser | 1 | [Link](./CAD/Lidar%20Mounting%20Plate%20Wide.stl) |
+| Jetson Mount | 1 | [Link](./CAD/Jetson%20Mount.stl) |
+| Jetson Securing Bracket | 1 | [Link](./CAD/Jetson%20Securing%20Bracket.stl) |
+| Camera Mounting Bracket | 1 | [Link](./CAD/Camera%20Mounting%20Bracket.stl) |
+| Camera Mounting Bracket Spacer | 1 | [Link](./CAD/OAK-D%20Lite%20Camera%20Mount.stl) |
+| Lidar Mounting Bracket | 1 | [Link](./CAD/Lidar%20Mounting%20Plate.stl) |
+| KBT Battery Holder | 1 | [Link](./CAD/KBT%20Battery%20Holder.stl) |
+| AA Battery Holder | 1 | [Link](./CAD/8%20AA%20Battery%20Holder%20Horizontal.stl) |
 
 Any 3D printer large enough should work to print all of these parts. For reference, I printed these parts using a Prusa MK4S printer using PLA and got fairly decent results.
 
@@ -99,8 +100,7 @@ ROS Integration
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="22%" style="border-radius: 15px;"/>
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/numpy/numpy-original.svg" width="22%" style="border-radius: 15px;"/>
   <img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/SCIPY_2.svg" width=22%" style="border-radius: 15px;"/>
-  <img src="https://www.sympy.org/static/images/logo.png" width="22%" style="border-radius: 15px;"/>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg" width="22%" style="border-radius: 15px;"/>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg" width="32%" style="border-radius: 15px;"/>
   <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" width="22%" style="border-radius: 15px;"/>
   <img src="https://www.luxonis.com/assets/marketing/brand/luxonis_logo_symbol.png" width="22%" style="border-radius: 15px;"/>
   <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" width="22%" style="border-radius: 15px;"/>
