@@ -34,11 +34,33 @@ Example:
 
 # Equipped Sensors
 
-## 360 Degree Lidar
+## 360 Degree Lidar - RPLidar C1
 
+<p align="center">
+<img src="./assets/rplidar_c1_cropped.jpg" alt="SunoBotLogo" width="40%">
+
+<!-- Example Readings -->
 <!-- Maybe add gif of lidar readings? -->
 
-## Stereo Depth Camera
+### Specifications
+- Max Range: 12 meters
+- Accuracy: 30 mm
+- Angular Resolution: 0.72 degrees
+
+## Stereo Depth Camera - Oak-D Lite
+
+<p align="center">
+<img src="./assets/oak-d_lite.jpg" alt="SunoBotLogo" width="50%">
+
+### Specifications
+- Photo Resolution: 13 MP (Auto-Focus Variant)
+- Video Resolution: 1080p
+- Max Aperture: 2.8 mm
+- Angular Resolution: 0.72 degrees
+- IMU: 6-axis sensor with accelerometer and gyroscope
+- Onboard Compute to run computer vision algorithms and models
+
+<!-- Example Readings -->
 
 <!-- Front on Vision, Depth Camera, 3D Point Cloud -->
 
@@ -123,25 +145,3 @@ ROS Integration
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/matplotlib/matplotlib-original.svg" width="22%" style="border-radius: 15px;"/>
   <img src="https://images.icon-icons.com/2415/PNG/512/redis_original_wordmark_logo_icon_146369.png" width="22%" style="border-radius: 15px;"/>
 </p>
-
-
-<!-- <div align="left"> -->
-<!-- 
-<div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;">
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" style="width: 100%; border-radius: 15px;"/>
-<br><strong style="font-size: 16px;">Python</strong>
-</div>
-<div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;">
-<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/numpy/numpy-original.svg" style="width: 100%; border-radius: 15px;"/>
-<br><strong style="font-size: 16px;">NumPy</strong>
-</div>
-<div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;">
-<img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/SCIPY_2.svg" style="width: 100%; border-radius: 15px;"/>
-<br><strong style="font-size: 16px;">SciPy</strong>
-</div>
-
-<div align="center">
-  <div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" style="width: 100%; border-radius: 15px;"/><br><strong style="font-size: 16px; font-family: sans-serif;">Python</strong></div><div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/numpy/numpy-original.svg" style="width: 100%; border-radius: 15px;"/><br><strong style="font-size: 16px; font-family: sans-serif;">NumPy</strong></div><div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/SCIPY_2.svg" style="width: 100%; border-radius: 15px;"/><br><strong style="font-size: 16px; font-family: sans-serif;">SciPy</strong></div>
-</div> -->
-
-  <!-- </div> -->
