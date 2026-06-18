@@ -157,11 +157,11 @@ python physical_robot/robot/robot_server.py
 ### Using the Monitoring UI
 
 On the host computer:
-```
+```sh
+# Start the Websocket
 python physical_robot/ui/ui_server.py
-```
 
-```
+# Run the Javascript App
 sh physical_robot/scripts/run_ui.sh
 ```
 
