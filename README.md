@@ -66,6 +66,11 @@ Example:
 
 <!-- Front on Vision, Depth Camera, 3D Point Cloud -->
 
+# Motors - Dynamixel WL430-XL250-T
+<p align="center">
+<img src="./assets/dynamixel_motor.png" alt="Dynamixel Motors" width="40%">
+
+
 # Code Installation
 
 Requires Python >=3.12.9
