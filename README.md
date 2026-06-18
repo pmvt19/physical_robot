@@ -90,28 +90,30 @@ Any 3D printer large enough should work to print all of these parts. For referen
 # Assembly Instructions
 Please follow this tutorial for instructions on how to assemble the SunoBot.
 
+# Future Plans
+ROS Integration
+
 # Technology Stack
 
 <p float="center">
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/numpy/numpy-original.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/SCIPY_2.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="    https://www.sympy.org/static/images/logo.png" width="32%" style="border-radius: 15px;"/>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="https://www.luxonis.com/assets/marketing/brand/luxonis_logo_symbol.png" width="32%" style="border-radius: 15px;"/>
-  <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg" width="32%" style="border-radius: 15px;"/>
-
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="https://plugins.jetbrains.com/files/14004/1074279/icon/default.png" width="32%" style="border-radius: 15px;"/>
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/matplotlib/matplotlib-original.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="https://images.icon-icons.com/2415/PNG/512/redis_original_wordmark_logo_icon_146369.png" width="32%" style="border-radius: 15px;"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="22%" style="border-radius: 15px;"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/numpy/numpy-original.svg" width="22%" style="border-radius: 15px;"/>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/SCIPY_2.svg" width=22%" style="border-radius: 15px;"/>
+  <img src="https://www.sympy.org/static/images/logo.png" width="22%" style="border-radius: 15px;"/>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg" width="22%" style="border-radius: 15px;"/>
+  <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" width="22%" style="border-radius: 15px;"/>
+  <img src="https://www.luxonis.com/assets/marketing/brand/luxonis_logo_symbol.png" width="22%" style="border-radius: 15px;"/>
+  <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" width="22%" style="border-radius: 15px;"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg" width="22%" style="border-radius: 15px;"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg" width="22%" style="border-radius: 15px;"/>
+  <img src="https://plugins.jetbrains.com/files/14004/1074279/icon/default.png" width="22%" style="border-radius: 15px;"/>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/matplotlib/matplotlib-original.svg" width="22%" style="border-radius: 15px;"/>
+  <img src="https://images.icon-icons.com/2415/PNG/512/redis_original_wordmark_logo_icon_146369.png" width="22%" style="border-radius: 15px;"/>
 </p>
 
 
 <!-- <div align="left"> -->
-
+<!-- 
 <div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;">
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" style="width: 100%; border-radius: 15px;"/>
 <br><strong style="font-size: 16px;">Python</strong>
@@ -127,6 +129,6 @@ Please follow this tutorial for instructions on how to assemble the SunoBot.
 
 <div align="center">
   <div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" style="width: 100%; border-radius: 15px;"/><br><strong style="font-size: 16px; font-family: sans-serif;">Python</strong></div><div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/numpy/numpy-original.svg" style="width: 100%; border-radius: 15px;"/><br><strong style="font-size: 16px; font-family: sans-serif;">NumPy</strong></div><div style="display: inline-block; width: 22%; margin: 10px; text-align: center; vertical-align: top;"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/SCIPY_2.svg" style="width: 100%; border-radius: 15px;"/><br><strong style="font-size: 16px; font-family: sans-serif;">SciPy</strong></div>
-</div>
+</div> -->
 
   <!-- </div> -->
