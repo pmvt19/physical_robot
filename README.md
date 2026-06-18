@@ -36,7 +36,7 @@ Example:
 
 # Equipped Sensors
 
-## 360 Degree Lidar - RPLidar C1
+## Lidar - RPLidar C1
 
 <p align="center">
 <img src="./assets/rplidar_c1_cropped.jpg" alt="RPLidar C1" width="20%">
@@ -58,7 +58,6 @@ Example:
 - Photo Resolution: 13 MP (Auto-Focus Variant)
 - Video Resolution: 1080p
 - Max Aperture: 2.8 mm
-- Angular Resolution: 0.72 degrees
 - IMU: 6-axis sensor with accelerometer and gyroscope
 - Onboard Compute to run computer vision algorithms and models
 
@@ -70,6 +69,11 @@ Example:
 <p align="center">
 <img src="./assets/dynamixel_motor.png" alt="Dynamixel Motors" width="20%">
 
+This motor includes built-in encoders for accurate positioning. 
+
+### Specifications
+- Estimated Torque: 0.28 Nm 
+- Resolution: 4096 Steps
 
 # Code Installation
 
