@@ -20,11 +20,10 @@ SunoBot is an open-source autonomous mobile robot platform meant to explore comp
 
 
 <p float="center">
-  <img src="assets/cropped-SLAM_Graphic.svg" width="32%" bindmedia="" style="border-radius: 15px;"/>
-  <img src="assets/cropped-semantic_navigation.svg" width="32%" style="border-radius: 15px;"/>
-  <img src="assets/cropped-motion_planning_graphic.svg" width="32%" style="border-radius: 15px;"/>
+  <img src="assets/cropped-slam_graphic_updated.svg" width="32%"/>
+  <img src="assets/cropped-motion_planning_graphic_updated.svg" width="32%" />
+  <img src="assets/cropped-semantic_navigation_graphic_updated.svg" width="32%"/>
 </p>
-
 
 SLAM
 Motion Planning
@@ -69,7 +68,7 @@ pip install suno-bot[cuda]
 | Turtle Bot 3 Casters | 2 | $4.03 | [Robotis](https://www.robotis.us/tb3-ball-caster-a01-1ea/?srsltid=AfmBOoqPqs-xQAHIdZojc0kwzRB7mlPQLGsexGX9tZXpylSCpcbwvvi0) |
 | Screw Pack | 1 | $9 | [Amazon](https://a.co/d/002Dz5YJ) |
 | Standoffs | 1 | $10 | [Amazon](https://a.co/d/06RelOfa) |
-| *Total* | --- | $730.64 | --- |
+| **Total** | --- | $730.64 | --- |
 
 
 # Chassis & Brackets - 3D Printed Parts
@@ -86,7 +85,8 @@ pip install suno-bot[cuda]
 | KBT Battery Holder | 1 | [Link](./CAD/KBT%20Battery%20Holder.stl) |
 | AA Battery Holder | 1 | [Link](./CAD/8%20AA%20Battery%20Holder%20Horizontal.stl) |
 
-Any 3D printer large enough should work to print all of these parts. For reference, I printed these parts using a Prusa MK4S printer using PLA and got fairly decent results.
+### Printer
+Any 3D printer large enough should work to print all of these parts. For reference, I printed these parts using a Prusa MK4S printer with PLA and got fairly decent results.
 
 # Assembly Instructions
 Please follow this tutorial for instructions on how to assemble the SunoBot.
