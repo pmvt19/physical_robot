@@ -30,6 +30,8 @@ The list of natively monitored sensors:
 The monitoring UI also includes additional information about the real-time motor positions and velocities.
 
 Example:
+<p align="center">
+<img src="./assets/robomonitor_pro_blank.png" alt="RoboMonitorPro" width="90%">
 <!-- Insert Example UI Image -->
 
 # Equipped Sensors
@@ -37,7 +39,7 @@ Example:
 ## 360 Degree Lidar - RPLidar C1
 
 <p align="center">
-<img src="./assets/rplidar_c1_cropped.jpg" alt="SunoBotLogo" width="30%">
+<img src="./assets/rplidar_c1_cropped.jpg" alt="RPLidar C1" width="30%">
 
 <!-- Example Readings -->
 <!-- Maybe add gif of lidar readings? -->
@@ -50,7 +52,7 @@ Example:
 ## Stereo Depth Camera - Oak-D Lite
 
 <p align="center">
-<img src="./assets/oak-d_lite.jpg" alt="SunoBotLogo" width="40%">
+<img src="./assets/oak-d_lite.jpg" alt="Oak-D Lite" width="40%">
 
 ### Specifications
 - Photo Resolution: 13 MP (Auto-Focus Variant)
