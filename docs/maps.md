@@ -4,6 +4,8 @@
 
 Raw Map Dimensionality: `(X, Y)`
 
+### World and Grid Coordinates
+
 ### Update Map and Localize
 
 ### Expandability
