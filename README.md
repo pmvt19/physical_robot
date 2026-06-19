@@ -135,6 +135,15 @@ Any 3D printer large enough should work to print all of these parts. For referen
 # Assembly Instructions
 Please follow this tutorial for instructions on how to assemble the SunoBot.
 
+# Architecture
+
+## Running Locally
+
+## Running Server-Client
+<p align="center">
+<img src="./assets/Robot Architecture Diagram.svg" alt="Dynamixel Motors" width="100%">
+
+
 # Getting Started Guide
 
 ## Setup the config
