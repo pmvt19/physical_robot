@@ -20,7 +20,7 @@ The Advanced Map stores the count of times each cell was recorded as empty or oc
 
 This is a more robust solution as a single reading does not permanently define a cell as occupied. A cell is only considered occupied if it strictly has more occupied readings than unoccupied readings. This means the cell must have a probability of being occupied of more than 50%.
  
-$\text{Occupancy Probablity}_{i,j}$ = $ \frac{\text{Occupied}_{i,j} + 1}{\text{Occupied}_{i,j} + \text{Unoccupied}_{i,j} + 2} $ 
+$\text{Occupancy Probablity}_{i,j}$ = $ \frac{\text{Occupied}_{i,j} + 1}{\text{Occupied}_{i,j} + \text{Unoccupied}_{i,j} + 2}$ 
 
 
 ### Benefits
