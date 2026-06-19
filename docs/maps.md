@@ -38,7 +38,7 @@ Using this method we can compute the boundaries of where the robot has explored.
 
 ## Semantic Map
 
-The Semantic Map stores information about the type of obstacles.
+The Semantic Map adds an additional layer to store information about the semantic information of each obstacle. Semanic information includes what room the obstacle is associated with and what the obstacle is. For example, if the robot registers an oven next to it, it would label the semantic information as (Room: kitchen) & (Object: Oven).
 
 ### FloodFill
 
