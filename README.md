@@ -138,6 +138,8 @@ Please follow this tutorial for instructions on how to assemble the SunoBot.
 # Architecture
 
 ## Running Locally
+<p align="center">
+<img src="./assets/Robot Diagram - Local.svg" alt="Dynamixel Motors" width="100%">
 
 ## Running Server-Client
 <p align="center">
