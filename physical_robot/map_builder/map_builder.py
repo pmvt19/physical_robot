@@ -49,63 +49,65 @@ class MapBuilder():
         self.map.visualize(plt.gca())
         plt.show()
 
-class AdvancedMapBuilder(MapBuilder):
-    def __init__(self, robot, map_resolution=10.0, manual_lidar_verification=False):
-        super().__init__(robot, map_resolution, manual_lidar_verification)
+# TODO: Clean these up once verified correct
 
-        self.map: AdvancedMap = AdvancedMap(resolution=map_resolution)
+# class AdvancedMapBuilder(MapBuilder):
+#     def __init__(self, robot, map_resolution=10.0, manual_lidar_verification=False):
+#         super().__init__(robot, map_resolution, manual_lidar_verification)
 
-class SemanticMapBuilder(MapBuilder):
-    def __init__(self, robot, map_resolution=10.0, manual_lidar_verification=False):
-        super().__init__(robot, map_resolution, manual_lidar_verification)
+#         self.map: AdvancedMap = AdvancedMap(resolution=map_resolution)
 
-        self.map: SemanticMap = SemanticMap(map_obj=AdvancedMap(resolution=map_resolution))
+# class SemanticMapBuilder(MapBuilder):
+#     def __init__(self, robot, map_resolution=10.0, manual_lidar_verification=False):
+#         super().__init__(robot, map_resolution, manual_lidar_verification)
 
-        # Initialize ML Clients
-        self.image_segmenter = ImageSegmenter()
-        self.vlm_client = VLMClient()
+#         self.map: SemanticMap = SemanticMap(map_obj=AdvancedMap(resolution=map_resolution))
 
-    def step(self, m):
-        self.robot_state = self.robot.predict_state(self.robot_state, m)
+#         # Initialize ML Clients
+#         self.image_segmenter = ImageSegmenter()
+#         self.vlm_client = VLMClient()
 
-        # Read Lidar
-        world_coords, raw_lidar_data = self.robot.read_lidar_updated(manual_verification=self.manual_lidar_verification, wait_for_updated_reading=True)
+#     def step(self, m):
+#         self.robot_state = self.robot.predict_state(self.robot_state, m)
 
-        # Read Camera
-        rgb_img, _ = self.robot.read_rgb_camera()
+#         # Read Lidar
+#         world_coords, raw_lidar_data = self.robot.read_lidar_updated(manual_verification=self.manual_lidar_verification, wait_for_updated_reading=True)
 
-        # Read Point Cloud
-        pc, _ = self.robot.read_point_cloud()
+#         # Read Camera
+#         rgb_img, _ = self.robot.read_rgb_camera()
 
-        # Query the VLM for the Room Label
-        room_label_response = self.vlm_client.image_text_query(rgb_img,
-                                                          ASSIGN_ROOM_LABEL.format(
-                                                              self.map.get_room_list(), 
-                                                              self.map.get_invalid_room_list()),
-                                                          RoomLabel.model_json_schema())
+#         # Read Point Cloud
+#         pc, _ = self.robot.read_point_cloud()
 
-        room_label = RoomLabel.model_validate_json(room_label_response)
+#         # Query the VLM for the Room Label
+#         room_label_response = self.vlm_client.image_text_query(rgb_img,
+#                                                           ASSIGN_ROOM_LABEL.format(
+#                                                               self.map.get_room_list(), 
+#                                                               self.map.get_invalid_room_list()),
+#                                                           RoomLabel.model_json_schema())
 
-        # Get Image Segmentation
-        prediction, labels = self.image_segmenter.segment_image(rgb_img)
+#         room_label = RoomLabel.model_validate_json(room_label_response)
 
-        # Format Image Segmentation
-        formatted_segmented_img = self.map.format_img_segmentation(prediction['segmentation'], labels.items())
+#         # Get Image Segmentation
+#         prediction, labels = self.image_segmenter.segment_image(rgb_img)
 
-        # Format PC to What Semantic Map Wants
-        pc_and_labels = self.map.label_and_filter_point_cloud(pc, formatted_segmented_img, room_label.room_label)
+#         # Format Image Segmentation
+#         formatted_segmented_img = self.map.format_img_segmentation(prediction['segmentation'], labels.items())
 
-        # Update Semantic Map with Geometry and Semantics
-        self.robot_state = self.map.update_geometry_and_semantics(world_coords, pc_and_labels, self.robot_state)
+#         # Format PC to What Semantic Map Wants
+#         pc_and_labels = self.map.label_and_filter_point_cloud(pc, formatted_segmented_img, room_label.room_label)
 
-        # Add Robot State to Trajectory
-        self.robot_trajectory.append(self.robot_state)
+#         # Update Semantic Map with Geometry and Semantics
+#         self.robot_state = self.map.update_geometry_and_semantics(world_coords, pc_and_labels, self.robot_state)
 
-    def show(self):
-        fig, ax = plt.subplots(1, 3)
-        self.map.visualize(ax[0])
-        self.map.visualize_semantic_layer(ax[1], layer='room')
-        self.map.visualize_semantic_layer(ax[2], layer='object')
-        print(self.map.room_to_id)
-        print(self.map.object_to_id)
-        plt.show()
+#         # Add Robot State to Trajectory
+#         self.robot_trajectory.append(self.robot_state)
+
+#     def show(self):
+#         fig, ax = plt.subplots(1, 3)
+#         self.map.visualize(ax[0])
+#         self.map.visualize_semantic_layer(ax[1], layer='room')
+#         self.map.visualize_semantic_layer(ax[2], layer='object')
+#         print(self.map.room_to_id)
+#         print(self.map.object_to_id)
+#         plt.show()
