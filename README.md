@@ -139,6 +139,11 @@ Please follow this tutorial for instructions on how to assemble the SunoBot.
 
 SunoBot supports three different connection types: Simulated, Physical (Local), and Client.
 
+## Simulated
+The simluated robot provides a limited set of functionality primarily used for simple testing.
+
+In simulated mode, the robot only has access to a simulated lidar sensor that requires a prebuilt map to read data from. The only functionalities that work in this case are: SLAM, Global Localization, and Semantic Navigation (given the Semantic Map is already built).
+
 ## Running Locally
 <p align="center">
 <img src="./assets/Robot Diagram - Local.svg" alt="Dynamixel Motors" width="100%">
