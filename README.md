@@ -31,7 +31,7 @@ The monitoring UI also includes additional information about the real-time motor
 
 Example:
 <p align="center">
-<img src="./assets/robomonitor_pro_blank.png" alt="RoboMonitorPro" width="90%">
+<img src="./assets/robomonitor_pro_example.png" alt="RoboMonitorPro" width="100%">
 <!-- Insert Example UI Image -->
 
 # Equipped Sensors
