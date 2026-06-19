@@ -13,7 +13,7 @@ except ImportError:
     print("Please install numpy and opencv: pip install numpy opencv-python")
     exit(1)
 
-from robot import Robot
+from physical_robot.robot.robot import Robot
 
 def encode_image_to_base64(numpy_img):
     """
@@ -101,8 +101,8 @@ async def handler(websocket, path=None):
             
     except websockets.exceptions.ConnectionClosed:
         print("Client disconnected")
-    # except Exception as e:
-    #     print(f"Error: {e}")
+    except Exception as e:
+        print(f"Error: {e}")
 
 async def main():
     async with websockets.serve(handler, "0.0.0.0", 9090):
