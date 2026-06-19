@@ -137,6 +137,8 @@ Please follow this tutorial for instructions on how to assemble the SunoBot.
 
 # Architecture
 
+SunoBot supports three different connection types: Simulated, Physical (Local), and Client.
+
 ## Running Locally
 <p align="center">
 <img src="./assets/Robot Diagram - Local.svg" alt="Dynamixel Motors" width="100%">
@@ -144,6 +146,12 @@ Please follow this tutorial for instructions on how to assemble the SunoBot.
 ## Running Server-Client
 <p align="center">
 <img src="./assets/Robot Architecture Diagram.svg" alt="Dynamixel Motors" width="100%">
+
+This version of the robot runs a gRPC Server on the Robot's compute and a client on the off-board computer. The gRPC Server manages reading the live sensor data and acuating the motors based on RPC calls from the client.
+
+This architecture allows the client use the robot client as if it were running locally on the robot instead of connected via a gRPC server-client relationship.
+
+All other functionalities of the robot such as mapping, motion planning, navigation, etc. happens on the client side. This allows the robot to operate with much higher compute power of the off-board machine.
 
 
 # Getting Started Guide
