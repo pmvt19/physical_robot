@@ -57,7 +57,6 @@ Example:
 ### Specifications
 - Photo Resolution: 13 MP (Auto-Focus Variant)
 - Video Resolution: 1080p
-- Max Aperture: 2.8 mm
 - IMU: 6-axis sensor with accelerometer and gyroscope
 - Onboard Compute to run computer vision algorithms and models
 
@@ -174,7 +173,7 @@ All other functionalities of the robot such as mapping, motion planning, navigat
 On the robot computer:
 ```sh
 # Start running and publishing sensor data
-sh physical_robot/scripts/run_sensor_suite_elite.sh
+sh physical_robot/scripts/start_sensor_suite.sh
 
 # Start the RPC Server on the robot
 python physical_robot/robot/robot_server.py
