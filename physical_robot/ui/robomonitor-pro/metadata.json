@@ -1,0 +1,6 @@
+{
+  "name": "RoboMonitor Pro",
+  "description": "A high-performance mission control dashboard for visualizing robot telemetry, sensor fusion data (RGB-D, Lidar, IMU), and providing AI-driven diagnostics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
