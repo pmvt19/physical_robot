@@ -3,7 +3,7 @@ from physical_robot.maps import Map, AdvancedMap, SemanticMap
 import numpy as np
 import matplotlib.pyplot as plt
 
-from physical_robot.map_builder.map_builder import MapBuilder, AdvancedMapBuilder, SemanticMapBuilder
+from physical_robot.map_builder import MapBuilder, AdvancedMapBuilder, SemanticMapBuilder
 # from config import scene_name
 
 """
@@ -55,6 +55,41 @@ def visualize_map_builders(map_builders: list[MapBuilder], viz_semantics=True):
                 print(semantic_map.room_to_id)
                 print(semantic_map.object_to_id)
                 plt.show()
+
+def run_slam(robot: Robot, scene_name: str, map_builder_dict: dict):
+    map_builders: list[MapBuilder] = []
+
+    if build_map:
+        map_builders.append(MapBuilder(robot))
+
+    if build_advanced_map:
+        map_builders.append(AdvancedMapBuilder(robot))
+
+    if build_semantic_map:
+        map_builders.append(SemanticMapBuilder(robot))
+
+    # Init Maps
+    [map_builder.init() for map_builder in map_builders]
+
+    while True:
+        # Get the Motion Command from the User
+        motion_command = robot.request_motion_command_from_user()
+        if motion_command[0] == '': # No Motion Command
+            break
+        
+        # Move the Robot
+        m = robot.command_motion_trial(motion_command)
+
+        for map_builder in map_builders:
+
+            # Step the Map Building        
+            map_builder.step(m)
+
+            # Display Map
+            map_builder.show()
+
+            # Save Map
+            map_builder.get_map().save(map_save_dir=map_save_dir)
 
 if __name__ == "__main__":
 
