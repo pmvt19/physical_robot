@@ -111,7 +111,7 @@ pip install suno-bot[cuda]
 | Turtle Bot 3 Casters | 2 | $4.03 | [Robotis](https://www.robotis.us/tb3-ball-caster-a01-1ea/?srsltid=AfmBOoqPqs-xQAHIdZojc0kwzRB7mlPQLGsexGX9tZXpylSCpcbwvvi0) |
 | Screw Pack | 1 | $9 | [Amazon](https://a.co/d/002Dz5YJ) |
 | Standoffs | 1 | $10 | [Amazon](https://a.co/d/06RelOfa) |
-| **Total** | --- | $730.64 | --- |
+| **Total** | --- | **$730.64** | --- |
 
 
 # Chassis & Brackets - 3D Printed Parts
