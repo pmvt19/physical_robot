@@ -220,12 +220,8 @@ __marimo__/
 .streamlit/secrets.toml
 
 .DS_Store
-data/
-dumps/
 logs/
 saves/
-maps_saved/
-notes.txt
 .env
 dump.rdb
 
