@@ -78,13 +78,13 @@ This motor includes built-in encoders for accurate positioning.
 
 Requires Python >=3.12.9
 
-```
+```sh
 pip install suno-bot
 ```
 
 For systems with an Nvidia GPU, you can use the following command to ensure you install torch with cuda to accelerate inference when running local models.
 
-```
+```sh
 pip install suno-bot[cuda]
 ```
 
@@ -134,7 +134,7 @@ Any 3D printer large enough should work to print all of these parts. For referen
 # Assembly Instructions
 Please follow this tutorial for instructions on how to assemble the SunoBot.
 
-# Architecture
+# Software Architecture
 
 SunoBot supports three different connection types: Simulated, Physical (Local), and Client.
 
@@ -167,12 +167,18 @@ All other functionalities of the robot such as mapping, motion planning, navigat
 ## Running Locally
 *Not fully supported yet*
 
+On the robot computer:
+```sh
+# Start publishing sensor data
+sh physical_robot/scripts/start_sensor_suite.sh
+```
+
 ## Running via RPC Server-Client
 
 ### Running the sensor suite
 On the robot computer:
 ```sh
-# Start running and publishing sensor data
+# Start publishing sensor data
 sh physical_robot/scripts/start_sensor_suite.sh
 
 # Start the RPC Server on the robot
@@ -181,13 +187,13 @@ python physical_robot/robot/robot_server.py
 
 ### Using the Monitoring UI
 
-On the Client (External Laptop):
+On the Client:
 ```sh
-# Start the Websocket
+# Start the Publishing Monitoring Data to Websocket
 python physical_robot/ui/ui_server.py
 
 # Run the Javascript App
-sh physical_robot/scripts/run_ui.sh
+sh physical_robot/shell_scripts/run_ui.sh
 ```
 
 # Future Plans
