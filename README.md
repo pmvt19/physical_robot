@@ -199,7 +199,7 @@ sh physical_robot/shell_scripts/run_ui.sh
 # Future Plans
 ROS Integration
 
-# Technology Stack
+<!-- # Technology Stack
 
 <p float="center">
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="22%" style="border-radius: 15px;"/>
@@ -214,4 +214,4 @@ ROS Integration
   <img src="https://plugins.jetbrains.com/files/14004/1074279/icon/default.png" width="22%" style="border-radius: 15px;"/>
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/matplotlib/matplotlib-original.svg" width="22%" style="border-radius: 15px;"/>
   <img src="https://images.icon-icons.com/2415/PNG/512/redis_original_wordmark_logo_icon_146369.png" width="22%" style="border-radius: 15px;"/>
-</p>
+</p> -->
