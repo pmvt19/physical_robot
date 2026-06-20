@@ -43,7 +43,7 @@ Performs the initial LiDAR scan to establish and initialize the map's baseline g
 
 ### `step(m)`
 Executes a single iteration of the localization and mapping loop. It predicts the new state based on movement, reads the sensor, and refines the map.
-* **Parameters:** * `m`: Movement/Odometry data passed to the robot's state prediction model.
+* **Parameters:** `m`: Movement/Odometry data passed to the robot's state prediction model.
 * **Returns:** `None`
 
 ### `get_map()`
