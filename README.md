@@ -143,7 +143,7 @@ The simluated robot provides a limited set of functionality primarily used for s
 
 In simulated mode, the robot only has access to a simulated lidar sensor that requires a prebuilt map to read data from. The only functionalities that work in this case are: SLAM, Global Localization, and Semantic Navigation (given the Semantic Map is already built).
 
-The major limitation here is that you cannot *build* semantic maps since we have not implemented a way to simulate the camera. However, you can localize, plan, and navigate in a prebuilt semantic map as these actions only require the use of the lidar.
+The major limitation here is that you cannot *build* semantic maps since we have not implemented a way to simulate the Stereo Depth camera. However, you can localize, plan, and navigate in a prebuilt semantic map as these actions only require the use of the lidar.
 
 ## Running Locally
 <p align="center">
