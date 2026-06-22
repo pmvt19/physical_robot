@@ -149,6 +149,7 @@ The major limitation here is that you cannot *build* semantic maps since we have
 <p align="center">
 <img src="./assets/Robot Diagram - Local.svg" alt="Dynamixel Motors" width="100%">
 
+
 ## Running Server-Client
 <p align="center">
 <img src="./assets/Robot Architecture Diagram.svg" alt="Dynamixel Motors" width="100%">
