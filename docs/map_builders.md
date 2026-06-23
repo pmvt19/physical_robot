@@ -99,4 +99,6 @@ map_builder.get_map().save(map_save_dir="saves/maps")
 
 ## AdvancedMapBuilder
 
+* Show inheritence from MapBuilder *
+
 ## SemanticMapBuilder
