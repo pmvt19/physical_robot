@@ -102,3 +102,5 @@ map_builder.get_map().save(map_save_dir="saves/maps")
 * Show inheritence from MapBuilder *
 
 ## SemanticMapBuilder
+
+* Show inheritence from MapBuilder and Change in functionality *
