@@ -104,3 +104,5 @@ map_builder.get_map().save(map_save_dir="saves/maps")
 ## SemanticMapBuilder
 
 * Show inheritence from MapBuilder and Change in functionality *
+
+* Explain sensor dependencies *
