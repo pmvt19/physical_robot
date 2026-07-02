@@ -105,4 +105,4 @@ map_builder.get_map().save(map_save_dir="saves/maps")
 
 * Show inheritence from MapBuilder and Change in functionality *
 
-* Explain sensor dependencies (i.e. what sensors it uses and how it processes them | Add documentation for functions [if any additional]) *
+* Explain sensor dependencies (i.e. what sensors it uses and how it processes them | Add documentation for all functions [if any additional]) *
