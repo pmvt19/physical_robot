@@ -136,7 +136,7 @@ Please follow this tutorial for instructions on how to assemble the SunoBot.
 
 # Software Architecture
 
-SunoBot supports three different connection types: Simulated, Physical (Local), and Client.
+SunoBot supports three different connection types: Simulated, Server-Client, and Physical (Local).
 
 ## Simulated
 The simluated robot provides a limited set of functionality primarily used for simple testing.
