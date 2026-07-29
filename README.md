@@ -145,11 +145,6 @@ In simulated mode, the robot only has access to a simulated lidar sensor that re
 
 The major limitation here is that you cannot *build* semantic maps since we have not implemented a way to simulate the Stereo Depth camera. However, you can localize, plan, and navigate in a prebuilt semantic map as these actions only require the use of the lidar.
 
-## Running Locally
-<p align="center">
-<img src="./assets/Robot Diagram - Local.svg" alt="Dynamixel Motors" width="100%">
-
-
 ## Running Server-Client
 <p align="center">
 <img src="./assets/Robot Architecture Diagram.svg" alt="Dynamixel Motors" width="100%">
@@ -159,6 +154,14 @@ This version of the robot runs a gRPC Server on the Robot's compute and a client
 This architecture allows the client use the robot client as if it were running locally on the robot instead of connected via a gRPC server-client relationship.
 
 All other functionalities of the robot such as mapping, motion planning, navigation, etc. happens on the client side. This allows the robot to operate with much higher compute power of the off-board machine.
+
+## Running Locally
+<p align="center">
+<img src="./assets/Robot Diagram - Local.svg" alt="Dynamixel Motors" width="100%">
+
+This version of the robot has the robot client object read sensor data directly from the Redis server's database. It provides the same functionality as running the robot via server and client, but does not require an internet connection to support the network-based gRPC calls.
+
+It is also possible to run a completely local version of the robot by running both the server and client on the robot. However, this method is not recommended due to the circular network calls that would be made to send data from the robot back to the robot. This implementation does not have zero-copy data transfer. But, in theory, it would work.
 
 
 # Getting Started Guide
