@@ -40,7 +40,7 @@ Using this method we can compute the boundaries of where the robot has explored.
 
 The Semantic Map adds an additional layer to store information about the semantic information of each obstacle. Semanic information includes what room the obstacle is associated with and what the obstacle is. For example, if the robot registers an oven next to it, it would label the semantic information as (Room: kitchen) & (Object: Oven).
 
-The internal implementation of this map uses either a Map or AdvancedMap to store the geometric representation of the map. It is recommended to use the `AdvancedMap` class for the geometric component of the map, but it is possible to use the `Map` class if required.
+The internal implementation of this map uses either a Map or AdvancedMap to store the geometric representation of the map. It is recommended to use the `AdvancedMap` class for the geometric component of the map, but it is possible to use the `Map` class if required. Just note that the `AdvancedMap` class features will not be available if using the standard `Map` class.
 
 <!-- Example of Raw Semantic Information (Unfloodfilled) -->
 
