@@ -99,10 +99,89 @@ map_builder.get_map().save(map_save_dir="saves/maps")
 
 ## AdvancedMapBuilder
 
-* Show inheritence from MapBuilder *
+`AdvancedMapBuilder` inherits from `MapBuilder` and preserves the same high-level map-building workflow while using an `AdvancedMap` implementation for richer geometry and exploration features.
+
+### Key differences from `MapBuilder`
+- Inherits all public methods from `MapBuilder`: `init()`, `step(m)`, `get_map()`, `get_robot_state()`, `get_robot_trajectory()`, and `show()`.
+- Replaces the base `Map` with `AdvancedMap` during initialization.
+- Gains advanced map semantics such as probabilistic occupancy, obstacle inflation, and frontier candidate generation.
+- Uses the same LiDAR-based scan initialization and update loop as `MapBuilder`.
+
+### Initialization
+```python
+map_builder = AdvancedMapBuilder(robot=robot, map_resolution=12.5)
+```
+This constructs a map builder whose underlying map is an `AdvancedMap`.
+
+### Behavior
+- `init()` performs the initial LiDAR scan and initializes the advanced map.
+- `step(m)` predicts the robot state, reads an updated LiDAR scan, runs ICP alignment, updates the `AdvancedMap`, and appends the new pose to the robot trajectory.
+- `get_map()` returns the `AdvancedMap` instance, enabling access to advanced operations such as inflated occupancy and frontier detection.
+
+### When to use
+Use `AdvancedMapBuilder` when you need more than a simple occupancy map and want a map representation that supports:
+- better alignment between scans and map geometry,
+- probabilistic occupancy values,
+- obstacle inflation for planning,
+- frontier candidate extraction for exploration.
 
 ## SemanticMapBuilder
+The `SemanticMapBuilder` extends `MapBuilder` to produce a `SemanticMap` that combines geometric mapping with semantic labels (rooms and objects).
 
-* Show inheritence from MapBuilder and Change in functionality *
+### Purpose
+The `SemanticMapBuilder` augments an occupancy/geometry map with semantic information derived from RGB images and point clouds. It is intended for use-cases where high-level scene understanding (room types, object labels) improves exploration, planning, or human-facing visualization.
 
-* Explain sensor dependencies (i.e. what sensors it uses and how it processes them | docs) *
+### Key Features
+- Builds a `SemanticMap` (backed by an `AdvancedMap`) that stores both geometry and semantic layers (e.g., `room`, `object`).
+- Integrates LiDAR, RGB camera, and point-cloud data to localize, segment, and label the environment.
+- Uses an image segmenter and a vision-language model (VLM) client to assign room labels and object semantics.
+
+### Sensor & ML Dependencies
+- LiDAR: used for geometry updates and scan-to-map alignment (via the same LiDAR-based flow as `MapBuilder`/`AdvancedMapBuilder`).
+- RGB Camera: provides images for segmentation and room-label queries.
+- Point Cloud: combined with image segmentation to label 3D points with semantic categories.
+- Image segmentation: `physical_robot.models.segmentation.image_segmentation.ImageSegmenter` is used to produce pixel-level segments.
+- Vision-Language Model (VLM): `physical_robot.models.vlm.vlm_client.VLMClient` is queried (with prompts such as `ASSIGN_ROOM_LABEL`) to produce a room-level label for the current view.
+
+Files: see [physical_robot/map_builder/semantic_map_builder.py](physical_robot/map_builder/semantic_map_builder.py) for the implementation and references to:
+- [physical_robot/maps/semantic_map.py](physical_robot/maps/semantic_map.py)
+- [physical_robot/models/segmentation/image_segmentation.py](physical_robot/models/segmentation/image_segmentation.py)
+- [physical_robot/models/vlm/vlm_client.py](physical_robot/models/vlm/vlm_client.py)
+
+### Workflow (what `step(m)` does)
+1. Update the internal robot state using the provided motion/odometry `m`.
+2. Read an updated LiDAR scan (optionally with manual verification).
+3. Capture an RGB image from the robot camera.
+4. Read the point cloud snapshot.
+5. Query the VLM with the RGB image and a prompt that lists known/invalid rooms to get a room label.
+6. Run image segmentation on the RGB image to get pixel-level segments and labels.
+7. Project/associate segmentation labels onto the point cloud and filter/format points for the semantic map.
+8. Update the `SemanticMap` with both geometry (from LiDAR / point cloud) and semantics (room/object labels), and append the robot pose to the trajectory.
+
+This workflow is implemented in `SemanticMapBuilder.step()` and tightly couples geometric updates with semantic inference so the map remains both spatially accurate and semantically meaningful.
+
+### Visualization (`show()`)
+`SemanticMapBuilder.show()` renders multiple panels using `matplotlib`:
+- A geometric/occupancy view of the map.
+- A semantic layer for `room` labels.
+- A semantic layer for `object` labels.
+
+### Initialization
+```python
+from physical_robot.robot import Robot
+from physical_robot.map_builder import SemanticMapBuilder
+
+robot = Robot()
+builder = SemanticMapBuilder(robot=robot, map_resolution=10.0, manual_lidar_verification=False)
+builder.init()
+```
+
+### When to use
+- Use `SemanticMapBuilder` when downstream tasks (navigation, human-robot interaction, semantic exploration) require knowledge of room types or object categories beyond raw geometry.
+
+### Notes and configuration
+- The builder instantiates `ImageSegmenter` and `VLMClient` by default; these components may require model weights, credentials, or network access depending on your configured backends. Check their module-level docs for setup details.
+- The `map_resolution` parameter controls the underlying `AdvancedMap` resolution; pick a resolution appropriate for your sensors and environment scale.
+- For debugging or mapping quality control, enable `manual_lidar_verification` to pause for manual LiDAR checks during `step()`.
+
+For implementation details, see the source: [physical_robot/map_builder/semantic_map_builder.py](physical_robot/map_builder/semantic_map_builder.py).
