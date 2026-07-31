@@ -202,6 +202,28 @@ def run_single_icp(source_pc, target_pc, init_T, num_iter=15, inlier_dist_thresh
             plt.title(f"Iteration: {i}, Inlier Ratio: {inlier_ratio}")
             plt.pause(0.1)
             plt.cla()
+    return cur_T, inlier_masks
+
+def run_full_icp(source_pc, target_pc, predicted_state, num_iter=15, filter_init_outliers=True, inlier_dist_threshold=100, visualize=False):
+    cur_T = get_init_transformation_matrix(predicted_state)
+
+    logger.debug("Original T")
+    logger.debug(cur_T)
+
+    # Ensure Source Points are Homogenous Points
+    source_pc[:, 2] = 1
+
+    cur_T, inlier_masks = run_single_icp(source_pc, target_pc, cur_T, num_iter=num_iter, inlier_dist_threshold=inlier_dist_threshold, visualize=visualize)
+
+    
+    if filter_init_outliers:
+        src_points = src_points[inlier_masks]
+        cur_T, _ = run_single_icp(source_pc, target_pc, cur_T, num_iter=num_iter, inlier_dist_threshold=inlier_dist_threshold, visualize=visualize)
+
+    logger.debug("Final T")
+    logger.debug(cur_T)
+
+    return cur_T
     
 
 if __name__ == '__main__':
