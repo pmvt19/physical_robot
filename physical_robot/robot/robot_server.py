@@ -181,7 +181,7 @@ class RobotServerServicer(pb2_grpc.RobotServer):
         dist = command.distance
 
         m = self.robot.command_motion_trial([motion_type, dist])
-        logger.debug(f"M: {m}")
+        logger.debug(f"Motion Command: ({motion_type}, {dist}) | M: {m}")
         motion_distance = pb2.MotionDistance(
             left_wheel_dist  =   m[0],
             right_wheel_dist =   m[1]
