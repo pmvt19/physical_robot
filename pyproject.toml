@@ -31,3 +31,8 @@ dependencies = [
 [tool.setuptools.packages.find]
 where = ["."]           # Look in the current directory
 include = ["physical_robot*"] # Only include the main package and its sub-packages
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.1",
+]
