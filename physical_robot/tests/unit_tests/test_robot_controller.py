@@ -16,5 +16,19 @@ class RobotControllerTests(unittest.TestCase):
             ]
         
         controller = RobotController()
-        print(controller.compute_motion_commands(fake_path))
+        motion_commands = controller.compute_motion_commands(fake_path)
+
+        expected_motion_commands = [
+            ('angular', np.float64(1.5707963267948966)),
+            ('linear', np.float64(10.0)),
+            ('angular', np.float64(-1.5707963267948966)),
+            ('linear', np.float64(10.0)),
+            ('angular', np.float64(-1.5707963267948966)),
+            ('linear', np.float64(10.0)),
+            ('angular', np.float64(-1.5707963267948968)),
+            ('linear', np.float64(10.0)),
+            ('angular', np.float64(1.5707963267948966))
+        ]
+
+        self.assertListEqual(expected_motion_commands, motion_commands)
     
