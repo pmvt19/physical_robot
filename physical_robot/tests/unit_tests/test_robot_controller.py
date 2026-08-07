@@ -1,7 +1,9 @@
 import unittest
+
 import numpy as np
 
 from physical_robot.robot.robot_controller import RobotController
+
 
 class RobotControllerTests(unittest.TestCase):
     def test_unit_test(self):
