@@ -1,9 +1,12 @@
 import unittest
+
 import numpy as np
 
 from physical_robot.algorithms.icp import run_icp
+
 # Note this file will not be considered a Unit test as we will only verify
 # correctness visually
+
 
 class TestICP(unittest.TestCase):
     # TEST 1: ICP with only rotation
@@ -24,8 +27,12 @@ class TestICP(unittest.TestCase):
 
     # TEST 3: ICP with rotation and translation
     def test_icp_rotation_and_translation(self):
-        coords_0 = np.load("test_data/icp/icp_sample_data_rotation_and_translation_0.npy")
-        coords_4 = np.load("test_data/icp/icp_sample_data_rotation_and_translation_4.npy")
+        coords_0 = np.load(
+            "test_data/icp/icp_sample_data_rotation_and_translation_0.npy"
+        )
+        coords_4 = np.load(
+            "test_data/icp/icp_sample_data_rotation_and_translation_4.npy"
+        )
         state_4 = np.load("test_data/icp/state_rotation_and_translation_4.npy")
 
         run_icp(coords_4, coords_0, state_4, visualize=True)
