@@ -1,6 +1,7 @@
 import numpy as np
-import matplotlib.pyplot as plt
+
 from physical_robot.algorithms.icp import run_icp
+
 
 class BasicMap():
     def __init__(self, initial_scan):
@@ -18,7 +19,8 @@ class BasicMap():
 
     def update(self, scan, predicted_state):
         '''
-        Compute the Alignment for the scan to the map given the initial state guess: predicted_state
+        Compute the Alignment for the scan to the map 
+        given the initial state guess: predicted_state
 
         Returns: updated_state
         '''
