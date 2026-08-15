@@ -1,6 +1,6 @@
-import redis
 import cv2
 import numpy as np
+import redis
 
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
