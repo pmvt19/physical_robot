@@ -40,6 +40,7 @@ PROTOCOL_VERSION = 2.0
 # Baudrate
 BAUDRATE = 57600
 
+
 class DynamixelController():
     def __init__(self, device_name, motor_ids : list = []):
         self.motor_ids = motor_ids
