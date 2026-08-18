@@ -111,7 +111,7 @@ physical_robot/
     ├──main.py??
 
 
-Remaining files (algorithms):
+Remaining files:
 - icp.py
 - particle_filter.py
 
