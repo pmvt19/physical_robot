@@ -4,13 +4,6 @@ import time
 import logging
 from physical_robot.utils import register_logger
 
-# logger = logging.getLogger(__name__)
-# logger.setLevel(logging.INFO)
-# handler = logging.FileHandler("logs/dxl_controller.log")
-# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# handler.setFormatter(formatter)
-# logger.addHandler(handler)
-
 logger = register_logger(logger_name=__name__, log_filename='dxl_controller', level=logging.INFO, std_err=False)
 
 
