@@ -146,6 +146,7 @@ In simulated mode, the robot only has access to a simulated lidar sensor that re
 The major limitation here is that you cannot *build* semantic maps since we have not implemented a way to simulate the Stereo Depth camera. However, you can localize, plan, and navigate in a prebuilt semantic map as these actions only require the use of the lidar.
 
 ## Running Server-Client
+### Software Architecture
 <p align="center">
 <img src="./assets/Robot Architecture Diagram.svg" alt="Dynamixel Motors" width="100%">
 
@@ -156,6 +157,7 @@ This architecture allows the client use the robot client as if it were running l
 All other functionalities of the robot such as mapping, motion planning, navigation, etc. happens on the client side. This allows the robot to operate with much higher compute power of the off-board machine.
 
 ## Running Locally
+### Software Architecture
 <p align="center">
 <img src="./assets/Robot Diagram - Local.svg" alt="Dynamixel Motors" width="100%">
 
