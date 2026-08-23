@@ -1,13 +1,14 @@
 import unittest
 
 import numpy as np
-
 from PIL import Image
 
-from physical_robot.models.vlm.vlm_client import VLMClient
-from physical_robot.models.vlm.prompts import EXTRACT_SEMANTIC_TARGETS, ASSIGN_ROOM_LABEL
-from physical_robot.models.vlm.vlm_output_schema import UserSemanticTarget, RoomLabel
 from physical_robot.models.vlm.gemma_vlm_client import OllamaVLMClient
+from physical_robot.models.vlm.prompts import (
+    ASSIGN_ROOM_LABEL,
+    EXTRACT_SEMANTIC_TARGETS,
+)
+from physical_robot.models.vlm.vlm_output_schema import RoomLabel, UserSemanticTarget
 
 
 class TestVLMClients(unittest.TestCase):
@@ -19,7 +20,9 @@ class TestVLMClients(unittest.TestCase):
         self.invalid_object_list = ['person', 'sky']
         
     def test_text_prompt_no_schema(self):
-        vlm_response = self.vlm_client.text_query("What is the room where you would cook your meals?")
+        vlm_response = self.vlm_client.text_query(
+            "What is the room where you would cook your meals?"
+        )
         self.assertIn("kitchen", vlm_response)
 
     def test_text_prompt_schema_valid_room(self):
@@ -55,7 +58,10 @@ class TestVLMClients(unittest.TestCase):
     def test_text_prompt_schema_invalid_object(self):
         vlm_response = self.vlm_client.text_query(
             EXTRACT_SEMANTIC_TARGETS.format(
-                "DKJKLSDFKJL", self.room_list, self.object_list, self.invalid_object_list
+                "DKJKLSDFKJL",
+                self.room_list,
+                self.object_list,
+                self.invalid_object_list
             ),
             UserSemanticTarget.model_json_schema()
         )
@@ -69,7 +75,9 @@ class TestVLMClients(unittest.TestCase):
     def test_image_text_prompt_no_schema(self):
         img = Image.open('test_data/vlm_test_imgs/img0.png')
         img = np.asarray(img)
-        vlm_response = self.vlm_client.image_text_query(img, "What is this an image of?")
+        vlm_response = self.vlm_client.image_text_query(
+            img, "What is this an image of?"
+        )
 
         self.assertIn("kitchen", vlm_response)
 
