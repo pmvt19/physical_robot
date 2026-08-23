@@ -1,5 +1,5 @@
 ASSIGN_ROOM_LABEL_ONLY_PROMPT = \
-f"""
+"""
 You are an image analysis expert.
 
 Identify what kind of room the inputed image depicts.
@@ -34,6 +34,8 @@ User Input: {}
 Please answer with whether it is a room or object level location and the location itself. 
 Whether it is a room or an object is known as the semantic_level and the location itself is known as the item_name.
 If you can deduce this information from the user input, mark the output as valid in the valid field.
+Please infer whether the specified target's semantic_level is a room or object using you expertise. It can only be either a
+room or an object.
 
 These are a list of valid rooms that a user can plan for: {}
 These are a list of valid objects that a user can plan for: {}
