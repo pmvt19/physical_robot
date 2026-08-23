@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from PIL import Image
 
-from physical_robot.models.vlm.gemma_vlm_client import OllamaVLMClient
+from physical_robot.models.vlm.ollama_vlm_client import OllamaVLMClient
 from physical_robot.models.vlm.prompts import (
     ASSIGN_ROOM_LABEL,
     EXTRACT_SEMANTIC_TARGETS,
