@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from physical_robot.map_builder import MapBuilder
 from physical_robot.maps import AdvancedMap, SemanticMap
 from physical_robot.models.segmentation.image_segmentation import ImageSegmenter
-from physical_robot.models.vlm.gemma_vlm_client import OllamaVLMClient
+from physical_robot.models.vlm.ollama_vlm_client import OllamaVLMClient
 from physical_robot.models.vlm.prompts import ASSIGN_ROOM_LABEL
 from physical_robot.models.vlm.vlm_output_schema import RoomLabel
 
