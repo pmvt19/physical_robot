@@ -12,6 +12,7 @@ class SemanticMapBuilder(MapBuilder):
     def __init__(self, robot, map_resolution=10.0, manual_lidar_verification=False):
         super().__init__(robot, map_resolution, manual_lidar_verification)
 
+        # Initialize Semantic Map
         self.map: SemanticMap = SemanticMap(
             map_obj=AdvancedMap(resolution=map_resolution)
         )
