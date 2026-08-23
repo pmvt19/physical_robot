@@ -1,17 +1,16 @@
 from ollama import chat
-from prompts import EXTRACT_SEMANTIC_TARGETS, ASSIGN_ROOM_LABEL_ONLY_PROMPT
-from vlm_output_schema import UserSemanticTarget
+from physical_robot.models.vlm.prompts import EXTRACT_SEMANTIC_TARGETS, ASSIGN_ROOM_LABEL_ONLY_PROMPT
+from physical_robot.models.vlm.vlm_output_schema import UserSemanticTarget
 import numpy as np
 from PIL import Image
 import io
 
 from physical_robot.models.vlm.abstract_vlm_client import AbstractVLMClient
 
-class GemmaVLMClient(AbstractVLMClient):
+class OllamaVLMClient(AbstractVLMClient):
     def __init__(self):
         self.model = 'gemma3:4b'
-
-        print("To use the GemmaVLMClient. Ensure there is a local Ollama server running with the Gemma3:4b model downloaded")
+        print("To use the OllamaVLMClient. Ensure there is a local Ollama server running with the Gemma3:4b model downloaded")
 
     def _image_text_query_schema(self, image_prompt: np.ndarray, text_prompt: str, schema: dict):
         response = chat(
@@ -62,7 +61,7 @@ class GemmaVLMClient(AbstractVLMClient):
         return response.message.content
 
 if __name__ == '__main__':
-    vlm_client = GemmaVLMClient()
+    vlm_client = OllamaVLMClient()
 
     user_input = input("Please provide where you want the robot to travel (object or room)\n")
 
