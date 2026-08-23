@@ -18,7 +18,7 @@ class ManualSimulatedVLMClient(AbstractVLMClient):
 
         user_input = input(f"What is the response you would like the VLM to give? To the following prompt and the previous image: {text_prompt}. This output must follow the following schema: {schema}")
         
-        formatted_output = self._format_to_schema(user_input)
+        formatted_output = self._format_to_schema(user_input, schema)
         return formatted_output
 
     def _image_text_query_no_schema(self, image_prompt: np.ndarray, text_prompt: str):
@@ -34,7 +34,7 @@ class ManualSimulatedVLMClient(AbstractVLMClient):
                            f"To the following prompt: {text_prompt}. "
                            f"This output must follow the following schema: {schema}")
 
-        formatted_output = self._format_to_schema(user_input)
+        formatted_output = self._format_to_schema(user_input, schema)
         return formatted_output
         
     def _text_query_no_schmea(self, text_prompt: str):
