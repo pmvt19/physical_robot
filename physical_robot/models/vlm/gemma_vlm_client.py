@@ -5,7 +5,9 @@ import numpy as np
 from PIL import Image
 import io
 
-class GemmaVLMClient():
+from physical_robot.models.vlm.abstract_vlm_client import AbstractVLMClient
+
+class GemmaVLMClient(AbstractVLMClient):
     def __init__(self):
         self.model = 'gemma3:4b'
 
@@ -51,14 +53,6 @@ class GemmaVLMClient():
         )
         return response.message.content
     
-    def image_text_query(self, image_prompt: np.ndarray, text_prompt: str, schema: dict = None):
-        if schema is not None:
-            # Query Using Schema
-            return self._image_text_query_schema(image_prompt=image_prompt, text_prompt=text_prompt, schema=schema)
-        else:
-            # Query Using No Schema
-            return self._image_text_query_no_schema(image_prompt=image_prompt, text_prompt=text_prompt)
-    
     def _text_query_schmea(self, text_prompt: str, schema: dict):
         response = chat(
             model=self.model,
@@ -81,14 +75,6 @@ class GemmaVLMClient():
                 }]
         )
         return response.message.content
-    
-    def text_query(self, text_prompt: str, schema: dict = None):
-        if schema is not None:
-            # Query Using Schema
-            return self._text_query_schmea(text_prompt=text_prompt, schema=schema)
-        else:
-            # Query Using No Schema
-            return self._text_query_no_schmea(text_prompt=text_prompt)
 
 if __name__ == '__main__':
     vlm_client = GemmaVLMClient()
@@ -99,14 +85,11 @@ if __name__ == '__main__':
                                                 ['kitchen', 'bedroom', 'office'], # Valid Rooms
                                                 ['oven', 'refridgerator', 'stove', 'desk', 'chair', 'bed'], # Valid Objects
                                                 ['person', 'wall']) # Invalid Objects
-    
-    print(text_prompt)
 
     vlm_response = vlm_client.text_query(text_prompt, UserSemanticTarget.model_json_schema())
     user_semantic_target = UserSemanticTarget.model_validate_json(vlm_response)
-    print(user_semantic_target)
 
-    img = Image.open(r"C:\Users\Praval Telagi\Pictures\kitchen.jpg")
+    img = Image.open(r"test_data\vlm_test_imgs\img4.png")
     img = np.asarray(img)
     response = vlm_client.image_text_query(img, ASSIGN_ROOM_LABEL_ONLY_PROMPT)
     print(response)
