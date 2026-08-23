@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from physical_robot.map_builder import MapBuilder
 from physical_robot.maps import AdvancedMap, SemanticMap
 from physical_robot.models.segmentation.image_segmentation import ImageSegmenter
-from physical_robot.models.vlm.gemma_vlm_client import GemmaVLMClient
+from physical_robot.models.vlm.gemma_vlm_client import OllamaVLMClient
 from physical_robot.models.vlm.prompts import ASSIGN_ROOM_LABEL
 from physical_robot.models.vlm.vlm_output_schema import RoomLabel
 
@@ -18,7 +18,7 @@ class SemanticMapBuilder(MapBuilder):
 
         # Initialize ML Clients
         self.image_segmenter = ImageSegmenter()
-        self.vlm_client = GemmaVLMClient()
+        self.vlm_client = OllamaVLMClient()
 
     def step(self, m):
         self.robot_state = self.robot.predict_state(self.robot_state, m)
