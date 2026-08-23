@@ -2,9 +2,9 @@ import numpy as np
 
 from PIL import Image
 
-from vlm_client import VLMClient
-from prompts import EXTRACT_SEMANTIC_TARGETS, ASSIGN_ROOM_LABEL
-from vlm_output_schema import UserSemanticTarget, RoomLabel
+from physical_robot.models.vlm.vlm_client import VLMClient
+from physical_robot.models.vlm.prompts import EXTRACT_SEMANTIC_TARGETS, ASSIGN_ROOM_LABEL
+from physical_robot.models.vlm.vlm_output_schema import UserSemanticTarget, RoomLabel
 
 def test_text_prompt_no_schema():
     vlm_client = VLMClient()
