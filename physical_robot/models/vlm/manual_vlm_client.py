@@ -20,8 +20,7 @@ class ManualSimulatedVLMClient(AbstractVLMClient):
         
         formatted_output = self._format_to_schema(user_input)
         return formatted_output
-        
-        
+
     def _image_text_query_no_schema(self, image_prompt: np.ndarray, text_prompt: str):
         plt.imshow(image_prompt)
         plt.title("Image Prompt for VLM Output")
