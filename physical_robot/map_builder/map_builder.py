@@ -23,14 +23,20 @@ class MapBuilder():
         self.robot_trajectory: list[np.ndarray] = []
 
     def init(self):
-        world_coords, raw_lidar_data = self.robot.read_lidar_updated(manual_verification=self.manual_lidar_verification, wait_for_updated_reading=True)
+        world_coords, _ = self.robot.read_lidar_updated(
+            manual_verification=self.manual_lidar_verification,
+            wait_for_updated_reading=True
+        )
         self.map.init_map(initial_scan=world_coords)
     
     def step(self, m):
         self.robot_state = self.robot.predict_state(self.robot_state, m)
 
         # Read Lidar
-        world_coords, raw_lidar_data = self.robot.read_lidar_updated(manual_verification=self.manual_lidar_verification, wait_for_updated_reading=True)
+        world_coords, _ = self.robot.read_lidar_updated(
+            manual_verification=self.manual_lidar_verification,
+            wait_for_updated_reading=True
+        )
 
         # Update Map with New Geometry
         self.robot_state = self.map.update(world_coords, self.robot_state)
