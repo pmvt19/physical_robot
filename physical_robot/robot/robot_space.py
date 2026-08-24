@@ -135,7 +135,6 @@ class PhysicalRobotSpace(Robot, RobotSpace):
             
     def _batch_is_valid_grid(self, states: np.ndarray):
         if self.map.needs_inflation_update:
-            self.map.inflate_obstacles()
             self.inflated_map = self.map.get_inflated_map_2d()
         # states # (N, 3) -> (x, y, theta)
         positional_states_world_coords = states[:, :2]
