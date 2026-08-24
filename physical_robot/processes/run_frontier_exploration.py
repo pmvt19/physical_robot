@@ -1,22 +1,19 @@
-from robot import Robot
-from basic_map import BasicMap
-from map import Map
-from advanced_map import AdvancedMap
-from semantic_map import SemanticMap
+from physical_robot.robot import Robot
+from physical_robot.maps import Map, AdvancedMap, SemanticMap
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import time
 import os
-from vlm_client import VLMClient
-from image_segmentation import ImageSegmenter
-from prompts import ASSIGN_ROOM_LABEL_ONLY_PROMPT, ASSIGN_ROOM_LABEL
-from vlm_output_schema import RoomLabel
+from physical_robot.models.vlm.ollama_vlm_client import OllamaVLMClient
+from physical_robot.models.segmentation.image_segmentation import ImageSegmenter
+from physical_robot.models.vlm.prompts import ASSIGN_ROOM_LABEL_ONLY_PROMPT, ASSIGN_ROOM_LABEL
+from physical_robot.models.vlm.vlm_output_schema import RoomLabel
 from sklearn.neighbors import KDTree
 from heapq import *
-from utils import create_local_mask
+from physical_robot.utils import create_local_mask
 
-from map_builder import AdvancedMapBuilder
+from physical_robot.map_builder import AdvancedMapBuilder, SemanticMapBuilder
         
 def dijkstra(start, targets, grid):
     N, M = grid.shape
@@ -103,7 +100,7 @@ def viz_map(map: AdvancedMap):
 if __name__ == "__main__":
 
     ## TODO: Will update directory structure soon
-    scene_name = 'frontier_exploration_test_more_frontiers_v4'
+    scene_name = 'semantic_map_frontier_exploration'
     map_save_dir = f'saves/scenes/{scene_name}'
 
     # Initialization
@@ -111,38 +108,40 @@ if __name__ == "__main__":
     
     scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
 
-    # Initialize Maps
+    # # Initialize Maps
+    # advanced_map = AdvancedMap()
+    # advanced_map.init_map(initial_scan=scan)
 
-    # Advanced Map
-    advanced_map = AdvancedMap()
-    advanced_map.init_map(initial_scan=scan)
-
-    advanced_map.visualize(plt.gca())
-    plt.show()
+    # advanced_map.visualize(plt.gca())
+    # plt.show()
 
     i=0
 
-    map_builder = AdvancedMapBuilder(robot=robot)
+    # map_builder = AdvancedMapBuilder(robot=robot)
+    map_builder = SemanticMapBuilder(robot=robot)
     map_builder.init()
 
     # Initialize Starting State
-    advanced_map_state = np.array([0.0, 0.0, 0.0])
+    # advanced_map_state = np.array([0.0, 0.0, 0.0])
+
+    # print(f"Advanced Map Inflation Threshold: {map_builder.get_map().current_inflation_radius}")
 
     while True:
-        advanced_map.inflate_obstacles()
-        path, frontiers = get_path_to_frontier_robust(advanced_map, advanced_map_state[:2])
+        # map_builder.get_map().inflate_obstacles()
+        # print(f"Advanced Map Inflation Threshold: {map_builder.get_map().current_inflation_radius}")
+        path, frontiers = get_path_to_frontier_robust(map_builder.get_map(), map_builder.get_robot_state()[:2])
     
-        advanced_map.visualize_points(plt.gca())
+        map_builder.get_map().visualize_points(plt.gca())
         plt.scatter(frontiers[:, 0], frontiers[:, 1])
 
-        world_coord_path = advanced_map.batch_grid_to_approx_world_coords(path)
+        world_coord_path = map_builder.get_map().batch_grid_to_approx_world_coords(path)
 
         plt.scatter(world_coord_path[:, 0], world_coord_path[:, 1])
         plt.show()
 
         short_horizon_goal = world_coord_path[min(40, len(world_coord_path)-1)]
 
-        motion_commands = robot.path_to_motion_commands([advanced_map_state, np.array([short_horizon_goal[0], short_horizon_goal[1], 0.0])])
+        motion_commands = robot.path_to_motion_commands([map_builder.get_robot_state(), np.array([short_horizon_goal[0], short_horizon_goal[1], 0.0])])
         print(f"Motion Commands: {motion_commands[:2]}")
         input("continue??") # TODO: Remove Later
         for motion_command in motion_commands[:2]:
@@ -162,12 +161,9 @@ if __name__ == "__main__":
             # advanced_map_state = advanced_map_updated_state
 
             map_builder.step(m)
-            advanced_map_state = map_builder.get_robot_state()
-            viz_map(advanced_map)
-
-            
+            viz_map(map_builder.get_map())
 
         i += 1
 
         # Save Map
-        advanced_map.save(map_save_dir, file_name_ext=f"step_{i}")
+        map_builder.get_map().save(map_save_dir, file_name_ext=f"step_{i}")
