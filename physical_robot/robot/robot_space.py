@@ -99,13 +99,11 @@ from motion_planning.utils import numpystate_distance, smooth_path
 #         return NotImplementedError # Not Important for physical robot
 
 class PhysicalRobotSpace(Robot, RobotSpace):
-    def __init__(self, map_obj):
+    def __init__(self, map_obj: Map):
         Robot.__init__(self, connection='client')
         RobotSpace.__init__(self)
 
         self.map: Map = map_obj
-
-        self.map.inflate_obstacles()
         self.inflated_map = self.map.get_inflated_map_2d()
 
         self.angular_dims_start = 2
