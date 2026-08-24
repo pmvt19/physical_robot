@@ -175,7 +175,7 @@ class Map():
         pc_coords_and_values = np.hstack((pc_coords, pc_values))
         return pc_coords_and_values
     
-    def inflate_obstacles(self, inflation_radius=210):
+    def _inflate_obstacles(self, inflation_radius=210):
         self.inflated_map = self.map.copy()
         kernel_size = int(inflation_radius // self.resolution) # Hard Coded to the radius of the robot
 
@@ -192,7 +192,7 @@ class Map():
     def get_inflated_map_2d(self, inflation_radius=210):
         assert(inflation_radius > 0)
         if self.current_inflation_radius != inflation_radius:
-            self.inflate_obstacles(inflation_radius=inflation_radius)
+            self._inflate_obstacles(inflation_radius=inflation_radius)
         return self.inflated_map
 
     def get_frontiers(self):
@@ -307,7 +307,7 @@ class Map():
 
 if __name__ == '__main__':
     mymap = Map.load_map(map_save_dir="saves/scenes/extensive_apartment")
-    mymap.inflate_obstacles()
+    mymap._inflate_obstacles() # DO NOT CALL LIKE THIS
     mymap.visualize(ax=plt.gca())
     mymap.draw_state(plt.gca(), [40.0, 0.0, 0.0])
     plt.show()

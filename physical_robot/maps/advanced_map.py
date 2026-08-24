@@ -124,7 +124,7 @@ class AdvancedMap(Map):
     def map_to_probability_map(self):
         return (self.map[:, :, OCCUPIED] + 1) / (np.sum(self.map, axis=2) + 2)
 
-    def inflate_obstacles(self, inflation_radius=210):
+    def _inflate_obstacles(self, inflation_radius=210):
 
         self.inflated_map = self.map.copy()
         kernel_size = int(inflation_radius // self.resolution) # Hard Coded to the radius of the robot
@@ -140,10 +140,9 @@ class AdvancedMap(Map):
     def get_inflated_map_2d(self, inflation_radius=210):
         assert(inflation_radius > 0)
         if self.current_inflation_radius != inflation_radius:
-            self.inflate_obstacles(inflation_radius=inflation_radius)
+            self._inflate_obstacles(inflation_radius=inflation_radius)
             self.cached_inflated_map = (self.inflated_map[:, :, OCCUPIED] + 1) / (np.sum(self.inflated_map, axis=2) + 2)
         return self.cached_inflated_map
-        # return (self.inflated_map[:, :, OCCUPIED] + 1) / (np.sum(self.inflated_map, axis=2) + 2)
 
     def get_frontier_candidates(self, do_smoothing=False):
         probablity_map = self.get_map_2d()
