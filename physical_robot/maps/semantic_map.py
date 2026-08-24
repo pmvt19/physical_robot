@@ -69,14 +69,11 @@ class SemanticMap(Map):
     def get_points_and_values(self, threshold=0.5):
         return self.geometric_map.get_points_and_values(threshold=threshold)
     
-    def inflate_obstacles(self, kernel_size=3):
-        self.geometric_map.inflate_obstacles(kernel_size=kernel_size)
-
     def validate_map_boundaries(self, grid_coords):
         return self.geometric_map.validate_map_boundaries(grid_coords)
 
-    def inflate_obstacles(self, inflation_radius=210):
-        self.geometric_map.inflate_obstacles(inflation_radius=inflation_radius)
+    def _inflate_obstacles(self, inflation_radius=210):
+        self.geometric_map._inflate_obstacles(inflation_radius=inflation_radius)
     
     def get_inflated_map_2d(self):
         return self.geometric_map.get_inflated_map_2d()
