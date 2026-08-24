@@ -187,7 +187,7 @@ class AdvancedMap(Map):
     
         
 
-    def get_frontiers(self):
+    def get_frontiers(self, show_frontiers=False):
         frontier_cells = self.get_frontier_candidates()
         # frontier_cells = median_filter(frontier_cells, size=3)
 
@@ -248,12 +248,13 @@ class AdvancedMap(Map):
             y_center = np.mean(ys).astype(int)
             cluster_centers.append((x_center, y_center, valid_id))
         cluster_centers = np.array(cluster_centers)
-
-        self.visualize_points(plt.gca())
+        
         frontier_points_world_coords = self.batch_grid_to_approx_world_coords(cluster_centers[:, :2])
-        plt.scatter(frontier_points_world_coords[:, 0], frontier_points_world_coords[:, 1])
-        plt.show()
 
+        if show_frontiers:
+            self.visualize_points(plt.gca())
+            plt.scatter(frontier_points_world_coords[:, 0], frontier_points_world_coords[:, 1])
+            plt.show()
         
         # Filter Frontiers By How Far They Are From Obstacle Points
         obstacle_points = self.get_points()
@@ -261,16 +262,16 @@ class AdvancedMap(Map):
 
         # Find the Single Nearest Neighbor
         dists, idxs = kd_tree.query(frontier_points_world_coords, k=1)
-        
 
         min_dist_threshold = 400 #mm
         valid_frontier_mask = dists.flatten() > min_dist_threshold
 
         frontier_points_world_coords = frontier_points_world_coords[valid_frontier_mask]
 
-        self.visualize_points(plt.gca())
-        plt.scatter(frontier_points_world_coords[:, 0], frontier_points_world_coords[:, 1])
-        plt.show()
+        if show_frontiers:
+            self.visualize_points(plt.gca())
+            plt.scatter(frontier_points_world_coords[:, 0], frontier_points_world_coords[:, 1])
+            plt.show()
 
         return frontier_points_world_coords
     
