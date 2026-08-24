@@ -23,11 +23,9 @@ class ParticleFilter():
 
     ### --- Initialization functions --- ###
     def initialize(self, num_particles):
-        # TODO: Implement this
         self._compute_dist_map()
         low, high = self._compute_initial_partical_range()
         self.generate_initial_particles(num_particles=num_particles, low=low, high=high)
-        # raise NotImplementedError
     
     def _compute_initial_partical_range(self):
         coords = self.map.get_points()
@@ -94,12 +92,10 @@ class ParticleFilter():
     ### --- Noise Injection Functions --- ###
 
     def _noise_injection(self, particles):
-
         mu_noise = np.array([0.0, 0.0, 0.0])
-        Q_noise = np.array([3.0, 3.0, 0.2])
+        Q_noise = np.array([10.0, 10.0, 0.5])
 
-        # noise = np.random.normal(loc=mu_noise, scale=Q_noise, size=(len(particles), 3))
-        noise = np.random.normal(loc=mu_noise, scale=np.array([10.0, 10.0, 0.5]), size=(len(particles), 3))
+        noise = np.random.normal(loc=mu_noise, scale=Q_noise, size=(len(particles), 3))
         particles[:, :3] = particles[:, :3] + noise
         return particles
     
@@ -121,10 +117,6 @@ class ParticleFilter():
         point_dists = scan_actual[:, 1] # (M,)
 
         state_headings = states[:, 2] # (N,)
-
-        ### TODO: CHECK THIS: TODO ###
-        # offset_angles = angles.reshape(-1, 1) - (np.pi/2 - state_headings.reshape(1, -1)) # (M, 1) + (1, N) = (M, N)
-        ### TODO: CHECK THIS: TODO ###
 
         offset_angles = angles.reshape(-1, 1) + (state_headings.reshape(1, -1)) # (M, 1) + (1, N) = (M, N)
 
