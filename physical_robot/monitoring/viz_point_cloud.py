@@ -1,13 +1,14 @@
-from physical_robot.robot import Robot
-
-import rerun as rr
-import numpy as np
 import time
 
-if __name__ == '__main__':
+import numpy as np
+import rerun as rr
+
+from physical_robot.robot import Robot
+
+if __name__ == "__main__":
     run_time = 300
 
-    robot = Robot(connection='client')
+    robot = Robot(connection="client")
 
     start_time = time.time()
 
@@ -15,7 +16,7 @@ if __name__ == '__main__':
 
     while True:
         coords, colors = robot.read_point_cloud()
-        rr.set_time("time", duration=time.time()-start_time)
+        rr.set_time("time", duration=time.time() - start_time)
         coords = np.copy(coords)
         coords = np.stack((coords[:, 0], coords[:, 1], coords[:, 2]), axis=1)
         rr.log("points", rr.Points3D(coords, colors=colors))
