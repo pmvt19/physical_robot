@@ -17,10 +17,8 @@ if __name__ == '__main__':
         coords, colors = robot.read_point_cloud()
         rr.set_time("time", duration=time.time()-start_time)
         coords = np.copy(coords)
-        # coords[:, 1] = 0.0  # Flatten Z axis
         coords = np.stack((coords[:, 0], coords[:, 1], coords[:, 2]), axis=1)
         rr.log("points", rr.Points3D(coords, colors=colors))
-        # rr.log("points v2", rr.Points3D([[[0.0,0.0,0.0]]], colors=[0, 255, 0], radii=10.0))
 
         if time.time() > start_time + run_time:
             break
