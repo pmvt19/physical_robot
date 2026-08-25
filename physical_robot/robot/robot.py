@@ -660,23 +660,25 @@ class Robot():
         
         logger.info(f"Final Motor Positions: {final_motor_pos}")
         return self.compute_rotation_motion(init_motor_pos, final_motor_pos)
-    
 
     def compute_linear_motion(self, init_mp, final_mp):
         logger.debug(f"Compute Linear Motion")
         init_mp = np.array(init_mp)
         final_mp = np.array(final_mp)
         logger.debug(f"Initial Motor Positions: {init_mp}")
-        logger.debug(f"Final Motor Positions: {init_mp}")
+        logger.debug(f"Final Motor Positions: {final_mp}")
 
-        diff = final_mp - init_mp
+        half_max = self.ri.controller.max_motor_position / 2
+        diff = (((final_mp - init_mp) + (half_max)) % self.ri.controller.max_motor_position) - half_max
         logger.debug(f"Motor Differentials: {diff}")
 
         revs = diff / self.ri.pulse_per_rev
+        logger.debug(f"Revs: {revs}")
 
         cir = np.pi * 66.5 # TODO: Avoid Magic Number
 
-        dists = revs * cir 
+        dists = revs * cir
+        logger.debug(f"Dists: {dists}")
         return dists
     
     def compute_rotation_motion(self, init_mp, final_mp):
@@ -684,17 +686,20 @@ class Robot():
         init_mp = np.array(init_mp)
         final_mp = np.array(final_mp)
         logger.debug(f"Initial Motor Positions: {init_mp}")
-        logger.debug(f"Final Motor Positions: {init_mp}")
+        logger.debug(f"Final Motor Positions: {final_mp}")
 
-        motor_pos_diff = final_mp - init_mp
+        half_max = self.ri.controller.max_motor_position / 2
+        motor_pos_diff = (((final_mp - init_mp) + (half_max)) % self.ri.controller.max_motor_position) - half_max
         logger.debug(f"Motor Differentials: {motor_pos_diff}")
 
         rev_diff = motor_pos_diff / self.ri.pulse_per_rev
-        # rot_diff = ri.r * rev_diff / (ri.L / 2)
+        logger.debug(f"Revs diff: {rev_diff}")
+        
         rot_diff = 2 * self.r * rev_diff / (self.L)
+        logger.debug(f"Rot diff: {rot_diff}")
 
         rad_rotated = rot_diff * (2*np.pi)
-
+        logger.debug(f"Rad Rotated: {rad_rotated}")
         return rad_rotated
 
     def command_motion_trial(self, motion_command):
