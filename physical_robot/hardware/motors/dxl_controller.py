@@ -1,14 +1,18 @@
-from dynamixel_sdk import * # Uses DYNAMIXEL SDK library
+import logging
 import time
 
-import logging
+from dynamixel_sdk import *  # Uses DYNAMIXEL SDK library
+
 from physical_robot.utils import register_logger
 
-logger = register_logger(logger_name=__name__, log_filename='dxl_controller', level=logging.INFO, std_err=False)
-
+logger = register_logger(
+    logger_name=__name__,
+    log_filename="dxl_controller",
+    level=logging.INFO,
+    std_err=False,
+)
 
 ADDR_OPERATING_MODE = 11
-
 ADDR_TORQUE_ENABLE = 64
 ADDR_GOAL_VELOCITY = 104
 ADDR_PROF_VELOCITY = 112
@@ -16,10 +20,9 @@ ADDR_GOAL_POSITION = 116
 ADDR_PRESENT_VELOCITY = 128
 ADDR_PRESENT_POSITION = 132
 
-
+# Torque Modes
 TORQUE_ENABLE = 1
 TORQUE_DISABLE = 0
-
 
 # Operating Modes
 VELOCITY_CONTROL_MODE = 1
@@ -34,8 +37,8 @@ PROTOCOL_VERSION = 2.0
 BAUDRATE = 57600
 
 
-class DynamixelController():
-    def __init__(self, device_name, motor_ids : list = []):
+class DynamixelController:
+    def __init__(self, device_name, motor_ids: list[int] = []):
         self.motor_ids = motor_ids
 
         # Initialize PortHandler and PacketHandler
@@ -67,13 +70,13 @@ class DynamixelController():
 
     def get_motor_ids(self):
         return self.motor_ids
-    
+
     def get_motor_name_from_id(self, id):
         pass
 
     def get_motor_id_from_name(self, name):
         pass
-    
+
     def get_operating_mode(self, id):
         pass
 
@@ -86,49 +89,64 @@ class DynamixelController():
             return False
         else:
             return True
-        
+
     def set_operating_mode(self, id, mode=VELOCITY_CONTROL_MODE):
-        dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler, id, ADDR_OPERATING_MODE, mode)
+        dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(
+            self.portHandler, id, ADDR_OPERATING_MODE, mode
+        )
 
         status_ok = self.check_ok(dxl_comm_result, dxl_error)
         if status_ok:
             logger.info(f"Operating Mode Set to {mode}")
 
     def set_position(self, id, position):
-        dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, id, ADDR_GOAL_POSITION, position)
-        
+        dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(
+            self.portHandler, id, ADDR_GOAL_POSITION, position
+        )
+
         status_ok = self.check_ok(dxl_comm_result, dxl_error)
         if status_ok:
             logger.info(f"Goal Position set to {position} for motor {id}")
 
     def set_profile_velocity(self, id, velocity):
-        dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, id, ADDR_PROF_VELOCITY, velocity)
+        dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(
+            self.portHandler, id, ADDR_PROF_VELOCITY, velocity
+        )
 
         status_ok = self.check_ok(dxl_comm_result, dxl_error)
         if status_ok:
             logger.info(f"Profile Velocity set to {velocity} RPM for motor {id}.")
 
     def get_velocity(self, id):
-        dxl_present_velocity, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, id, ADDR_PRESENT_VELOCITY)
-        
+        dxl_present_velocity, dxl_comm_result, dxl_error = (
+            self.packetHandler.read4ByteTxRx(
+                self.portHandler, id, ADDR_PRESENT_VELOCITY
+            )
+        )
+
         status_ok = self.check_ok(dxl_comm_result, dxl_error)
         if status_ok:
             logger.debug(f"Present Velocity for motor {id}: {dxl_present_velocity}")
             return dxl_present_velocity
 
-
     def set_velocity(self, id, velocity_rpm):
         # Example: Set goal velocity to 100 RPM (approx. 438 units)
-        goal_velocity_unit = int(velocity_rpm / 0.229) # Convert RPM to DXL units
+        goal_velocity_unit = int(velocity_rpm / 0.229)  # Convert RPM to DXL units
 
-        dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(self.portHandler, id, ADDR_GOAL_VELOCITY, goal_velocity_unit)
+        dxl_comm_result, dxl_error = self.packetHandler.write4ByteTxRx(
+            self.portHandler, id, ADDR_GOAL_VELOCITY, goal_velocity_unit
+        )
 
         status_ok = self.check_ok(dxl_comm_result, dxl_error)
         if status_ok:
             logger.info(f"Goal velocity set to {velocity_rpm} RPM for motor {id}.")
 
     def get_position(self, id):
-        dxl_present_position, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, id, ADDR_PRESENT_POSITION)
+        dxl_present_position, dxl_comm_result, dxl_error = (
+            self.packetHandler.read4ByteTxRx(
+                self.portHandler, id, ADDR_PRESENT_POSITION
+            )
+        )
 
         status_ok = self.check_ok(dxl_comm_result, dxl_error)
         if status_ok:
@@ -136,15 +154,19 @@ class DynamixelController():
         return dxl_present_position
 
     def set_torque(self, id, value=TORQUE_DISABLE):
-        dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler, id, ADDR_TORQUE_ENABLE, value)
+        dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(
+            self.portHandler, id, ADDR_TORQUE_ENABLE, value
+        )
 
         status_ok = self.check_ok(dxl_comm_result, dxl_error)
         if status_ok:
             logger.info(f"Motor {id} Torque set to {value}")
 
-    
-if __name__ == '__main__':
-    controller = DynamixelController(device_name='/dev/tty.usbserial-FTAKRMAJ', motor_ids=[1, 2])
+
+if __name__ == "__main__":
+    controller = DynamixelController(
+        device_name="/dev/tty.usbserial-FTAKRMAJ", motor_ids=[1, 2]
+    )
 
     controller.set_torque(1, TORQUE_DISABLE)
     controller.set_torque(2, TORQUE_DISABLE)
@@ -163,20 +185,3 @@ if __name__ == '__main__':
     while True:
         print(f"Position For Motor 1: {controller.get_position(1)}")
         time.sleep(0.1)
-    
-    
-
-    # speed = 15
-
-    # try: 
-    #     controller.set_velocity(1, speed)
-    #     controller.set_velocity(2, speed)
-    #     time.sleep(3)
-    # except KeyboardInterrupt:
-    #     pass
-
-    # controller.set_velocity(1, 0)
-    # controller.set_velocity(2, 0)
-
-
-    
