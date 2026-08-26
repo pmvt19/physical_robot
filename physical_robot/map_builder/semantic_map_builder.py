@@ -44,7 +44,6 @@ class SemanticMapBuilder(MapBuilder):
             ),
             RoomLabel.model_json_schema(),
         )
-
         room_label = RoomLabel.model_validate_json(room_label_response)
 
         # Get Image Segmentation
