@@ -10,8 +10,6 @@ import matplotlib
 
 from transformers import AutoImageProcessor, Mask2FormerForUniversalSegmentation
 
-# TODO: Look into using CUDA for faster inference if available
-
 class ImageSegmenter():
     def __init__(self, model="facebook/mask2former-swin-base-coco-panoptic", use_gpu=False):
         self.processor = AutoImageProcessor.from_pretrained(model)
@@ -29,7 +27,31 @@ class ImageSegmenter():
         }
         return segmentation_labels
 
-    def segment_image(self, image : np.ndarray):
+    def _filter_segmentation(self, segmented_img):
+        img_size_pixels = np.prod(segmented_img.shape)
+        unique_ids = np.unique(segmented_img)
+        filtered_segmentation = np.zeros_like(segmented_img).astype(np.uint8)
+        for obj_id in unique_ids:
+            mask = (segmented_img == obj_id).astype(np.uint8)
+    
+            num_labels, labeled_img, _, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+
+            filtered_mask = np.zeros_like(mask, dtype=np.bool)
+            for i in range(1, num_labels):
+                local_mask = labeled_img == i
+                num_pixels = np.sum(local_mask)
+
+                percent_of_img = num_pixels / img_size_pixels
+
+                print(f"Percent of Img: {percent_of_img * 100}%")
+
+                if percent_of_img >= 0.01:
+                    filtered_mask[local_mask] = True
+
+            filtered_segmentation[filtered_mask] = obj_id
+        return filtered_segmentation
+
+    def segment_image(self, image: np.ndarray, do_filtering=False):
         image = Image.fromarray(image)
         inputs = self.processor(image, return_tensors="pt")
 
@@ -39,7 +61,9 @@ class ImageSegmenter():
             outputs = self.model(**inputs)
 
         prediction = self.processor.post_process_panoptic_segmentation(outputs, target_sizes=[image.size[::-1]])[0]
-        prediction['segmentation'] = prediction['segmentation'].cpu()
+        prediction['segmentation'] = prediction['segmentation'].cpu().numpy()
+        if do_filtering:
+            prediction['segmentation'] = self._filter_segmentation(prediction['segmentation'])
         return prediction, self._get_all_segment_labels(prediction)
 
     def draw_panoptic_segmentation(self, ax, segmentation, segments_info):
