@@ -13,8 +13,8 @@ def segment_live_image_feed():
         ret, frame = cap.read()
 
         # Segment Image
-        prediction, _ = image_segmenter.segment_image(frame)
-        prediction_frame = prediction['segmentation'].numpy()
+        prediction, _ = image_segmenter.segment_image(frame, do_filtering=True)
+        prediction_frame = prediction['segmentation']
 
         cv2.imshow("Raw Frame", frame)
         cv2.imshow("Prediction", prediction_frame / prediction_frame.max())
