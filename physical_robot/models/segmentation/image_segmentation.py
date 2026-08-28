@@ -43,8 +43,6 @@ class ImageSegmenter():
 
                 percent_of_img = num_pixels / img_size_pixels
 
-                print(f"Percent of Img: {percent_of_img * 100}%")
-
                 if percent_of_img >= 0.01:
                     filtered_mask[local_mask] = True
 
