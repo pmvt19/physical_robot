@@ -63,12 +63,12 @@ def start_camera():
 
             # Publish RGB Image Data
             redis_client.set('rgb_img', rgb_img.flatten().tobytes())
-            redis_client.set('rgb_img_shape', np.array(rgb_img.shape).tobytes()) # TODO: FIX
+            redis_client.set('rgb_img_shape', np.array(rgb_img.shape).tobytes())
             redis_client.set('rgb_img_type', rgb_img.dtype.str)
 
             # Publish Stereo Image Data
             redis_client.set('stereo_img', stereo_img.tobytes())
-            redis_client.set('stereo_img_shape', np.array(stereo_img.shape).tobytes()) # TODO: FIX
+            redis_client.set('stereo_img_shape', np.array(stereo_img.shape).tobytes())
             redis_client.set('rgb_img_type', stereo_img.dtype.str)
 
             # Publish Time Images Were Grabbed
