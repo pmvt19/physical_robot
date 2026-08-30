@@ -7,14 +7,14 @@ import redis
 from physical_robot.config import config
 
 def start_lidar():
-
     # Connect to Redis
     redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
+    # Initialize Lidar Client
     lidar = RPLidar(config['physical']['lidar_port'], baudrate=460800)
     time.sleep(5)
     lidar.clean_input()
-
+    
     info = lidar.get_info()
     print(info)
 
@@ -50,6 +50,6 @@ def start_lidar():
     lidar.stop_motor()
     lidar.disconnect()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start_lidar()
     
