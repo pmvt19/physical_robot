@@ -67,7 +67,7 @@ def get_path_to_frontier_robust(map: AdvancedMap, robot_state: np.ndarray):
     assert robot_state.shape[0] == 2
     print(f"Getting path to frontier with these args: {robot_state}")
 
-    map_2d = map.get_inflated_map_2d()
+    map_2d = map.get_inflated_map_2d(inflation_radius=250)
 
     grid_robot_state = map.world_to_grid_coords(robot_state[:2])
 
@@ -85,7 +85,7 @@ def get_path_to_frontier_robust(map: AdvancedMap, robot_state: np.ndarray):
     
     if path is not None:
         path = np.array(path)
-        print(f"Path Returned: {path}")
+        # print(f"Path Returned: {path}")
         return path, frontiers
     else:
         return None, frontiers
@@ -98,22 +98,13 @@ def viz_map(map: AdvancedMap):
 
 
 if __name__ == "__main__":
-
-    ## TODO: Will update directory structure soon
-    scene_name = 'semantic_map_frontier_exploration'
+    scene_name = 'semantic_map_frontier_exploration_v2'
     map_save_dir = f'saves/scenes/{scene_name}'
 
     # Initialization
     robot = Robot(connection='client')
     
     scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
-
-    # # Initialize Maps
-    # advanced_map = AdvancedMap()
-    # advanced_map.init_map(initial_scan=scan)
-
-    # advanced_map.visualize(plt.gca())
-    # plt.show()
 
     i=0
 
@@ -127,23 +118,21 @@ if __name__ == "__main__":
     # print(f"Advanced Map Inflation Threshold: {map_builder.get_map().current_inflation_radius}")
 
     while True:
-        # map_builder.get_map().inflate_obstacles()
-        # print(f"Advanced Map Inflation Threshold: {map_builder.get_map().current_inflation_radius}")
         path, frontiers = get_path_to_frontier_robust(map_builder.get_map(), map_builder.get_robot_state()[:2])
     
-        map_builder.get_map().visualize_points(plt.gca())
-        plt.scatter(frontiers[:, 0], frontiers[:, 1])
+        # map_builder.get_map().visualize_points(plt.gca())
+        # plt.scatter(frontiers[:, 0], frontiers[:, 1])
 
+        print(f"Using this path: {path}")
         world_coord_path = map_builder.get_map().batch_grid_to_approx_world_coords(path)
 
-        plt.scatter(world_coord_path[:, 0], world_coord_path[:, 1])
-        plt.show()
+        # plt.scatter(world_coord_path[:, 0], world_coord_path[:, 1])
+        # plt.show()
 
         short_horizon_goal = world_coord_path[min(40, len(world_coord_path)-1)]
 
         motion_commands = robot.path_to_motion_commands([map_builder.get_robot_state(), np.array([short_horizon_goal[0], short_horizon_goal[1], 0.0])])
         print(f"Motion Commands: {motion_commands[:2]}")
-        input("continue??") # TODO: Remove Later
         for motion_command in motion_commands[:2]:
             motion_type, motion_dist = motion_command
             print(f"Running Motion Command: {motion_command}")
@@ -153,12 +142,6 @@ if __name__ == "__main__":
 
             m = robot.command_motion_trial(motion_command)
             print(f"Returned m: {m}")
-
-            # # TODO: Use MapBuilders Here
-            # advanced_map_predicted_state = robot.predict_state(advanced_map_state, m)
-            # scan, _ = robot.read_lidar_updated(manual_verification=True, wait_for_updated_reading=True)
-            # advanced_map_updated_state = advanced_map.update(scan, advanced_map_predicted_state)
-            # advanced_map_state = advanced_map_updated_state
 
             map_builder.step(m)
             viz_map(map_builder.get_map())
