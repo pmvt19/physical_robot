@@ -1,9 +1,9 @@
-from robot import Robot
-from map import Map
+from physical_robot.robot import Robot
+from physical_robot.maps import Map
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-from particle_filter import ParticleFilter
+from physical_robot.algorithms.particle_filter import ParticleFilter
 import time
 
 
@@ -15,7 +15,9 @@ if __name__ == "__main__":
     time.sleep(1.0)
     
     # Load Premade Map
-    map : Map = pickle.load(open("saves/scenes/apartment/map/map_object.pickle", "rb")) # Map of Apartment
+    # map : Map = pickle.load(open("saves/scenes/apartment/map/map_object.pickle", "rb")) # Map of Apartment
+
+    map: Map = pickle.load(open("saves/scenes/semantic_map_frontier_exploration_v3/semantic_map/semantic_map_object_step_13.pickle", "rb")) # Map of Apartment
 
     # Create Particle Filter Object
     pf = ParticleFilter(map_obj=map)
