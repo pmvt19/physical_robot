@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from physical_robot.robot import Robot
 from physical_robot.maps import Map, AdvancedMap, SemanticMap
 from physical_robot.robot.robot_space import PhysicalRobotSpace
-from physical_robot.models.vlm.vlm_client import VLMClient
+from physical_robot.models.vlm.ollama_vlm_client import OllamaVLMClient
 from physical_robot.models.vlm.vlm_output_schema import UserSemanticTarget, UserPoseTarget
 from physical_robot.models.vlm.prompts import EXTRACT_SEMANTIC_TARGETS, EXTRACT_POSE_TARGET
 from heapq import *
@@ -15,7 +15,7 @@ class TaskPlanner():
     def __init__(self, robot: Robot, map: Map):
         self.robot: Robot = robot
         self.map: Map = map
-        self.vlm_client = VLMClient()
+        self.vlm_client = OllamaVLMClient()
         self.robot_space: PhysicalRobotSpace = PhysicalRobotSpace(map_obj=self.map)
         
 
@@ -126,16 +126,15 @@ class FrontierTaskPlanner(TaskPlanner):
 class SemanticTaskPlanner(TaskPlanner):
     def __init__(self, robot: Robot, semantic_map: SemanticMap):
         assert (isinstance(semantic_map, SemanticMap)), "SemanticTaskPlanner Requires a Semantic Map"
-        super().__init__(self, robot=robot, map=semantic_map)
+        super().__init__(robot=robot, map=semantic_map)
         self.map: SemanticMap = semantic_map
     
     def get_target_pose_from_semantics(self,
                                         layer: str,
                                         item: str,
                                         target_theta: float = 0.0):
-
         # Filter Semantics to only the layer of interest: room or object
-        layer_semantics = self.map.flood_filled_map[:, self.map.layer_name_to_idx[layer]]
+        layer_semantics = self.map.flood_filled_map[:, :, self.map.layer_name_to_idx[layer]]
 
         # Get Item Id of item
         item_id = -1
@@ -151,11 +150,13 @@ class SemanticTaskPlanner(TaskPlanner):
 
         # Get Vertices Corresponding to Specified Item
         # selected_item_vertices = vertices[selected_item_mask] #TODO: DELETE THIS IF NEXT LINE IS GOOD
-        selected_item_vertices_grid_coords = np.where(selected_item_mask == True) # TODO: CHECK THIS
+        selected_item_vertices_grid_coords_xs,  selected_item_vertices_grid_coords_ys = np.where(selected_item_mask == True) # TODO: CHECK THIS
+        # print(selected_item_vertices_grid_coords)
 
         # Randomly Choose a Vertex from the list of remaining options
-        target_pos_idx = np.random.choice(len(selected_item_vertices_grid_coords))
-        target_pos_grid_coords = selected_item_vertices_grid_coords[target_pos_idx]
+        target_pos_idx = np.random.choice(len(selected_item_vertices_grid_coords_xs))
+        target_pos_grid_coords = (selected_item_vertices_grid_coords_xs[target_pos_idx], selected_item_vertices_grid_coords_ys[target_pos_idx])
+        # print(target_pos_idx, target_pos_grid_coords, len(selected_item_vertices_grid_coords))
         target_pos = self.map.grid_to_approx_world_coords(target_pos_grid_coords)
 
         # Create Robot State
