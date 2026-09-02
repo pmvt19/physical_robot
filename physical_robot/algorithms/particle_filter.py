@@ -50,7 +50,7 @@ class ParticleFilter():
     
     def generate_initial_particles(self, num_particles, low=None, high=None):
         if low is None or high is None:
-            low = np.array([-2000, -2000, 0])
+            low = np.array([-2000, -2000, 0]) # TODO: Convert to configurable constants in a file
             high = np.array([3500, 3500, 2*np.pi])
             print(f"Warning: Particle ranges not set using low: {low}, high: {high}") # TODO: Convert to LOG Statement
         
