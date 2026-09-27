@@ -17,7 +17,11 @@ class ImageSegmenter():
         self.device = "cpu"
 
         if use_gpu:
-            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+            if torch.cuda.is_available():
+                self.device = "cuda"
+            elif torch.backends.mps.is_available():
+                self.device = "mps"
+
         print(f"Using Device: {self.device}")
         self.model = self.model.to(self.device)
 
