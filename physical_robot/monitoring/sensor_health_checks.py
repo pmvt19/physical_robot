@@ -39,7 +39,15 @@ class SensorHealthMonitoring:
         self.lidar_previous_timestamp = sensor_time
 
     def get_camera_health(self):
-        pass
+        # TODO: Implement _get_single_camera_reading()
+        # This way we can standardize how sensors are read throughout the robot code
+        sensor_time = self.robot._get_single_lidar_reading()
+
+        # if self.lidar_previous_timestamp:
+        #     latency = sensor_time - self.lidar_previous_timestamp
+        #     self.lidar_latencies.append(latency)
+
+        # self.lidar_previous_timestamp = sensor_time
 
     def visualize_latencies(self):
         # TODO: Visualize with Rerun
