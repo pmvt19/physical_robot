@@ -16,6 +16,7 @@ def segment_live_image_feed():
         prediction, _ = image_segmenter.segment_image(frame, do_filtering=True)
         prediction_frame = prediction['segmentation']
 
+        # Display Raw and Segmented Images
         cv2.imshow("Raw Frame", frame)
         cv2.imshow("Prediction", prediction_frame / prediction_frame.max())
 
