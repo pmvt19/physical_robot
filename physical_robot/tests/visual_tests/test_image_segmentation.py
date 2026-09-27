@@ -6,7 +6,7 @@ def segment_live_image_feed():
 
     cap = cv2.VideoCapture(0)
 
-    image_segmenter = ImageSegmenter()
+    image_segmenter = ImageSegmenter(use_gpu=True)
 
     while True:
         # Read Frame from Camera
