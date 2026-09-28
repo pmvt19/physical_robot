@@ -48,5 +48,9 @@ The internal implementation of this map uses either a Map or AdvancedMap to stor
 
 <!-- Example of Raw Semantic Information (Unfloodfilled) and FloodFilled Map-->
 
+Semantic information is not mapped for every single grid cell in the map. To assign a semantic label to each open grid cell, the semantic map *flood fills* the unlabeled grid cells. For each unlabeled unoccupied grid cell, flood filling assigns the same label as closest labeled grid cell. 
+
+Closest can be measured in 2 ways: BFS or Nearest Neighbors. BFS flood filling respects known obstacles in the map, meaning it finds the shortest collision free path between a labeled and an unlabeled cell. 
+
 ## Basic Map (Deprecated)?
 Why even write this section
