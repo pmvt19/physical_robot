@@ -1,10 +1,20 @@
 import time
+import logging
 import numpy as np
 from rplidar import RPLidar
 
 import redis
 
 from physical_robot.config import config
+
+from utils import register_logger
+
+logger = register_logger(
+    logger_name=__name__,
+    log_filename="lidar_runner",
+    level=logging.INFO,
+    std_err=False,
+)
 
 def start_lidar():
     # Connect to Redis
@@ -23,6 +33,7 @@ def start_lidar():
 
     try:
         for i, scan in enumerate(lidar.iter_scans()):
+            st = time.time()
             
             angles = []
             dists = []
@@ -38,6 +49,12 @@ def start_lidar():
             lidar_output = np.stack((angles, dist), axis=1)
             redis_client.set('lidar_data', lidar_output.tobytes())
             redis_client.set('time', time.time())
+
+            et = time.time()
+
+            frame_time = et - st
+            fps = 1 / frame_time
+            logger.info(f"FPS: {fps}")
 
     except KeyboardInterrupt:
         print("\nCtrl+C detected. Performing cleanup...")
