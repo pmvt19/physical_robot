@@ -13,6 +13,11 @@ As this map is built without knowning the full extent of the environment, it is 
 
 ### Inflate Obstacles
 
+A single point on the lidar reading only updates the map obstalces for a single grid cell, which is geometrically where the obstacle is. This is generally fine if our goal was to only map the room geometrically, however motion planning in this map could be quite risky since grid cells close to obstacles are still marked as completely free.
+
+The Inflate Obstacles function expands the occupied cells in the map to create a buffer between the free cells and occupied cells.
+
+<!-- Example Image of Inflated Obstacle Cells -->
 
 ## Advanced Map
 
