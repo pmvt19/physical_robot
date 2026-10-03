@@ -1,5 +1,6 @@
 # SunoBot Maps
 
+
 ## Map
 
 Raw Map Dimensionality: `(X, Y)`
