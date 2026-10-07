@@ -61,7 +61,5 @@ Semantic information is not mapped for every single grid cell in the map. To ass
 
 Closest can be measured in 2 ways: BFS or Nearest Neighbors. BFS flood filling respects known obstacles in the map, meaning it finds the shortest collision free path between a labeled and an unlabeled cell. Nearest Neighbor flood filling labels an unlabeled cell with the label of the closest labeled cell using euclidean distance. This means that if a wall is labeled a 'kitchen', then it may label the other side of the wall kitchen as well if that side is open and unlabeled.
 
-
-
-## Basic Map (Deprecated)?
-Why even write this section
+# TODOS: 
+Map apartment with all 3 maps
