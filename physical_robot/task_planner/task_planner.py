@@ -123,6 +123,13 @@ class FrontierTaskPlanner(TaskPlanner):
     def get_path_to_target(self):
         return self.path_to_target
 
+class HILFronterTaskPlanner(FrontierTaskPlanner):
+    def __init__(self):
+        super().__init__()
+
+    def get_target_pose(self, target_theta: float = 0.0):
+        pass
+
 class SemanticTaskPlanner(TaskPlanner):
     def __init__(self, robot: Robot, semantic_map: SemanticMap):
         assert (isinstance(semantic_map, SemanticMap)), "SemanticTaskPlanner Requires a Semantic Map"
