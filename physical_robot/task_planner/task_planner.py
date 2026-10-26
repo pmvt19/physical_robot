@@ -128,7 +128,8 @@ class HILFronterTaskPlanner(FrontierTaskPlanner):
         super().__init__()
 
     def get_target_pose(self, target_theta: float = 0.0):
-        pass
+        # Should be able to click the map
+        return None
 
 class SemanticTaskPlanner(TaskPlanner):
     def __init__(self, robot: Robot, semantic_map: SemanticMap):
