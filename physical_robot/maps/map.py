@@ -269,6 +269,7 @@ class Map():
 
         return new_map
 
+     # TODO: Annotate Types
     def draw_state(self, ax, state):
         x, y, theta = state
         x, y = x / self.resolution + self.mx, y / self.resolution + self.my
@@ -286,7 +287,8 @@ class Map():
     ### --- Saving Map Functions --- ###
     @classmethod
     def get_save_dir(cls, map_save_dir):
-        save_path = os.path.join(map_save_dir, cls.map_type_name)
+        # Replace "\\" with "/" for better compability with Windows
+        save_path = os.path.join(map_save_dir, cls.map_type_name).replace("\\", "/")
         os.makedirs(save_path, exist_ok=True)
         return save_path
     
