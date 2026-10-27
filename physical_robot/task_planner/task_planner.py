@@ -43,7 +43,7 @@ class TaskPlanner():
 class FrontierTaskPlanner(TaskPlanner):
     def __init__(self, robot: Robot, advanced_map: AdvancedMap):
         assert (isinstance(advanced_map, AdvancedMap)), "FrontierTaskPlanner Requires an Advanced Map"
-        super().__init__(self, robot, map=advanced_map)
+        super().__init__(robot, map=advanced_map)
         self.map: AdvancedMap = advanced_map
 
     def set_starting_pose(self, start: np.ndarray):
@@ -124,26 +124,31 @@ class FrontierTaskPlanner(TaskPlanner):
         return self.path_to_target
 
 class HILFronterTaskPlanner(FrontierTaskPlanner):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, robot: Robot, map: Map):
+        super().__init__(robot, map)
 
-    def get_target_pose(self, target_theta: float = 0.0):
-        # 1. Create your plot
-        # TODO: TEST CODE - REMOVE
+    def get_target_pose_from_user(self, target_theta: float = 0.0):
         fig, ax = plt.subplots()
-        ax.plot(np.random.rand(10))
+        self.map.visualize_points(ax)
 
-        # 2. Define the callback function (what happens when clicked)
+        x_coord = None
+        y_coord = None
+
         def onclick(event):
+            nonlocal x_coord, y_coord
             # Check if the click happened inside the axes boundaries
             if event.inaxes is not None:
-                print(f"Data Coords: x = {event.xdata:.2f}, y = {event.ydata:.2f}")
-                print(f"Pixel Coords: x = {event.x}, y = {event.y}")
-                print(f"Button pressed: {event.button}")
-                print(f"Double click? {'Yes' if event.dblclick else 'No'}\n")
+                if event.button == 1:
+                    x_coord = event.xdata
+                    y_coord = event.ydata
+                    print(f"Currently Chosen Frontier Coordinate: ({x_coord}, {y_coord}, {target_theta})")
 
-        # 3. Connect the click event to your function
         cid = fig.canvas.mpl_connect('button_press_event', onclick)
+        plt.show()
+
+        # TODO: Validate Selection
+
+        return self.robot_space.make_state(np.array([x_coord, y_coord, target_theta]))
         
 
 class SemanticTaskPlanner(TaskPlanner):
@@ -208,3 +213,9 @@ class SemanticTaskPlanner(TaskPlanner):
     def get_target_pose(self):
         semantic_layer, item = self.get_semantic_target_from_user()
         return self.get_target_pose_from_semantics(semantic_layer.lower(), item.lower())
+
+if __name__ == "__main__":
+    robot = Robot(connection="simulated")
+    map = AdvancedMap.load_map("saves/scenes/advanced_map_frontier_exploration", "step_20")
+    task_planner = HILFronterTaskPlanner(robot, map)
+    print(task_planner.get_target_pose_from_user().value)
