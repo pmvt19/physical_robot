@@ -107,11 +107,14 @@ class FrontierTaskPlanner(TaskPlanner):
         local_circle_mask = create_local_mask(map_2d.shape, grid_robot_state, grid_radius)
         map_2d[local_circle_mask] = 0 # TODO: Make a copy??
 
-        frontiers = self.map.get_frontiers()
+        frontiers = self.map.get_frontiers(show_frontiers=True)
         grid_frontier_targets = self.map.batch_world_to_grid_coords(frontiers)
         set_of_grid_frontier_targets = set([(i,j) for i,j in grid_frontier_targets])
-
-        self.path_to_target = self.dijkstra(grid_robot_state, set_of_grid_frontier_targets, map_2d)
+        self.path_to_target = None
+        
+        # Skip finding a path if there are no more natural frontiers
+        if len(set_of_grid_frontier_targets) > 0:
+            self.path_to_target = self.dijkstra(set_of_grid_frontier_targets, map_2d)
 
         if self.path_to_target is not None:
             frontier_goal_state_grid_coords = self.path_to_target[-1]
@@ -226,6 +229,8 @@ class SemanticTaskPlanner(TaskPlanner):
 
 if __name__ == "__main__":
     robot = Robot(connection="simulated")
-    map = AdvancedMap.load_map("saves/scenes/advanced_map_frontier_exploration", "step_20")
+    map = AdvancedMap.load_map("saves/scenes/advanced_map_frontier_exploration", "step_79")
     task_planner = HILFrontierTaskPlanner(robot, map)
-    print(task_planner.get_target_pose_from_user().value)
+    # print(task_planner.get_target_pose_from_user().value)
+    task_planner.set_starting_pose(np.array([0.0, 0.0, 0.0]))
+    print(task_planner.get_target_pose().value)
