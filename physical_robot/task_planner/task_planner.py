@@ -128,8 +128,23 @@ class HILFronterTaskPlanner(FrontierTaskPlanner):
         super().__init__()
 
     def get_target_pose(self, target_theta: float = 0.0):
-        # Should be able to click the map
-        return None
+        # 1. Create your plot
+        # TODO: TEST CODE - REMOVE
+        fig, ax = plt.subplots()
+        ax.plot(np.random.rand(10))
+
+        # 2. Define the callback function (what happens when clicked)
+        def onclick(event):
+            # Check if the click happened inside the axes boundaries
+            if event.inaxes is not None:
+                print(f"Data Coords: x = {event.xdata:.2f}, y = {event.ydata:.2f}")
+                print(f"Pixel Coords: x = {event.x}, y = {event.y}")
+                print(f"Button pressed: {event.button}")
+                print(f"Double click? {'Yes' if event.dblclick else 'No'}\n")
+
+        # 3. Connect the click event to your function
+        cid = fig.canvas.mpl_connect('button_press_event', onclick)
+        
 
 class SemanticTaskPlanner(TaskPlanner):
     def __init__(self, robot: Robot, semantic_map: SemanticMap):
