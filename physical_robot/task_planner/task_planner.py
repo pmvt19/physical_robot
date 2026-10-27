@@ -159,34 +159,10 @@ class HILFrontierTaskPlanner(FrontierTaskPlanner):
     def __init__(self, robot: Robot, map: Map):
         super().__init__(robot, map)
 
-    def get_target_pose_from_user(self, target_theta: float = 0.0):
-        fig, ax = plt.subplots()
-        self.map.visualize_points(ax)
-
-        x_coord = None
-        y_coord = None
-
-        def onclick(event):
-            nonlocal x_coord, y_coord
-            # Check if the click happened inside the axes boundaries
-            if event.inaxes is not None:
-                if event.button == 1:
-                    x_coord = event.xdata
-                    y_coord = event.ydata
-                    print(f"Currently Chosen Frontier Coordinate: ({x_coord}, {y_coord}, {target_theta})")
-
-        cid = fig.canvas.mpl_connect('button_press_event', onclick)
-        plt.show()
-
-        if x_coord and y_coord:
-            return self.robot_space.make_state(np.array([x_coord, y_coord, target_theta]))
-        else:
-            return None
-
     def get_target_pose(self, target_theta: float = 0):
         target_pose = self.get_target_pose_from_frontiers()
         if target_pose is None:
-            target_pose = self.get_target_pose_from_user()
+            target_pose = self.get_target_pose_from_user_via_map(target_theta=target_theta)
         return target_pose
     
 
