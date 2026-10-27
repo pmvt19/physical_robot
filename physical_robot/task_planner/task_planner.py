@@ -126,7 +126,7 @@ class FrontierTaskPlanner(TaskPlanner):
     def get_path_to_target(self):
         return self.path_to_target
 
-class HILFronterTaskPlanner(FrontierTaskPlanner):
+class HILFrontierTaskPlanner(FrontierTaskPlanner):
     def __init__(self, robot: Robot, map: Map):
         super().__init__(robot, map)
 
@@ -227,5 +227,5 @@ class SemanticTaskPlanner(TaskPlanner):
 if __name__ == "__main__":
     robot = Robot(connection="simulated")
     map = AdvancedMap.load_map("saves/scenes/advanced_map_frontier_exploration", "step_20")
-    task_planner = HILFronterTaskPlanner(robot, map)
+    task_planner = HILFrontierTaskPlanner(robot, map)
     print(task_planner.get_target_pose_from_user().value)
