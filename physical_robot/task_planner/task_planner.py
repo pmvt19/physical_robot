@@ -96,7 +96,7 @@ class FrontierTaskPlanner(TaskPlanner):
         else:
             return None
     
-    def get_target_pose(self, target_theta: float = 0.0):
+    def get_target_pose_from_frontiers(self, target_theta: float = 0.0):
         map_2d = self.map.get_inflated_map_2d()
 
         grid_robot_state = self.map.world_to_grid_coords(self.start[:2])
@@ -118,8 +118,11 @@ class FrontierTaskPlanner(TaskPlanner):
             frontier_goal_state = self.map.grid_to_approx_world_coords(frontier_goal_state_grid_coords)
             return self.robot_space.make_state(np.array([frontier_goal_state[0], frontier_goal_state[1], target_theta]))
         else:
-            return None 
-    
+            return None
+
+    def get_target_pose(self, target_theta: float = 0):
+        return self.get_target_pose_from_frontiers(target_theta)
+
     def get_path_to_target(self):
         return self.path_to_target
 
@@ -146,10 +149,17 @@ class HILFronterTaskPlanner(FrontierTaskPlanner):
         cid = fig.canvas.mpl_connect('button_press_event', onclick)
         plt.show()
 
-        # TODO: Validate Selection
+        if x_coord and y_coord:
+            return self.robot_space.make_state(np.array([x_coord, y_coord, target_theta]))
+        else:
+            return None
 
-        return self.robot_space.make_state(np.array([x_coord, y_coord, target_theta]))
-        
+    def get_target_pose(self, target_theta: float = 0):
+        target_pose = self.get_target_pose_from_frontiers()
+        if target_pose is None:
+            target_pose = self.get_target_pose_from_user()
+        return target_pose
+    
 
 class SemanticTaskPlanner(TaskPlanner):
     def __init__(self, robot: Robot, semantic_map: SemanticMap):
