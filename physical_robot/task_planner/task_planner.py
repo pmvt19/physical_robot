@@ -23,12 +23,12 @@ class TaskPlanner():
         x_range, y_range = self.map.get_map_range()
         while True:
             user_input = input("Please provide the X and Y target coordinates")
-            vlm_response = self.vlm_client.text_query(EXTRACT_POSE_TARGET.format(user_input,
-                                                                                 x_range[0],
-                                                                                 x_range[1],
-                                                                                 y_range[0],
-                                                                                 y_range[1]),
-                                                                                UserPoseTarget.model_json_schema())
+            vlm_response = self.vlm_client.text_query(
+                EXTRACT_POSE_TARGET.format(
+                    user_input, x_range[0], x_range[1], y_range[0], y_range[1]
+                ),
+                UserPoseTarget.model_json_schema()
+            )
             user_pose_target = UserPoseTarget.model_validate_json(vlm_response)
 
             if user_pose_target.valid:
