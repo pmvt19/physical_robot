@@ -17,9 +17,32 @@ class TaskPlanner():
         self.map: Map = map
         self.vlm_client = OllamaVLMClient()
         self.robot_space: PhysicalRobotSpace = PhysicalRobotSpace(map_obj=self.map)
-        
 
-    def get_target_pose(self, target_theta: float = 0.0):
+    def get_target_pose_from_user_via_map(self, target_theta: float = 0.0):
+        fig, ax = plt.subplots()
+        self.map.visualize_points(ax)
+
+        x_coord = None
+        y_coord = None
+
+        def onclick(event):
+            nonlocal x_coord, y_coord
+            # Check if the click happened inside the axes boundaries
+            if event.inaxes is not None:
+                if event.button == 1:
+                    x_coord = event.xdata
+                    y_coord = event.ydata
+                    print(f"Currently Chosen Frontier Coordinate: ({x_coord}, {y_coord}, {target_theta})")
+
+        cid = fig.canvas.mpl_connect('button_press_event', onclick)
+        plt.show()
+
+        if x_coord and y_coord:
+            return self.robot_space.make_state(np.array([x_coord, y_coord, target_theta]))
+        else:
+            return None
+
+    def get_target_pose_from_user_via_console(self, target_theta: float = 0.0):
         x_range, y_range = self.map.get_map_range()
         while True:
             user_input = input("Please provide the X and Y target coordinates")
@@ -39,6 +62,9 @@ class TaskPlanner():
         target = self.robot_space.make_state(np.array([user_pose_target.x, user_pose_target.y, user_pose_target.theta]))
         print(f"Assigned Target State: {np.round(target.value, 2)}")
         return target
+
+    def get_target_pose(self, target_theta: float = 0.0):
+        return self.get_target_pose_from_user_via_console(target_theta)
 
 class FrontierTaskPlanner(TaskPlanner):
     def __init__(self, robot: Robot, advanced_map: AdvancedMap):
