@@ -1,5 +1,6 @@
 # MapBuilders
 
+
 The `MapBuilder` classes provide an easy to use interface for building maps of an environment. The SunoBot code provides 3 variants of MapBuilders: `MapBuilder`, `AdvancedMapBuilder`, and `SemanticMapBuilder` classes. Intuitively, these variants build a `Map`, `AdvancedMap`, or `SemanticMap` respectively.
 
 # MapBuilder Class
